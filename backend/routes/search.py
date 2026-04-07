@@ -5,15 +5,24 @@ from fastapi import APIRouter, UploadFile, File, Depends, HTTPException, Query
 from fastapi.responses import Response
 from sqlalchemy.orm import Session
 from sqlalchemy import text
-from typing import Optional
+from typing import Optional, Tuple
 import base64
 import io
 import math
+from collections import Counter, defaultdict
 
 import numpy as np
 
 from db import get_db
-from features import parse_dxf_bytes, extract_features, extract_stats, generate_jpg_preview_from_bytes
+from features import (
+    parse_dxf_bytes,
+    extract_features,
+    extract_stats,
+    generate_jpg_preview_from_bytes,
+    _dwg_to_dxf_bytes,
+    _is_binary_dwg,
+    _extract_from_doc,
+)
 from middleware.tenant import get_current_tenant, apply_tenant_schema
 from clip_encoder import extract_clip_vector, extract_clip_vector_from_bytes
 
@@ -134,6 +143,466 @@ def _geometry_guard(query_stats: dict, row) -> float:
         guard *= 0.8
 
     return float(max(0.0, min(1.0, guard)))
+
+
+def _safe_round(value, digits: int = 6):
+    try:
+        v = float(value)
+    except Exception:
+        return None
+    if not math.isfinite(v):
+        return None
+    return round(v, digits)
+
+
+def _json_safe(value):
+    if isinstance(value, dict):
+        return {str(k): _json_safe(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_json_safe(v) for v in value]
+    if isinstance(value, np.generic):
+        return _json_safe(value.item())
+    if isinstance(value, float):
+        if not math.isfinite(value):
+            return None
+        return float(round(value, 6))
+    return value
+
+
+def _dwg_version_code(content: bytes) -> Optional[str]:
+    if not content or len(content) < 6:
+        return None
+    if content[:2] != b"AC":
+        return None
+    try:
+        return content[:6].decode("ascii", errors="ignore")
+    except Exception:
+        return None
+
+
+def _dwg_version_label(code: Optional[str]) -> Optional[str]:
+    if not code:
+        return None
+    mapping = {
+        "AC1009": "AutoCAD R12",
+        "AC1012": "AutoCAD R13",
+        "AC1014": "AutoCAD R14",
+        "AC1015": "AutoCAD 2000",
+        "AC1018": "AutoCAD 2004",
+        "AC1021": "AutoCAD 2007",
+        "AC1024": "AutoCAD 2010",
+        "AC1027": "AutoCAD 2013",
+        "AC1032": "AutoCAD 2018+",
+    }
+    return mapping.get(code)
+
+
+def _insunits_label(code) -> Optional[str]:
+    if code is None:
+        return None
+    try:
+        c = int(code)
+    except Exception:
+        return str(code)
+    units = {
+        0: "Unitless",
+        1: "Inches",
+        2: "Feet",
+        3: "Miles",
+        4: "Millimeters",
+        5: "Centimeters",
+        6: "Meters",
+        7: "Kilometers",
+        8: "Microinches",
+        9: "Mils",
+        10: "Yards",
+        11: "Angstroms",
+        12: "Nanometers",
+        13: "Microns",
+        14: "Decimeters",
+        15: "Decameters",
+        16: "Hectometers",
+        17: "Gigameters",
+        18: "Astronomical Units",
+        19: "Light Years",
+        20: "Parsecs",
+    }
+    return units.get(c, f"Code {c}")
+
+
+def _arc_endpoints(cx: float, cy: float, r: float, start_deg: float, end_deg: float) -> Tuple[tuple, tuple]:
+    s = math.radians(float(start_deg))
+    e = math.radians(float(end_deg))
+    return (
+        (cx + r * math.cos(s), cy + r * math.sin(s)),
+        (cx + r * math.cos(e), cy + r * math.sin(e)),
+    )
+
+
+def _arc_sweep_rad(start_deg: float, end_deg: float) -> float:
+    s = math.radians(float(start_deg))
+    e = math.radians(float(end_deg))
+    while e <= s:
+        e += 2 * math.pi
+    return e - s
+
+
+def _point_xy(value) -> Optional[tuple]:
+    if isinstance(value, (list, tuple)) and len(value) >= 2:
+        try:
+            return float(value[0]), float(value[1])
+        except Exception:
+            return None
+    x = getattr(value, "x", None)
+    y = getattr(value, "y", None)
+    if x is None or y is None:
+        return None
+    try:
+        return float(x), float(y)
+    except Exception:
+        return None
+
+
+def _poly_area_abs(points: list) -> float:
+    if len(points) < 3:
+        return 0.0
+    area = 0.0
+    for i in range(len(points)):
+        x1, y1 = points[i]
+        x2, y2 = points[(i + 1) % len(points)]
+        area += x1 * y2 - x2 * y1
+    return abs(0.5 * area)
+
+
+def _build_segment_metrics(entities: list) -> dict:
+    segments = []
+    degree = Counter()
+    node_index = {}
+    circle_area_total = 0.0
+    closed_contour_area_total = 0.0
+
+    line_total = 0.0
+    arc_total = 0.0
+    circle_total = 0.0
+    poly_total = 0.0
+
+    unknown_arc_count = 0
+    closed_entity_hints = 0
+
+    def _node_id(pt: tuple) -> int:
+        key = (round(pt[0], 6), round(pt[1], 6))
+        if key not in node_index:
+            node_index[key] = len(node_index)
+        return node_index[key]
+
+    def _add_seg(a: tuple, b: tuple):
+        ia = _node_id(a)
+        ib = _node_id(b)
+        segments.append((ia, ib))
+        degree[ia] += 1
+        degree[ib] += 1
+
+    for ent in entities:
+        et = str(ent.get("type", "")).upper()
+
+        if et == "LINE":
+            try:
+                x1, y1 = float(ent.get("x1", 0.0)), float(ent.get("y1", 0.0))
+                x2, y2 = float(ent.get("x2", 0.0)), float(ent.get("y2", 0.0))
+                _add_seg((x1, y1), (x2, y2))
+                line_total += float(ent.get("length", math.hypot(x2 - x1, y2 - y1)))
+            except Exception:
+                continue
+            continue
+
+        if et == "ARC":
+            try:
+                if all(k in ent for k in ("cx", "cy", "r", "start_angle", "end_angle")):
+                    cx = float(ent["cx"])
+                    cy = float(ent["cy"])
+                    r = abs(float(ent["r"]))
+                    sa = float(ent["start_angle"])
+                    ea = float(ent["end_angle"])
+                    a, b = _arc_endpoints(cx, cy, r, sa, ea)
+                    _add_seg(a, b)
+                    arc_total += r * _arc_sweep_rad(sa, ea)
+                else:
+                    unknown_arc_count += 1
+            except Exception:
+                unknown_arc_count += 1
+            continue
+
+        if et == "CIRCLE":
+            try:
+                r = abs(float(ent.get("r", 0.0)))
+                if r > 0:
+                    circle_total += 2.0 * math.pi * r
+                    circle_area_total += math.pi * r * r
+                    closed_entity_hints += 1
+            except Exception:
+                pass
+            continue
+
+        if et in ("LWPOLYLINE", "POLYLINE"):
+            raw_pts = ent.get("points", []) or []
+            pts = [_point_xy(p) for p in raw_pts]
+            pts = [p for p in pts if p is not None]
+            if len(pts) >= 2:
+                for i in range(len(pts) - 1):
+                    _add_seg(pts[i], pts[i + 1])
+                    poly_total += math.hypot(pts[i + 1][0] - pts[i][0], pts[i + 1][1] - pts[i][1])
+                if bool(ent.get("closed")) and len(pts) >= 3:
+                    _add_seg(pts[-1], pts[0])
+                    poly_total += math.hypot(pts[0][0] - pts[-1][0], pts[0][1] - pts[-1][1])
+                    closed_contour_area_total += _poly_area_abs(pts)
+                    closed_entity_hints += 1
+            continue
+
+        if et == "HATCH":
+            polys = ent.get("polygons", []) or []
+            for poly in polys:
+                pts = [_point_xy(p) for p in poly]
+                pts = [p for p in pts if p is not None]
+                if len(pts) < 3:
+                    continue
+                for i in range(len(pts)):
+                    p1 = pts[i]
+                    p2 = pts[(i + 1) % len(pts)]
+                    _add_seg(p1, p2)
+                    poly_total += math.hypot(p2[0] - p1[0], p2[1] - p1[1])
+                closed_contour_area_total += _poly_area_abs(pts)
+                closed_entity_hints += 1
+
+    if segments:
+        parent = {}
+
+        def find(x: int) -> int:
+            if parent[x] != x:
+                parent[x] = find(parent[x])
+            return parent[x]
+
+        def union(a: int, b: int):
+            ra, rb = find(a), find(b)
+            if ra != rb:
+                parent[rb] = ra
+
+        for n in degree.keys():
+            parent[n] = n
+        for a, b in segments:
+            union(a, b)
+        components = len({find(n) for n in degree.keys()})
+    else:
+        components = 0
+
+    node_count = len(degree)
+    seg_count = len(segments)
+    odd_node_count = sum(1 for v in degree.values() if v % 2 == 1)
+    cycle_rank = max(seg_count - node_count + components, 0) if seg_count > 0 else 0
+
+    return {
+        "segment_count": seg_count,
+        "node_count": node_count,
+        "odd_node_count": odd_node_count,
+        "component_count": components,
+        "cycle_rank_estimate": cycle_rank,
+        "closed_graph_hint": bool(seg_count > 0 and odd_node_count == 0),
+        "closed_entity_hints": closed_entity_hints,
+        "line_total_length": line_total,
+        "arc_total_length": arc_total,
+        "circle_total_length": circle_total,
+        "polyline_total_length": poly_total,
+        "path_total_length": (line_total + arc_total + circle_total + poly_total),
+        "unknown_arc_count": unknown_arc_count,
+        "circle_area_total": circle_area_total,
+        "closed_contour_area_total": closed_contour_area_total,
+    }
+
+
+def _preview_fill_ratio(image_bytes: Optional[bytes]) -> Optional[float]:
+    if not image_bytes:
+        return None
+    try:
+        from PIL import Image
+        img = Image.open(io.BytesIO(image_bytes)).convert("L")
+        arr = np.array(img, dtype=np.uint8)
+    except Exception:
+        return None
+    if arr.size == 0:
+        return None
+    mask = arr < 170
+    return float(mask.mean())
+
+
+def _try_parse_with_recover(content: bytes, filename: str) -> Tuple[Optional[dict], dict]:
+    meta = {}
+    try:
+        from ezdxf import recover
+    except Exception as e:
+        meta["recover_error"] = f"ezdxf recover yok: {e}"
+        return None, meta
+
+    ext = filename.lower().rsplit(".", 1)[-1] if "." in filename else ""
+    dxf_bytes = content
+    if ext == "dwg" or _is_binary_dwg(content):
+        dxf_bytes = _dwg_to_dxf_bytes(content, filename)
+        if dxf_bytes is None:
+            meta["recover_error"] = "dwg2dxf dönüşümü başarısız"
+            return None, meta
+
+    try:
+        doc, _ = recover.read(io.BytesIO(dxf_bytes))
+        data = _extract_from_doc(doc)
+        meta["insunits_code"] = doc.header.get("$INSUNITS")
+        meta["measurement_code"] = doc.header.get("$MEASUREMENT")
+        return data, meta
+    except Exception as e:
+        meta["recover_error"] = str(e)
+        return None, meta
+
+
+def _parse_quality_score(data: Optional[dict]) -> int:
+    if not data:
+        return -1
+    entities = data.get("entities", []) or []
+    rich_arc = 0
+    with_points = 0
+    for e in entities:
+        if e.get("type") == "ARC" and all(k in e for k in ("cx", "cy", "start_angle", "end_angle", "r")):
+            rich_arc += 1
+        if e.get("points"):
+            with_points += 1
+    return int(len(entities) * 10 + rich_arc * 5 + with_points)
+
+
+def _parse_for_analysis(content: bytes, filename: str) -> Tuple[Optional[dict], dict]:
+    primary = parse_dxf_bytes(content, filename)
+    primary_score = _parse_quality_score(primary)
+
+    recover_data, recover_meta = _try_parse_with_recover(content, filename)
+    recover_score = _parse_quality_score(recover_data)
+
+    parser_used = "parse_dxf_bytes"
+    chosen = primary
+    if recover_data is not None and recover_score > primary_score:
+        chosen = recover_data
+        parser_used = "recover"
+
+    meta = {
+        "parser_used": parser_used,
+        "primary_quality_score": primary_score,
+        "recover_quality_score": recover_score,
+        "primary_entity_count": len((primary or {}).get("entities", []) or []),
+        "recover_entity_count": len((recover_data or {}).get("entities", []) or []),
+    }
+    meta.update(recover_meta or {})
+    return chosen, meta
+
+
+def _build_file_analysis(
+    file_bytes: bytes,
+    filename: str,
+    jpg_preview_data_url: Optional[str] = None,
+    include_entities: bool = False,
+) -> dict:
+    data, parser_meta = _parse_for_analysis(file_bytes, filename)
+    if data is None:
+        return {
+            "available": False,
+            "reason": "Dosya parse edilemedi",
+            "parser": _json_safe(parser_meta),
+        }
+
+    stats = extract_stats(data)
+    entities = data.get("entities", []) or []
+    layers = data.get("layers", []) or []
+    entity_types = stats.get("entity_types", {}) or {}
+    bbox = data.get("bbox", {}) or {}
+
+    dims_w = float(stats.get("bbox_width") or 0.0)
+    dims_h = float(stats.get("bbox_height") or 0.0)
+    bbox_area = float(stats.get("bbox_area") or 0.0)
+    aspect_ratio = (dims_w / dims_h) if dims_h > 0 else None
+    diagonal = math.hypot(dims_w, dims_h) if dims_w > 0 or dims_h > 0 else None
+
+    seg = _build_segment_metrics(entities)
+
+    dominant_type = None
+    dominant_ratio = None
+    if entity_types:
+        dominant_type = max(entity_types.items(), key=lambda kv: kv[1])[0]
+        total = max(sum(entity_types.values()), 1)
+        dominant_ratio = float(entity_types.get(dominant_type, 0)) / float(total)
+
+    preview_bytes = _decode_image_data_url(jpg_preview_data_url) if jpg_preview_data_url else None
+    if preview_bytes is None:
+        preview_bytes = generate_jpg_preview_from_bytes(file_bytes, filename, size=700)
+    fill_ratio = _preview_fill_ratio(preview_bytes)
+
+    estimated_profile_area = (bbox_area * fill_ratio) if (fill_ratio is not None and bbox_area > 0) else None
+    estimated_void_area = (bbox_area - estimated_profile_area) if estimated_profile_area is not None else None
+
+    contour_area_sum = float(seg["closed_contour_area_total"] + seg["circle_area_total"])
+    net_area_best_effort = contour_area_sum if contour_area_sum > 0 else estimated_profile_area
+
+    ins_code = parser_meta.get("insunits_code")
+    parser_meta["insunits_label"] = _insunits_label(ins_code)
+    parser_meta["dwg_version_code"] = _dwg_version_code(file_bytes)
+    parser_meta["dwg_version_label"] = _dwg_version_label(parser_meta.get("dwg_version_code"))
+
+    calculations = {
+        "bbox_width": dims_w,
+        "bbox_height": dims_h,
+        "bbox_area": bbox_area,
+        "bbox_perimeter": (2.0 * (dims_w + dims_h)) if (dims_w > 0 or dims_h > 0) else None,
+        "aspect_ratio": aspect_ratio,
+        "diagonal_length": diagonal,
+        "entity_count": int(stats.get("entity_count") or len(entities)),
+        "layer_count": int(stats.get("layer_count") or len(layers)),
+        "entities_per_layer": (float(stats.get("entity_count") or 0.0) / max(float(stats.get("layer_count") or 1.0), 1.0)),
+        "entities_per_bbox_area": ((float(stats.get("entity_count") or 0.0) / bbox_area) if bbox_area > 0 else None),
+        "dominant_entity_type": dominant_type,
+        "dominant_entity_ratio": dominant_ratio,
+        "line_total_length": seg["line_total_length"],
+        "arc_total_length": seg["arc_total_length"],
+        "circle_total_length": seg["circle_total_length"],
+        "polyline_total_length": seg["polyline_total_length"],
+        "path_total_length": seg["path_total_length"],
+        "unknown_arc_count": seg["unknown_arc_count"],
+        "segment_count": seg["segment_count"],
+        "node_count": seg["node_count"],
+        "odd_node_count": seg["odd_node_count"],
+        "component_count": seg["component_count"],
+        "cycle_rank_estimate": seg["cycle_rank_estimate"],
+        "closed_graph_hint": seg["closed_graph_hint"],
+        "closed_entity_hints": seg["closed_entity_hints"],
+        "preview_fill_ratio": fill_ratio,
+        "estimated_profile_area": estimated_profile_area,
+        "estimated_void_area": estimated_void_area,
+        "closed_contour_area_sum": contour_area_sum if contour_area_sum > 0 else None,
+        "net_area_best_effort": net_area_best_effort,
+    }
+
+    raw = {
+        "bbox": {
+            "min_x": _safe_round(bbox.get("min_x")),
+            "max_x": _safe_round(bbox.get("max_x")),
+            "min_y": _safe_round(bbox.get("min_y")),
+            "max_y": _safe_round(bbox.get("max_y")),
+        },
+        "layers": layers,
+        "entity_types": entity_types,
+        "entities_included": bool(include_entities),
+        "entity_count": len(entities),
+        "layer_count": len(layers),
+        "entities": entities if include_entities else None,
+    }
+
+    return {
+        "available": True,
+        "parser": _json_safe(parser_meta),
+        "calculated": _json_safe(calculations),
+        "raw": _json_safe(raw),
+    }
 
 
 @router.post("/search")
@@ -371,6 +840,8 @@ def list_files(
 @router.get("/files/{file_id}")
 def get_file(
     file_id: int,
+    include_analysis: bool = Query(default=False),
+    include_entities: bool = Query(default=False),
     tenant: dict = Depends(get_current_tenant),
     db: Session = Depends(get_db),
 ):
@@ -378,13 +849,16 @@ def get_file(
     row = db.execute(
         text("""
             SELECT
-                id, filename, filepath, file_format, indexed_at,
-                entity_count, layer_count, layers, entity_types,
-                bbox_width, bbox_height, bbox_area,
-                svg_preview, jpg_preview, category_id,
-                (file_data IS NOT NULL) AS has_file_data
-            FROM cad_files
-            WHERE id = :id
+                f.id, f.filename, f.filepath, f.file_format, f.indexed_at,
+                f.entity_count, f.layer_count, f.layers, f.entity_types,
+                f.bbox_width, f.bbox_height, f.bbox_area,
+                f.svg_preview, f.jpg_preview, f.category_id,
+                c.name AS category_name, c.color AS category_color,
+                (f.file_data IS NOT NULL) AS has_file_data,
+                OCTET_LENGTH(f.file_data) AS file_size_bytes
+            FROM cad_files f
+            LEFT JOIN categories c ON c.id = f.category_id
+            WHERE f.id = :id
         """),
         {"id": file_id},
     ).fetchone()
@@ -393,7 +867,7 @@ def get_file(
     m = row._mapping
     # file_data (BYTEA) JSON serileştirmesinde sorun çıkardığı için ham bytes dönmüyoruz.
     # Frontend uyumluluğu için file_data alanını yalnızca "var/yok" flag gibi set ediyoruz.
-    return {
+    response = {
         "id": m["id"],
         "filename": m["filename"],
         "filepath": m["filepath"],
@@ -409,9 +883,39 @@ def get_file(
         "svg_preview": m["svg_preview"],
         "jpg_preview": m["jpg_preview"],
         "category_id": m["category_id"],
+        "category_name": m["category_name"],
+        "category_color": m["category_color"],
         "has_file_data": bool(m["has_file_data"]),
+        "file_size_bytes": int(m["file_size_bytes"] or 0),
         "file_data": 1 if m["has_file_data"] else None,
     }
+    if include_analysis:
+        if not m["has_file_data"]:
+            response["analysis"] = {
+                "available": False,
+                "reason": "Bu kayıtta ham dosya verisi yok (file_data boş).",
+            }
+        else:
+            raw_row = db.execute(
+                text("SELECT file_data FROM cad_files WHERE id = :id"),
+                {"id": file_id},
+            ).fetchone()
+            file_bytes = bytes(raw_row.file_data) if raw_row and raw_row.file_data else None
+            if not file_bytes:
+                response["analysis"] = {
+                    "available": False,
+                    "reason": "Ham dosya verisi okunamadı.",
+                }
+            else:
+                analysis = _build_file_analysis(
+                    file_bytes=file_bytes,
+                    filename=str(m["filename"] or ""),
+                    jpg_preview_data_url=m["jpg_preview"],
+                    include_entities=include_entities,
+                )
+                analysis["file_size_bytes"] = len(file_bytes)
+                response["analysis"] = analysis
+    return response
 
 
 @router.get("/files/{file_id}/download")

@@ -272,23 +272,42 @@
     .detail-chip-count { color: var(--text3); margin-left: 3px; font-size: 10px; }
     .detail-row { display: flex; gap: 10px; width: 100%; }
     .detail-col { flex: 1; min-width: 0; }
+    .detail-note { font-size: 12px; color: var(--text2); background: rgba(59,130,246,0.08); border: 0.5px solid rgba(59,130,246,0.25); border-radius: 8px; padding: 8px 10px; }
+    .detail-json-wrap details { background: var(--bg3); border: 0.5px solid var(--border); border-radius: 8px; padding: 8px 10px; }
+    .detail-json-wrap summary { cursor: pointer; color: var(--text2); font-size: 12px; font-weight: 500; }
+    .detail-fold-grid { margin-top: 10px; }
+    .entity-grid { margin-top: 10px; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; }
+    .entity-card { background: #0b0f18; border: 0.5px solid var(--border); border-radius: 8px; padding: 8px; display: flex; flex-direction: column; gap: 5px; }
+    .entity-card-title { font-size: 11px; font-weight: 600; color: #c7d2fe; }
+    .entity-row { font-size: 11px; color: var(--text2); display: flex; justify-content: space-between; gap: 8px; }
+    .entity-row span:first-child { color: var(--text3); }
     tr.clickable-row { cursor: pointer; }
     tr.clickable-row:hover td { background: var(--bg3); }
 
     /* ── Karşılaştırma modalı (2.11) ── */
-    .compare-modal { max-width: 1100px; }
+    .compare-modal { max-width: 1480px; }
     .compare-body { flex-direction: row !important; align-items: flex-start !important; gap: 12px !important; padding: 16px !important; }
     .compare-col { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+    .compare-query-col { border: 2px solid rgba(59,130,246,0.9); border-radius: 10px; padding: 8px; background: linear-gradient(180deg, rgba(59,130,246,0.08), rgba(59,130,246,0.02)); box-shadow: inset 0 0 0 1px rgba(59,130,246,0.25); }
     .compare-col-header { font-size: 12px; font-weight: 600; padding: 6px 10px; border-radius: 6px; text-align: center; }
     .compare-divider { width: 1px; background: var(--border); flex-shrink: 0; align-self: stretch; }
     .compare-svg-wrap { background: #0a0d14; border-radius: var(--radius); overflow: hidden; border: 0.5px solid var(--border); }
     .compare-svg-wrap svg { display: block; width: 100%; height: auto; }
+    .compare-preview-box { background: #0a0d14; border-radius: var(--radius); overflow: hidden; border: 0.5px solid var(--border); height: 260px; display: flex; align-items: center; justify-content: center; }
+    .compare-preview-box img { width: 100%; height: 100%; object-fit: contain; display: block; background: #e9e9ea; }
+    .compare-svg-fit { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+    .compare-svg-fit svg { width: 100%; height: 100%; }
     .compare-stats { display: flex; flex-direction: column; gap: 6px; }
     .compare-stat-row { display: flex; justify-content: space-between; align-items: center; font-size: 12px; padding: 5px 8px; border-radius: 5px; background: var(--bg3); }
     .compare-stat-label { color: var(--text3); }
     .compare-stat-val { font-weight: 500; }
     .compare-stat-val.better { color: var(--green); }
     .compare-stat-val.worse { color: var(--amber); }
+    .compare-analysis-wrap { display: flex; flex-direction: column; gap: 8px; }
+    .compare-analysis-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .compare-json details { background: var(--bg3); border: 0.5px solid var(--border); border-radius: 8px; padding: 8px 10px; }
+    .compare-json summary { cursor: pointer; color: var(--text2); font-size: 12px; font-weight: 500; }
+    .compare-empty-note { font-size: 11px; color: var(--text3); background: var(--bg3); border: 0.5px solid var(--border); border-radius: 6px; padding: 8px 10px; }
     .cmp-btn { background: transparent; border: 0.5px solid var(--border2); color: var(--text3); cursor: pointer; padding: 3px 8px; border-radius: 5px; font-size: 10px; transition: all 0.15s; white-space: nowrap; }
     .cmp-btn:hover { border-color: var(--amber); color: var(--amber); }
     .cmp-btn.active { border-color: var(--amber); color: var(--amber); background: rgba(245,158,11,0.1); }
@@ -330,6 +349,8 @@
       .sidebar { border-right: none; border-bottom: 0.5px solid var(--border); }
       .compare-body { flex-direction: column !important; }
       .compare-divider { display: none; }
+      .compare-analysis-grid { grid-template-columns: 1fr; }
+      .compare-preview-box { height: 220px; }
     }
   </style>
   <!-- Chart.js -->
@@ -797,7 +818,7 @@ function renderGridCard(r) {
     : (r.svg_preview
       ? `<div style="width:100%;height:128px;display:flex;align-items:center;justify-content:center;background:#0f1117;overflow:hidden">${r.svg_preview}</div>`
       : `<canvas id="canvas_${r.id}" width="236" height="128" style="opacity:0.8"></canvas>`);
-  return `<div class="result-card ${cmpActive?'selected':''}" onclick="selectCard(${r.id})" data-result-id="${r.id}">
+  return `<div class="result-card ${cmpActive?'selected':''}" onclick="openResultCard(${r.id})" data-result-id="${r.id}">
     <div class="card-preview">
       ${previewHtml}
       <div class="card-badge ${badgeClass(r.similarity)}">${r.similarity}%</div>
@@ -829,7 +850,7 @@ function renderGridCard(r) {
 
 function renderListCard(r, i) {
   const cmpActive = compareState.items.some(c => c.id === r.id);
-  return `<div class="result-list-card ${cmpActive?'selected':''}" onclick="selectCard(${r.id})" data-result-id="${r.id}">
+  return `<div class="result-list-card ${cmpActive?'selected':''}" onclick="openResultCard(${r.id})" data-result-id="${r.id}">
     <div class="list-rank">#${i+1}</div>
     <div class="list-info">
       <div class="list-name">${r.filename}</div>
@@ -850,6 +871,10 @@ function selectCard(id) {
   document.querySelectorAll('.result-card,.result-list-card').forEach(el => el.classList.remove('selected'));
   const el = document.querySelector(`[data-result-id="${id}"]`);
   if (el) el.classList.add('selected');
+}
+function openResultCard(id) {
+  selectCard(id);
+  showDetailModal(id);
 }
 
 function drawPreview(canvas, result) {
@@ -1453,6 +1478,181 @@ function historyRedo(id) {
 //  2.12 — DOSYA DETAY MODALI
 // ══════════════════════════════════════════════════════════════════════════════
 
+function fmtNum(v, digits = 2) {
+  const n = Number(v);
+  if (!Number.isFinite(n)) return '—';
+  return n.toLocaleString('tr-TR', { minimumFractionDigits: 0, maximumFractionDigits: digits });
+}
+function fmtPct(v, digits = 1) {
+  const n = Number(v);
+  if (!Number.isFinite(n)) return '—';
+  return `${(n * 100).toLocaleString('tr-TR', { minimumFractionDigits: 0, maximumFractionDigits: digits })}%`;
+}
+function fmtBytes(bytes) {
+  const n = Number(bytes);
+  if (!Number.isFinite(n) || n < 0) return '—';
+  if (n < 1024) return `${n} B`;
+  const units = ['KB', 'MB', 'GB', 'TB'];
+  let val = n / 1024;
+  let idx = 0;
+  while (val >= 1024 && idx < units.length - 1) { val /= 1024; idx++; }
+  return `${val.toLocaleString('tr-TR', { maximumFractionDigits: 2 })} ${units[idx]}`;
+}
+function escHtml(value) {
+  return String(value ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+}
+
+const dataKeyLabels = {
+  parser_used: 'Parser',
+  primary_quality_score: 'Primary Kalite Skoru',
+  recover_quality_score: 'Recover Kalite Skoru',
+  primary_entity_count: 'Primary Entity Sayısı',
+  recover_entity_count: 'Recover Entity Sayısı',
+  insunits_code: 'INSUNITS Kodu',
+  measurement_code: 'MEASUREMENT Kodu',
+  insunits_label: 'Birim',
+  dwg_version_code: 'DWG Versiyon Kodu',
+  dwg_version_label: 'DWG Versiyonu',
+  bbox_width: 'BBox Genişlik',
+  bbox_height: 'BBox Yükseklik',
+  bbox_area: 'BBox Alan',
+  bbox_perimeter: 'BBox Çevre',
+  aspect_ratio: 'En/Boy Oranı',
+  diagonal_length: 'Diyagonal',
+  entity_count: 'Entity Sayısı',
+  layer_count: 'Katman Sayısı',
+  entities_per_layer: 'Entity/Katman',
+  entities_per_bbox_area: 'Entity/BBox Alan',
+  dominant_entity_type: 'Baskın Entity Tipi',
+  dominant_entity_ratio: 'Baskın Entity Oranı',
+  line_total_length: 'Çizgi Toplam Uzunluk',
+  arc_total_length: 'Yay Toplam Uzunluk',
+  circle_total_length: 'Daire Çevre Toplam',
+  polyline_total_length: 'Polyline Uzunluk',
+  path_total_length: 'Toplam Yol Uzunluğu',
+  unknown_arc_count: 'Bilinmeyen ARC',
+  segment_count: 'Segment Sayısı',
+  node_count: 'Düğüm Sayısı',
+  odd_node_count: 'Tek Derece Düğüm',
+  component_count: 'Bağlı Bileşen',
+  cycle_rank_estimate: 'Döngü Tahmini',
+  closed_graph_hint: 'Kapalı Grafik İpucu',
+  closed_entity_hints: 'Kapalı Entity İpucu',
+  preview_fill_ratio: 'Doluluk',
+  estimated_profile_area: 'Tahmini Net Alan',
+  estimated_void_area: 'Tahmini Boşluk Alanı',
+  closed_contour_area_sum: 'Kapalı Kontur Alan Toplam',
+  net_area_best_effort: 'Net Alan (Best-Effort)',
+  file_size_bytes: 'Dosya Boyutu (Byte)',
+  entities_included: 'Entity Dahil',
+  bbox_min_x: 'BBox Min X',
+  bbox_max_x: 'BBox Max X',
+  bbox_min_y: 'BBox Min Y',
+  bbox_max_y: 'BBox Max Y',
+};
+
+function keyToLabel(key) {
+  if (dataKeyLabels[key]) return dataKeyLabels[key];
+  return key
+    .replaceAll('__', '_')
+    .replaceAll('_', ' ')
+    .replace(/\b\w/g, (m) => m.toUpperCase())
+    .replace('Bbox', 'BBox');
+}
+
+function isPrimitive(v) {
+  return v === null || v === undefined || ['string', 'number', 'boolean'].includes(typeof v);
+}
+
+function flattenObjectEntries(obj, prefix = '', depth = 0, maxDepth = 2) {
+  if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return [];
+  const out = [];
+  for (const [k, v] of Object.entries(obj)) {
+    const full = prefix ? `${prefix}_${k}` : k;
+    if (v && typeof v === 'object' && !Array.isArray(v) && depth < maxDepth) {
+      out.push(...flattenObjectEntries(v, full, depth + 1, maxDepth));
+    } else {
+      out.push([full, v]);
+    }
+  }
+  return out;
+}
+
+function renderDataValue(v) {
+  if (v === null || v === undefined || v === '') return '—';
+  if (typeof v === 'boolean') return v ? 'Evet' : 'Hayır';
+  if (typeof v === 'number') {
+    if (!Number.isFinite(v)) return '—';
+    if (Number.isInteger(v)) return v.toLocaleString('tr-TR');
+    return v.toLocaleString('tr-TR', { maximumFractionDigits: 6 });
+  }
+  if (typeof v === 'string') return escHtml(v);
+  if (Array.isArray(v)) {
+    if (!v.length) return '—';
+    if (v.every(isPrimitive) && v.length <= 20) {
+      return v.map(x => escHtml(x)).join(', ');
+    }
+    return `${v.length.toLocaleString('tr-TR')} kayıt`;
+  }
+  if (typeof v === 'object') {
+    const keys = Object.keys(v);
+    return keys.length ? `${keys.length.toLocaleString('tr-TR')} alan` : '—';
+  }
+  return escHtml(String(v));
+}
+
+function renderDataCardsFromEntries(entries) {
+  if (!entries.length) return '<div class="detail-note">Gösterilecek veri yok.</div>';
+  return `<div class="detail-grid detail-fold-grid">` + entries.map(([k, v]) => `
+    <div class="detail-stat">
+      <div class="detail-stat-label">${escHtml(keyToLabel(k))}</div>
+      <div class="detail-stat-val" style="font-size:12px">${renderDataValue(v)}</div>
+    </div>
+  `).join('') + `</div>`;
+}
+
+function renderDataCards(obj, options = {}) {
+  const { excludeKeys = [] } = options;
+  const rows = flattenObjectEntries(obj).filter(([k]) => !excludeKeys.includes(k));
+  return renderDataCardsFromEntries(rows);
+}
+
+function buildRawSummary(raw) {
+  const bbox = raw?.bbox || {};
+  return {
+    entity_count: raw?.entity_count,
+    layer_count: raw?.layer_count,
+    entities_included: raw?.entities_included,
+    bbox_min_x: bbox.min_x,
+    bbox_max_x: bbox.max_x,
+    bbox_min_y: bbox.min_y,
+    bbox_max_y: bbox.max_y,
+    layers: raw?.layers || [],
+    entity_types: raw?.entity_types || {},
+  };
+}
+
+function renderEntityCards(entities) {
+  if (!Array.isArray(entities) || entities.length === 0) {
+    return '<div class="detail-note">Entity verisi yok.</div>';
+  }
+  return `<div class="entity-grid">` + entities.map((ent, idx) => {
+    const entries = Object.entries(ent || {}).filter(([k]) => k !== 'type').slice(0, 30);
+    const rows = entries.map(([k, v]) => `<div class="entity-row"><span>${escHtml(keyToLabel(k))}</span><span>${renderDataValue(v)}</span></div>`).join('');
+    return `
+      <div class="entity-card">
+        <div class="entity-card-title">#${(idx + 1).toLocaleString('tr-TR')} · ${escHtml(ent?.type || 'ENTITY')}</div>
+        ${rows || '<div class="entity-row"><span>Detay</span><span>—</span></div>'}
+      </div>
+    `;
+  }).join('') + `</div>`;
+}
+
 async function showDetailModal(fileId) {
   const modal = document.getElementById('detailModal');
   const body = document.getElementById('detailModalBody');
@@ -1463,7 +1663,7 @@ async function showDetailModal(fileId) {
   body.innerHTML = '<div class="loading"><div class="spinner"></div><div>Yükleniyor...</div></div>';
 
   try {
-    const r = await fetch(`${API}/files/${fileId}`, { headers: authH() });
+    const r = await fetch(`${API}/files/${fileId}?include_analysis=1&include_entities=1`, { headers: authH() });
     if (!r.ok) throw new Error('Dosya bulunamadı');
     const f = await r.json();
 
@@ -1474,6 +1674,8 @@ async function showDetailModal(fileId) {
       : '—';
     const area = f.bbox_area ? f.bbox_area.toFixed(0) : '—';
     const date = f.indexed_at ? new Date(f.indexed_at).toLocaleString('tr-TR') : '—';
+    const categoryName = f.category_name || '—';
+    const fileSize = fmtBytes(f.file_size_bytes);
     const fmt = (f.file_format || '').toUpperCase();
     const fmtColors = { DWG: '#60a5fa', DXF: '#4ade80', PDF: '#fbbf24' };
     const fmtColor = fmtColors[fmt] || '#8b93a8';
@@ -1527,8 +1729,16 @@ async function showDetailModal(fileId) {
               <div class="detail-stat-val" style="font-size:13px">${size}</div>
             </div>
             <div class="detail-stat">
-              <div class="detail-stat-label">Alan</div>
+              <div class="detail-stat-label">Kapsayan Alan (BBox)</div>
               <div class="detail-stat-val" style="font-size:13px">${area}</div>
+            </div>
+            <div class="detail-stat">
+              <div class="detail-stat-label">Kategori</div>
+              <div class="detail-stat-val" style="font-size:12px">${categoryName}</div>
+            </div>
+            <div class="detail-stat">
+              <div class="detail-stat-label">Dosya Boyutu</div>
+              <div class="detail-stat-val" style="font-size:12px">${fileSize}</div>
             </div>
             <div class="detail-stat">
               <div class="detail-stat-label">Eklenme</div>
@@ -1548,6 +1758,88 @@ async function showDetailModal(fileId) {
           <div class="detail-section-title">Dosya Yolu</div>
           <div style="font-size:12px;color:var(--text3);word-break:break-all;background:var(--bg3);padding:8px 12px;border-radius:6px;border:0.5px solid var(--border)">${f.filepath}</div>
         </div>
+        ${(() => {
+          const analysis = f.analysis;
+          if (!analysis) return '';
+          if (!analysis.available) {
+            return `<div class="detail-note">Analiz üretilemedi: ${escHtml(analysis.reason || 'Bilinmeyen neden')}</div>`;
+          }
+          const p = analysis.parser || {};
+          const c = analysis.calculated || {};
+          const raw = analysis.raw || {};
+          const parserUsed = p.parser_used || '—';
+          const dwgVersion = p.dwg_version_label
+            ? `${p.dwg_version_label} (${p.dwg_version_code || ''})`
+            : (p.dwg_version_code || '—');
+          const units = p.insunits_label || 'Bilinmiyor';
+          const netArea = fmtNum(c.net_area_best_effort, 3);
+          const fill = fmtPct(c.preview_fill_ratio, 2);
+          const closedHint = c.closed_graph_hint ? 'Evet' : 'Hayır';
+          const rawSummary = buildRawSummary(raw);
+          const rawEntities = Array.isArray(raw.entities) ? raw.entities : [];
+
+          const parserCards = renderDataCards(p);
+          const calcCards = renderDataCards(c);
+          const rawSummaryCards = renderDataCards(rawSummary);
+          const entityCards = renderEntityCards(rawEntities);
+
+          return `
+          <div>
+            <div class="detail-section-title">Dosya Analizi (Ham + Hesaplama)</div>
+            <div class="detail-grid">
+              <div class="detail-stat"><div class="detail-stat-label">Parser</div><div class="detail-stat-val" style="font-size:12px">${parserUsed}</div></div>
+              <div class="detail-stat"><div class="detail-stat-label">DWG Versiyonu</div><div class="detail-stat-val" style="font-size:12px">${dwgVersion}</div></div>
+              <div class="detail-stat"><div class="detail-stat-label">Birim (INSUNITS)</div><div class="detail-stat-val" style="font-size:12px">${units}</div></div>
+              <div class="detail-stat"><div class="detail-stat-label">Net Alan (Best-Effort)</div><div class="detail-stat-val" style="font-size:12px">${netArea}</div></div>
+              <div class="detail-stat"><div class="detail-stat-label">Doluluk (Preview)</div><div class="detail-stat-val" style="font-size:12px">${fill}</div></div>
+              <div class="detail-stat"><div class="detail-stat-label">Kapalı Grafik İpucu</div><div class="detail-stat-val" style="font-size:12px">${closedHint}</div></div>
+            </div>
+          </div>
+          <div>
+            <div class="detail-section-title">Hesaplanan Metrikler</div>
+            <div class="detail-grid">
+              <div class="detail-stat"><div class="detail-stat-label">En/Boy Oranı</div><div class="detail-stat-val" style="font-size:12px">${fmtNum(c.aspect_ratio, 4)}</div></div>
+              <div class="detail-stat"><div class="detail-stat-label">Diyagonal</div><div class="detail-stat-val" style="font-size:12px">${fmtNum(c.diagonal_length, 3)}</div></div>
+              <div class="detail-stat"><div class="detail-stat-label">BBox Çevre</div><div class="detail-stat-val" style="font-size:12px">${fmtNum(c.bbox_perimeter, 3)}</div></div>
+              <div class="detail-stat"><div class="detail-stat-label">Entity/Katman</div><div class="detail-stat-val" style="font-size:12px">${fmtNum(c.entities_per_layer, 3)}</div></div>
+              <div class="detail-stat"><div class="detail-stat-label">Entity/BBox Alan</div><div class="detail-stat-val" style="font-size:12px">${fmtNum(c.entities_per_bbox_area, 6)}</div></div>
+              <div class="detail-stat"><div class="detail-stat-label">Baskın Entity</div><div class="detail-stat-val" style="font-size:12px">${escHtml(c.dominant_entity_type || '—')} (${fmtPct(c.dominant_entity_ratio, 1)})</div></div>
+              <div class="detail-stat"><div class="detail-stat-label">Çizgi Toplam Uzunluk</div><div class="detail-stat-val" style="font-size:12px">${fmtNum(c.line_total_length, 3)}</div></div>
+              <div class="detail-stat"><div class="detail-stat-label">Yay Toplam Uzunluk</div><div class="detail-stat-val" style="font-size:12px">${fmtNum(c.arc_total_length, 3)}</div></div>
+              <div class="detail-stat"><div class="detail-stat-label">Daire Çevre Toplam</div><div class="detail-stat-val" style="font-size:12px">${fmtNum(c.circle_total_length, 3)}</div></div>
+              <div class="detail-stat"><div class="detail-stat-label">Polyline Uzunluk</div><div class="detail-stat-val" style="font-size:12px">${fmtNum(c.polyline_total_length, 3)}</div></div>
+              <div class="detail-stat"><div class="detail-stat-label">Toplam Yol Uzunluğu</div><div class="detail-stat-val" style="font-size:12px">${fmtNum(c.path_total_length, 3)}</div></div>
+              <div class="detail-stat"><div class="detail-stat-label">Bilinmeyen ARC</div><div class="detail-stat-val" style="font-size:12px">${fmtNum(c.unknown_arc_count, 0)}</div></div>
+              <div class="detail-stat"><div class="detail-stat-label">Segment</div><div class="detail-stat-val" style="font-size:12px">${fmtNum(c.segment_count, 0)}</div></div>
+              <div class="detail-stat"><div class="detail-stat-label">Düğüm</div><div class="detail-stat-val" style="font-size:12px">${fmtNum(c.node_count, 0)}</div></div>
+              <div class="detail-stat"><div class="detail-stat-label">Tek Derece Düğüm</div><div class="detail-stat-val" style="font-size:12px">${fmtNum(c.odd_node_count, 0)}</div></div>
+              <div class="detail-stat"><div class="detail-stat-label">Bağlı Bileşen</div><div class="detail-stat-val" style="font-size:12px">${fmtNum(c.component_count, 0)}</div></div>
+              <div class="detail-stat"><div class="detail-stat-label">Döngü Tahmini</div><div class="detail-stat-val" style="font-size:12px">${fmtNum(c.cycle_rank_estimate, 0)}</div></div>
+              <div class="detail-stat"><div class="detail-stat-label">Kapalı Kontur Alan Toplam</div><div class="detail-stat-val" style="font-size:12px">${fmtNum(c.closed_contour_area_sum, 3)}</div></div>
+              <div class="detail-stat"><div class="detail-stat-label">Tahmini Net Kesit Alanı</div><div class="detail-stat-val" style="font-size:12px">${fmtNum(c.estimated_profile_area, 3)}</div></div>
+              <div class="detail-stat"><div class="detail-stat-label">Tahmini Boşluk Alanı</div><div class="detail-stat-val" style="font-size:12px">${fmtNum(c.estimated_void_area, 3)}</div></div>
+            </div>
+          </div>
+          <div class="detail-json-wrap" style="display:flex;flex-direction:column;gap:8px">
+            <div class="detail-section-title">Ham Veri Blokları</div>
+            <details>
+              <summary>Parser Bilgisi (${Object.keys(p || {}).length} alan)</summary>
+              ${parserCards}
+            </details>
+            <details>
+              <summary>Hesaplamalar (${Object.keys(c || {}).length} alan)</summary>
+              ${calcCards}
+            </details>
+            <details>
+              <summary>Ham Geometri Özeti (${fmtNum(raw.entity_count, 0)} entity)</summary>
+              ${rawSummaryCards}
+            </details>
+            <details>
+              <summary>Entity Listesi (${rawEntities.length.toLocaleString('tr-TR')} kayıt)</summary>
+              ${entityCards}
+            </details>
+          </div>`;
+        })()}
         ${f.file_data !== null && f.file_data !== undefined ? `
         <div>
           <button onclick="downloadFile(${f.id},'${(f.filename||'').replace(/'/g,"\\'")}','${f.file_format||'dwg'}')" style="background:rgba(59,130,246,0.12);color:var(--blue);border:0.5px solid rgba(59,130,246,0.3);border-radius:6px;padding:8px 20px;font-size:13px;font-weight:500;cursor:pointer;width:100%">
@@ -1619,9 +1911,70 @@ function clearCompare() {
 function openCompareModal() {
   if (compareState.items.length < 2) return;
   const [a, b] = compareState.items;
+  const queryData = searchState.results || {};
+  const queryStats = queryData.query_stats || {};
+  const queryFile = queryData.query_file || 'Aranan Dosya';
+  const queryPreview = queryData.query_preview || null;
+  const qW = Number(queryStats.bbox_width || 0);
+  const qH = Number(queryStats.bbox_height || 0);
+  const qArea = Number(queryStats.bbox_area || (qW * qH) || 0);
+  const qExt = queryFile.includes('.') ? queryFile.split('.').pop() : '';
+  const qFmt = (qExt || 'dosya').toUpperCase();
 
   document.getElementById('compareModalTitle').textContent = 'Karşılaştırma';
   const body = document.getElementById('compareModalBody');
+
+  function queryColHtml() {
+    return `
+      <div class="compare-col compare-query-col">
+        <div class="compare-col-header" style="background:rgba(59,130,246,0.2);color:#93c5fd;border:0.5px solid rgba(59,130,246,0.7)">ARANAN DOSYA: ${queryFile}</div>
+        <div class="compare-preview-box" id="cmp_preview_query">
+          ${queryPreview
+            ? `<img src="${queryPreview}" alt="Aranan dosya önizleme">`
+            : `<span style="font-size:11px;color:var(--text3)">Önizleme yok</span>`
+          }
+        </div>
+        <div class="compare-stats" id="cmp_stats_query">
+          <div class="compare-stat-row">
+            <span class="compare-stat-label">Benzerlik</span>
+            <span class="compare-stat-val" style="color:#93c5fd">Referans</span>
+          </div>
+          <div class="compare-stat-row">
+            <span class="compare-stat-label">Entity</span>
+            <span class="compare-stat-val">${Number(queryStats.entity_count || 0).toLocaleString('tr')}</span>
+          </div>
+          <div class="compare-stat-row">
+            <span class="compare-stat-label">Katman</span>
+            <span class="compare-stat-val">${Number(queryStats.layer_count || 0)}</span>
+          </div>
+          <div class="compare-stat-row">
+            <span class="compare-stat-label">Boyut</span>
+            <span class="compare-stat-val" style="font-size:11px">${qW > 0 && qH > 0 ? `${qW.toFixed(0)} × ${qH.toFixed(0)}` : '—'}</span>
+          </div>
+          <div class="compare-stat-row">
+            <span class="compare-stat-label">Kapsayan Alan (BBox)</span>
+            <span class="compare-stat-val">${qArea > 0 ? qArea.toFixed(0) : '—'}</span>
+          </div>
+          <div class="compare-stat-row">
+            <span class="compare-stat-label">Format</span>
+            <span class="compare-stat-val">${qFmt}</span>
+          </div>
+          <div class="compare-stat-row">
+            <span class="compare-stat-label">Net Alan (Best-Effort)</span>
+            <span class="compare-stat-val">—</span>
+          </div>
+          <div class="compare-stat-row">
+            <span class="compare-stat-label">Doluluk</span>
+            <span class="compare-stat-val">—</span>
+          </div>
+          <div class="compare-stat-row">
+            <span class="compare-stat-label">Toplam Yol Uzunluğu</span>
+            <span class="compare-stat-val">—</span>
+          </div>
+        </div>
+        <div class="compare-empty-note">Bu kart arama referansıdır. A ve B sonuçları buna göre yorumlanır.</div>
+      </div>`;
+  }
 
   function colHtml(item, label, color) {
     const etypes = item.entity_types || {};
@@ -1631,10 +1984,10 @@ function openCompareModal() {
     return `
       <div class="compare-col">
         <div class="compare-col-header" style="background:${color}18;color:${color};border:0.5px solid ${color}44">${label}: ${item.filename}</div>
-        <div style="background:#0a0d14;border-radius:var(--radius);overflow:hidden;border:0.5px solid var(--border);min-height:120px;display:flex;align-items:center;justify-content:center" id="cmp_preview_${item.id}">
+        <div class="compare-preview-box" id="cmp_preview_${item.id}">
           <span style="font-size:11px;color:var(--text3)">Yükleniyor...</span>
         </div>
-        <div class="compare-stats">
+        <div class="compare-stats" id="cmp_stats_${item.id}">
           <div class="compare-stat-row">
             <span class="compare-stat-label">Benzerlik</span>
             <span class="compare-stat-val" style="color:${simColor(item.similarity)}">${item.similarity}%</span>
@@ -1652,13 +2005,28 @@ function openCompareModal() {
             <span class="compare-stat-val" style="font-size:11px">${item.bbox_width?item.bbox_width.toFixed(0):'—'} × ${item.bbox_height?item.bbox_height.toFixed(0):'—'}</span>
           </div>
           <div class="compare-stat-row">
-            <span class="compare-stat-label">Alan</span>
+            <span class="compare-stat-label">Kapsayan Alan (BBox)</span>
             <span class="compare-stat-val">${item.bbox_area?item.bbox_area.toFixed(0):'—'}</span>
           </div>
           <div class="compare-stat-row">
             <span class="compare-stat-label">Format</span>
             <span class="compare-stat-val">${(item.file_format||'').toUpperCase()}</span>
           </div>
+          <div class="compare-stat-row">
+            <span class="compare-stat-label">Net Alan (Best-Effort)</span>
+            <span class="compare-stat-val" id="cmp_net_${item.id}">—</span>
+          </div>
+          <div class="compare-stat-row">
+            <span class="compare-stat-label">Doluluk</span>
+            <span class="compare-stat-val" id="cmp_fill_${item.id}">—</span>
+          </div>
+          <div class="compare-stat-row">
+            <span class="compare-stat-label">Toplam Yol Uzunluğu</span>
+            <span class="compare-stat-val" id="cmp_path_${item.id}">—</span>
+          </div>
+        </div>
+        <div class="compare-analysis-wrap" id="cmp_analysis_${item.id}">
+          <div class="compare-empty-note">Analiz verisi yükleniyor...</div>
         </div>
         ${topTypes ? `<div><div class="detail-section-title" style="margin-top:4px">Entity Tipleri</div><div class="detail-chips">${topTypes}</div></div>` : ''}
         ${layers ? `<div><div class="detail-section-title" style="margin-top:4px">Katmanlar</div><div class="detail-chips">${layers}</div></div>` : ''}
@@ -1666,33 +2034,104 @@ function openCompareModal() {
   }
 
   body.innerHTML =
+    queryColHtml() +
+    '<div class="compare-divider"></div>' +
     colHtml(a, 'A', '#3b82f6') +
     '<div class="compare-divider"></div>' +
     colHtml(b, 'B', '#f59e0b');
 
-  // SVG önizlemelerini async yükle
-  loadCompareSvg(a.id, body.querySelector('.compare-col:first-child'), 'A');
-  loadCompareSvg(b.id, body.querySelector('.compare-col:last-child'), 'B');
+  // Önizleme + analiz verilerini async yükle
+  loadCompareDetailData(a.id);
+  loadCompareDetailData(b.id);
 
   document.getElementById('compareModal').classList.remove('hidden');
   document.body.style.overflow = 'hidden';
 }
 
-async function loadCompareSvg(fileId, colEl, label) {
+function renderCompareAnalysis(fileId, fileData) {
+  const analysisEl = document.getElementById(`cmp_analysis_${fileId}`);
+  if (!analysisEl) return;
+  const analysis = fileData?.analysis;
+  if (!analysis || !analysis.available) {
+    analysisEl.innerHTML = `<div class="compare-empty-note">Analiz yok: ${escHtml(analysis?.reason || 'Veri üretilemedi')}</div>`;
+    return;
+  }
+
+  const p = analysis.parser || {};
+  const c = analysis.calculated || {};
+  const raw = analysis.raw || {};
+
+  const parserUsed = p.parser_used || '—';
+  const dwgVersion = p.dwg_version_label
+    ? `${p.dwg_version_label} (${p.dwg_version_code || ''})`
+    : (p.dwg_version_code || '—');
+  const units = p.insunits_label || 'Bilinmiyor';
+  const closedHint = c.closed_graph_hint ? 'Evet' : 'Hayır';
+  const rawSummary = buildRawSummary(raw);
+  const rawEntities = Array.isArray(raw.entities) ? raw.entities : [];
+  const parserCards = renderDataCards(p);
+  const calcCards = renderDataCards(c);
+  const rawSummaryCards = renderDataCards(rawSummary);
+  const entityCards = renderEntityCards(rawEntities);
+
+  analysisEl.innerHTML = `
+    <div>
+      <div class="detail-section-title" style="margin-top:2px">Dosya Analizi</div>
+      <div class="compare-analysis-grid">
+        <div class="detail-stat"><div class="detail-stat-label">Parser</div><div class="detail-stat-val" style="font-size:12px">${parserUsed}</div></div>
+        <div class="detail-stat"><div class="detail-stat-label">DWG Versiyonu</div><div class="detail-stat-val" style="font-size:12px">${dwgVersion}</div></div>
+        <div class="detail-stat"><div class="detail-stat-label">Birim</div><div class="detail-stat-val" style="font-size:12px">${units}</div></div>
+        <div class="detail-stat"><div class="detail-stat-label">Kapalı Grafik</div><div class="detail-stat-val" style="font-size:12px">${closedHint}</div></div>
+        <div class="detail-stat"><div class="detail-stat-label">Net Alan (Best-Effort)</div><div class="detail-stat-val" style="font-size:12px">${fmtNum(c.net_area_best_effort, 3)}</div></div>
+        <div class="detail-stat"><div class="detail-stat-label">Doluluk</div><div class="detail-stat-val" style="font-size:12px">${fmtPct(c.preview_fill_ratio, 2)}</div></div>
+        <div class="detail-stat"><div class="detail-stat-label">Toplam Yol Uzunluğu</div><div class="detail-stat-val" style="font-size:12px">${fmtNum(c.path_total_length, 3)}</div></div>
+        <div class="detail-stat"><div class="detail-stat-label">Döngü Tahmini</div><div class="detail-stat-val" style="font-size:12px">${fmtNum(c.cycle_rank_estimate, 0)}</div></div>
+      </div>
+    </div>
+    <div class="compare-json" style="display:flex;flex-direction:column;gap:8px">
+      <details>
+        <summary>Parser Bilgisi (${Object.keys(p || {}).length} alan)</summary>
+        ${parserCards}
+      </details>
+      <details>
+        <summary>Hesaplamalar (${Object.keys(c || {}).length} alan)</summary>
+        ${calcCards}
+      </details>
+      <details>
+        <summary>Ham Geometri Özeti (${fmtNum(raw.entity_count, 0)} entity)</summary>
+        ${rawSummaryCards}
+      </details>
+      <details>
+        <summary>Entity Listesi (${rawEntities.length.toLocaleString('tr-TR')} kayıt)</summary>
+        ${entityCards}
+      </details>
+    </div>
+  `;
+}
+
+async function loadCompareDetailData(fileId) {
   try {
-    const r = await fetch(`${API}/files/${fileId}`, { headers: authH() });
+    const r = await fetch(`${API}/files/${fileId}?include_analysis=1&include_entities=1`, { headers: authH() });
     if (!r.ok) return;
     const f = await r.json();
     const previewEl = document.getElementById(`cmp_preview_${fileId}`);
     if (previewEl) {
       if (f.jpg_preview) {
-        previewEl.innerHTML = `<img src="${f.jpg_preview}" style="max-width:100%;max-height:300px;object-fit:contain;border-radius:4px">`;
+        previewEl.innerHTML = `<img src="${f.jpg_preview}" alt="Karşılaştırma önizleme">`;
       } else if (f.svg_preview) {
-        previewEl.innerHTML = f.svg_preview;
+        previewEl.innerHTML = `<div class="compare-svg-fit">${f.svg_preview}</div>`;
       } else {
         previewEl.innerHTML = `<span style="font-size:11px;color:var(--text3)">Önizleme yok</span>`;
       }
     }
+    const c = f.analysis?.available ? (f.analysis.calculated || {}) : {};
+    const netEl = document.getElementById(`cmp_net_${fileId}`);
+    const fillEl = document.getElementById(`cmp_fill_${fileId}`);
+    const pathEl = document.getElementById(`cmp_path_${fileId}`);
+    if (netEl) netEl.textContent = fmtNum(c.net_area_best_effort, 3);
+    if (fillEl) fillEl.textContent = fmtPct(c.preview_fill_ratio, 2);
+    if (pathEl) pathEl.textContent = fmtNum(c.path_total_length, 3);
+    renderCompareAnalysis(fileId, f);
   } catch {}
 }
 
