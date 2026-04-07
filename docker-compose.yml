@@ -1,0 +1,24 @@
+version: "3.9"
+
+services:
+  # Sadece PostgreSQL + pgvector — backend PM2 ile ayrı çalışır
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: cad_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: cad_search
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-changeme}
+    ports:
+      - "127.0.0.1:5432:5432"  # Sadece localhost'a aç, dışarıya kapalı
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:

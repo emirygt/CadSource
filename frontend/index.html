@@ -1,0 +1,1973 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CAD Arama Motoru</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0f1117; --bg2: #161b27; --bg3: #1e2535;
+      --border: rgba(255,255,255,0.08); --border2: rgba(255,255,255,0.14);
+      --text: #e8eaf0; --text2: #8b93a8; --text3: #555e72;
+      --blue: #3b82f6; --blue2: #1d4ed8; --green: #22c55e;
+      --amber: #f59e0b; --red: #ef4444; --radius: 10px; --radius-lg: 14px;
+      --violet: #8b5cf6; --cyan: #06b6d4; --pink: #ec4899;
+    }
+    body { background: var(--bg); color: var(--text); font-family: -apple-system,'Segoe UI',sans-serif; font-size: 14px; line-height: 1.5; min-height: 100vh; }
+
+    /* ── Topbar ── */
+    .topbar { display: flex; align-items: center; gap: 12px; padding: 0 20px; height: 56px; border-bottom: 0.5px solid var(--border); background: var(--bg); position: sticky; top: 0; z-index: 10; }
+    .logo { font-size: 15px; font-weight: 600; letter-spacing: -0.3px; }
+    .logo span { color: var(--blue); }
+    .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.4} }
+    .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 20px; }
+    .tstat { display: flex; flex-direction: column; align-items: flex-end; }
+    .tstat-val { font-size: 16px; font-weight: 600; line-height: 1; }
+    .tstat-lbl { font-size: 11px; color: var(--text3); }
+    .logout-btn { background: transparent; border: 0.5px solid var(--border2); color: var(--text3); padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+    .logout-btn:hover { color: var(--text); border-color: var(--text3); }
+
+    /* ── Tab bar ── */
+    .tabbar { display: flex; gap: 0; border-bottom: 0.5px solid var(--border); background: var(--bg2); padding: 0 20px; }
+    .tab { padding: 12px 20px; font-size: 13px; font-weight: 500; color: var(--text3); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.15s; user-select: none; }
+    .tab:hover { color: var(--text2); }
+    .tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+
+    /* ── Layout ── */
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* ══════════════════════════════════════════
+       ARA SAYFASI
+    ══════════════════════════════════════════ */
+    .search-layout { display: grid; grid-template-columns: 280px 1fr; min-height: calc(100vh - 104px); }
+
+    /* Sidebar */
+    .sidebar { background: var(--bg2); border-right: 0.5px solid var(--border); padding: 16px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; }
+    .upload-zone { border: 1.5px dashed var(--border2); border-radius: var(--radius-lg); padding: 24px 16px; text-align: center; cursor: pointer; transition: all 0.15s; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .upload-zone:hover, .upload-zone.drag { border-color: var(--blue); background: rgba(59,130,246,0.06); }
+    .upload-zone.loaded { border-style: solid; border-color: var(--blue); }
+    .upload-icon { width: 36px; height: 36px; border-radius: 8px; background: rgba(59,130,246,0.12); display: flex; align-items: center; justify-content: center; }
+    .upload-icon svg { width: 18px; height: 18px; stroke: var(--blue); fill: none; stroke-width: 1.5; }
+    .upload-title { font-size: 13px; font-weight: 500; }
+    .upload-sub { font-size: 11px; color: var(--text3); }
+    .upload-fname { font-size: 11px; color: var(--blue); margin-top: 2px; word-break: break-all; }
+    .section-label { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; }
+    .filter-group { display: flex; flex-direction: column; gap: 8px; }
+    .filter-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .filter-row label { font-size: 12px; color: var(--text2); }
+    .filter-val { font-size: 12px; color: var(--blue); min-width: 32px; text-align: right; }
+    input[type=range] { -webkit-appearance: none; appearance: none; flex: 1; height: 3px; border-radius: 2px; background: var(--bg3); outline: none; }
+    input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: var(--blue); cursor: pointer; }
+    select { background: var(--bg3); border: 0.5px solid var(--border2); border-radius: 6px; color: var(--text); padding: 5px 8px; font-size: 12px; width: 100%; outline: none; }
+    .search-btn { width: 100%; padding: 9px; border-radius: var(--radius); background: var(--blue); color: #fff; border: none; font-size: 13px; font-weight: 500; cursor: pointer; transition: background 0.15s; }
+    .search-btn:hover { background: var(--blue2); }
+    .search-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .divider { height: 0.5px; background: var(--border); }
+
+    /* Main panel */
+    .main { padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; }
+    .empty-state { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: var(--text3); padding: 80px 20px; text-align: center; }
+    .empty-icon { width: 56px; height: 56px; border-radius: 12px; background: var(--bg2); display: flex; align-items: center; justify-content: center; }
+    .empty-icon svg { width: 28px; height: 28px; stroke: var(--text3); fill: none; stroke-width: 1.5; }
+    .empty-title { font-size: 15px; color: var(--text2); font-weight: 500; }
+    .empty-sub { font-size: 13px; max-width: 280px; line-height: 1.6; }
+    .results-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+    .results-title { font-size: 15px; font-weight: 500; }
+    .results-meta { font-size: 12px; color: var(--text3); }
+    .view-toggle { display: flex; border: 0.5px solid var(--border2); border-radius: 8px; overflow: hidden; }
+    .vbtn { padding: 5px 10px; background: transparent; border: none; color: var(--text3); cursor: pointer; font-size: 12px; }
+    .vbtn.active { background: var(--bg3); color: var(--text); }
+    .query-bar { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 12px 16px; display: flex; gap: 24px; flex-wrap: wrap; }
+    .query-summary { display: grid; grid-template-columns: minmax(220px, 320px) 1fr; gap: 12px; align-items: stretch; }
+    .query-preview-card { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; }
+    .query-preview-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; padding: 8px 10px; border-bottom: 0.5px solid var(--border); }
+    .query-preview-media { flex: 1; min-height: 148px; background: #e9e9ea; display: flex; align-items: center; justify-content: center; }
+    .query-preview-media img { width: 100%; height: 100%; object-fit: contain; display: block; }
+    .query-preview-fallback { color: #7a808d; font-size: 12px; }
+    .qstat { display: flex; flex-direction: column; gap: 2px; }
+    .qstat-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; }
+    .qstat-val { font-size: 14px; font-weight: 500; }
+    .results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+    .results-list { display: flex; flex-direction: column; gap: 8px; }
+    .result-card { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+    .result-card:hover { border-color: var(--border2); background: var(--bg3); }
+    .result-card.selected { border-color: var(--blue); }
+    .card-preview { background: var(--bg3); height: 130px; display: flex; align-items: center; justify-content: center; position: relative; border-bottom: 0.5px solid var(--border); overflow: hidden; }
+    .card-badge { position: absolute; top: 8px; right: 8px; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 20px; }
+    .badge-high { background: rgba(34,197,94,0.15); color: var(--green); }
+    .badge-med { background: rgba(245,158,11,0.15); color: var(--amber); }
+    .badge-low { background: rgba(239,68,68,0.15); color: var(--red); }
+    .card-body { padding: 10px 12px; }
+    .card-name { font-size: 12px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; }
+    .card-path { font-size: 10px; color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 8px; }
+    .card-stats { display: flex; gap: 10px; flex-wrap: wrap; }
+    .cstat { font-size: 10px; color: var(--text3); }
+    .cstat span { color: var(--text2); font-weight: 500; }
+    .sim-bar-wrap { margin-top: 8px; }
+    .sim-bar-label { display: flex; justify-content: space-between; font-size: 10px; color: var(--text3); margin-bottom: 4px; }
+    .sim-bar { height: 3px; background: var(--bg3); border-radius: 2px; overflow: hidden; }
+    .sim-fill { height: 100%; border-radius: 2px; transition: width 0.3s; }
+    .layer-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+    .layer-chip { font-size: 10px; padding: 1px 6px; border-radius: 4px; background: var(--bg3); color: var(--text3); border: 0.5px solid var(--border); }
+    .result-list-card { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 10px 14px; cursor: pointer; transition: border-color 0.15s; display: flex; align-items: center; gap: 14px; }
+    .result-list-card:hover { border-color: var(--border2); }
+    .result-list-card.selected { border-color: var(--blue); }
+    .list-rank { font-size: 12px; font-weight: 600; color: var(--text3); min-width: 22px; }
+    .list-info { flex: 1; min-width: 0; }
+    .list-name { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .list-path { font-size: 11px; color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .list-stats { display: flex; gap: 16px; flex-shrink: 0; }
+    .lstat { text-align: right; }
+    .lstat-val { font-size: 13px; font-weight: 500; }
+    .lstat-lbl { font-size: 10px; color: var(--text3); }
+    .sim-pill { font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 20px; flex-shrink: 0; }
+    .loading { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 60px; color: var(--text3); }
+    .spinner { width: 32px; height: 32px; border: 2px solid var(--border2); border-top-color: var(--blue); border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @media (max-width: 920px) {
+      .query-summary { grid-template-columns: 1fr; }
+      .query-preview-card { max-width: 420px; }
+    }
+
+    /* ══════════════════════════════════════════
+       DB SAYFASI
+    ══════════════════════════════════════════ */
+    .db-layout { padding: 24px; display: flex; flex-direction: column; gap: 24px; max-width: 1100px; }
+
+    /* Upload card */
+    .db-upload-card { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 24px; }
+    .db-upload-card h2 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+    .db-upload-card p { font-size: 12px; color: var(--text3); margin-bottom: 16px; }
+
+    .db-drop { border: 1.5px dashed var(--border2); border-radius: var(--radius); padding: 32px 24px; text-align: center; cursor: pointer; transition: all 0.15s; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .db-drop:hover, .db-drop.drag { border-color: var(--blue); background: rgba(59,130,246,0.05); }
+    .db-drop-icon { width: 44px; height: 44px; background: rgba(59,130,246,0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+    .db-drop-icon svg { width: 22px; height: 22px; stroke: var(--blue); fill: none; stroke-width: 1.5; }
+    .db-drop h3 { font-size: 14px; font-weight: 500; }
+    .db-drop p { font-size: 12px; color: var(--text3); margin: 0; }
+    .db-drop .formats { display: flex; gap: 6px; margin-top: 4px; }
+    .fmt-badge { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px; }
+    .fmt-dwg { background: rgba(59,130,246,0.12); color: #60a5fa; }
+    .fmt-dxf { background: rgba(34,197,94,0.12); color: #4ade80; }
+    .fmt-pdf { background: rgba(245,158,11,0.12); color: #fbbf24; }
+
+    /* Seçili dosya listesi */
+    .db-selected-files { margin-top: 14px; display: none; }
+    .db-selected-files h4 { font-size: 12px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+    .db-file-chips { display: flex; flex-wrap: wrap; gap: 6px; max-height: 100px; overflow-y: auto; margin-bottom: 12px; }
+    .db-file-chip { font-size: 11px; background: var(--bg3); border: 0.5px solid var(--border2); border-radius: 6px; padding: 3px 8px; color: var(--text2); }
+
+    /* Progress */
+    .db-progress { margin-top: 14px; display: none; }
+    .db-progress-bar-wrap { background: var(--bg3); border-radius: 4px; height: 6px; overflow: hidden; margin: 8px 0; }
+    .db-progress-bar { height: 100%; background: var(--blue); border-radius: 4px; transition: width 0.3s; width: 0%; }
+    .db-progress-label { font-size: 12px; color: var(--text3); }
+    .db-upload-stats { display: flex; gap: 16px; margin-top: 8px; }
+    .db-upload-stats span { font-size: 12px; }
+    .ok-count { color: var(--green); font-weight: 600; }
+    .fail-count { color: var(--red); font-weight: 600; }
+    .db-error-list { margin-top: 8px; max-height: 120px; overflow-y: auto; }
+    .db-error-item { font-size: 11px; padding: 4px 8px; background: rgba(239,68,68,0.08); border-left: 2px solid var(--red); border-radius: 2px; margin-bottom: 4px; color: var(--text2); }
+
+    .db-actions { display: flex; gap: 10px; margin-top: 14px; }
+    .btn-primary { padding: 8px 18px; background: var(--blue); color: #fff; border: none; border-radius: var(--radius); font-size: 13px; font-weight: 500; cursor: pointer; }
+    .btn-primary:hover { background: var(--blue2); }
+    .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-secondary { padding: 8px 18px; background: transparent; color: var(--text2); border: 0.5px solid var(--border2); border-radius: var(--radius); font-size: 13px; cursor: pointer; }
+    .btn-secondary:hover { border-color: var(--text3); }
+
+    /* Dosya listesi tablosu */
+    .db-files-card { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+    .db-files-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 0.5px solid var(--border); gap: 12px; flex-wrap: wrap; }
+    .db-files-header h2 { font-size: 15px; font-weight: 600; }
+    .db-search-box { background: var(--bg3); border: 0.5px solid var(--border2); border-radius: 6px; padding: 6px 10px; font-size: 12px; color: var(--text); outline: none; width: 200px; }
+    .db-search-box::placeholder { color: var(--text3); }
+
+    .db-table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; padding: 10px 16px; text-align: left; border-bottom: 0.5px solid var(--border); white-space: nowrap; }
+    td { padding: 10px 16px; font-size: 12px; border-bottom: 0.5px solid var(--border); vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--bg3); }
+    .td-filename { font-weight: 500; color: var(--text); max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .td-format { font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 4px; display: inline-block; }
+    .td-date { color: var(--text3); font-size: 11px; white-space: nowrap; }
+    .del-btn { background: transparent; border: 0.5px solid transparent; color: var(--text3); cursor: pointer; padding: 4px 8px; border-radius: 6px; font-size: 12px; transition: all 0.15s; }
+    .del-btn:hover { border-color: var(--red); color: var(--red); background: rgba(239,68,68,0.08); }
+
+    .db-pagination { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; border-top: 0.5px solid var(--border); }
+    .db-pagination span { font-size: 12px; color: var(--text3); }
+    .db-pagination-btns { display: flex; gap: 6px; }
+    .pg-btn { background: var(--bg3); border: 0.5px solid var(--border2); color: var(--text2); padding: 4px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; }
+    .pg-btn:hover { border-color: var(--blue); color: var(--blue); }
+    .pg-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    .db-empty { padding: 48px; text-align: center; color: var(--text3); font-size: 13px; }
+
+    /* ── Sidebar önizleme ── */
+    .sidebar-preview { border: 0.5px solid var(--border); border-radius: var(--radius); overflow: hidden; background: var(--bg3); }
+    .sidebar-preview-label { font-size: 10px; color: var(--text3); padding: 6px 10px; border-bottom: 0.5px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .sidebar-preview svg { display: block; width: 100%; height: auto; }
+
+    /* ── Preview modal ── */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 100; display: flex; align-items: center; justify-content: center; padding: 24px; backdrop-filter: blur(4px); }
+    .modal-overlay.hidden { display: none; }
+    .modal { background: var(--bg2); border: 0.5px solid var(--border2); border-radius: var(--radius-lg); width: 100%; max-width: 760px; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; }
+    .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 0.5px solid var(--border); flex-shrink: 0; }
+    .modal-title { font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: calc(100% - 40px); }
+    .modal-close { background: transparent; border: none; color: var(--text3); cursor: pointer; font-size: 20px; line-height: 1; padding: 0 4px; }
+    .modal-close:hover { color: var(--text); }
+    .modal-body { flex: 1; overflow: auto; padding: 20px; display: flex; flex-direction: column; gap: 16px; align-items: center; }
+    .modal-svg-wrap { width: 100%; background: #0a0d14; border-radius: var(--radius); overflow: hidden; border: 0.5px solid var(--border); }
+    .modal-svg-wrap svg { display: block; width: 100%; height: auto; }
+    .modal-meta { width: 100%; display: flex; gap: 16px; flex-wrap: wrap; }
+    .modal-meta-item { display: flex; flex-direction: column; gap: 2px; }
+    .modal-meta-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; }
+    .modal-meta-val { font-size: 13px; font-weight: 500; }
+    .preview-btn { background: transparent; border: 0.5px solid var(--border2); color: var(--text2); cursor: pointer; padding: 4px 10px; border-radius: 6px; font-size: 11px; transition: all 0.15s; white-space: nowrap; }
+    .preview-btn:hover { border-color: var(--blue); color: var(--blue); }
+
+    /* ══ KATEGORİLER SAYFASI ══ */
+    .cat-layout { padding: 24px; display: flex; flex-direction: column; gap: 24px; max-width: 800px; }
+    .cat-add-card { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 20px 24px; }
+    .cat-add-card h2 { font-size: 15px; font-weight: 600; margin-bottom: 16px; }
+    .cat-add-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .cat-name-input { flex: 1; min-width: 160px; background: var(--bg3); border: 0.5px solid var(--border2); border-radius: 6px; color: var(--text); padding: 8px 12px; font-size: 13px; outline: none; }
+    .cat-name-input:focus { border-color: var(--blue); }
+    .cat-color-wrap { display: flex; align-items: center; gap: 8px; }
+    .cat-color-wrap label { font-size: 12px; color: var(--text3); }
+    input[type=color] { width: 32px; height: 32px; border: 0.5px solid var(--border2); border-radius: 6px; background: var(--bg3); cursor: pointer; padding: 2px; }
+
+    .cat-list-card { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+    .cat-list-header { padding: 16px 20px; border-bottom: 0.5px solid var(--border); font-size: 15px; font-weight: 600; }
+    .cat-item { display: flex; align-items: center; gap: 12px; padding: 12px 20px; border-bottom: 0.5px solid var(--border); transition: background 0.1s; }
+    .cat-item:last-child { border-bottom: none; }
+    .cat-item:hover { background: var(--bg3); }
+    .cat-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+    .cat-info { flex: 1; min-width: 0; }
+    .cat-name { font-size: 13px; font-weight: 500; }
+    .cat-count { font-size: 11px; color: var(--text3); margin-top: 1px; }
+    .cat-edit-row { display: flex; gap: 6px; align-items: center; }
+    .cat-edit-input { background: var(--bg3); border: 0.5px solid var(--blue); border-radius: 6px; color: var(--text); padding: 4px 8px; font-size: 12px; outline: none; width: 140px; }
+    .cat-btn { background: transparent; border: 0.5px solid var(--border2); color: var(--text3); cursor: pointer; padding: 4px 10px; border-radius: 6px; font-size: 11px; transition: all 0.15s; white-space: nowrap; }
+    .cat-btn:hover { border-color: var(--blue); color: var(--blue); }
+    .cat-btn.danger:hover { border-color: var(--red); color: var(--red); }
+    .cat-btn.save { background: var(--blue); color: #fff; border-color: var(--blue); }
+    .cat-btn.save:hover { background: var(--blue2); }
+    .cat-empty { padding: 40px; text-align: center; color: var(--text3); font-size: 13px; }
+
+    /* ── Detay modalı (2.12) ── */
+    .detail-modal { max-width: 880px; }
+    .detail-sections { width: 100%; display: flex; flex-direction: column; gap: 16px; }
+    .detail-section-title { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+    .detail-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+    .detail-stat { background: var(--bg3); border: 0.5px solid var(--border); border-radius: 8px; padding: 10px 12px; }
+    .detail-stat-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+    .detail-stat-val { font-size: 15px; font-weight: 600; }
+    .detail-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+    .detail-chip { font-size: 11px; padding: 3px 8px; border-radius: 5px; background: var(--bg3); border: 0.5px solid var(--border2); color: var(--text2); }
+    .detail-chip-count { color: var(--text3); margin-left: 3px; font-size: 10px; }
+    .detail-row { display: flex; gap: 10px; width: 100%; }
+    .detail-col { flex: 1; min-width: 0; }
+    tr.clickable-row { cursor: pointer; }
+    tr.clickable-row:hover td { background: var(--bg3); }
+
+    /* ── Karşılaştırma modalı (2.11) ── */
+    .compare-modal { max-width: 1100px; }
+    .compare-body { flex-direction: row !important; align-items: flex-start !important; gap: 12px !important; padding: 16px !important; }
+    .compare-col { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+    .compare-col-header { font-size: 12px; font-weight: 600; padding: 6px 10px; border-radius: 6px; text-align: center; }
+    .compare-divider { width: 1px; background: var(--border); flex-shrink: 0; align-self: stretch; }
+    .compare-svg-wrap { background: #0a0d14; border-radius: var(--radius); overflow: hidden; border: 0.5px solid var(--border); }
+    .compare-svg-wrap svg { display: block; width: 100%; height: auto; }
+    .compare-stats { display: flex; flex-direction: column; gap: 6px; }
+    .compare-stat-row { display: flex; justify-content: space-between; align-items: center; font-size: 12px; padding: 5px 8px; border-radius: 5px; background: var(--bg3); }
+    .compare-stat-label { color: var(--text3); }
+    .compare-stat-val { font-weight: 500; }
+    .compare-stat-val.better { color: var(--green); }
+    .compare-stat-val.worse { color: var(--amber); }
+    .cmp-btn { background: transparent; border: 0.5px solid var(--border2); color: var(--text3); cursor: pointer; padding: 3px 8px; border-radius: 5px; font-size: 10px; transition: all 0.15s; white-space: nowrap; }
+    .cmp-btn:hover { border-color: var(--amber); color: var(--amber); }
+    .cmp-btn.active { border-color: var(--amber); color: var(--amber); background: rgba(245,158,11,0.1); }
+
+    /* ══════════════════════════════════════════
+       ANALİTİK SAYFASI
+    ══════════════════════════════════════════ */
+    .analytics-layout { padding: 24px; display: flex; flex-direction: column; gap: 20px; max-width: 1200px; }
+    .analytics-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
+    .kpi-card { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 18px 20px; display: flex; flex-direction: column; gap: 4px; transition: border-color 0.15s; }
+    .kpi-card:hover { border-color: var(--border2); }
+    .kpi-label { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.07em; }
+    .kpi-value { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; line-height: 1.1; }
+    .kpi-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
+    .kpi-bar { height: 3px; border-radius: 2px; margin-top: 10px; background: var(--bg3); overflow: hidden; }
+    .kpi-bar-fill { height: 100%; border-radius: 2px; transition: width 0.6s ease; }
+    .chart-card { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 20px; }
+    .chart-title { font-size: 13px; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+    .chart-badge { font-size: 10px; padding: 2px 7px; border-radius: 20px; font-weight: 600; }
+    .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .charts-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+    .chart-wrap { position: relative; width: 100%; }
+    .chart-wrap canvas { display: block; max-height: 220px; }
+    .top-files-list { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+    .top-file-row { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--bg3); border-radius: 7px; border: 0.5px solid var(--border); }
+    .top-file-rank { font-size: 11px; font-weight: 700; color: var(--text3); min-width: 20px; }
+    .top-file-name { flex: 1; font-size: 12px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .top-file-count { font-size: 12px; font-weight: 600; color: var(--blue); background: rgba(59,130,246,0.12); padding: 2px 8px; border-radius: 12px; white-space: nowrap; }
+    .analytics-empty { padding: 60px; text-align: center; color: var(--text3); font-size: 13px; }
+    .trend-bar-chart { display: flex; flex-direction: column; gap: 6px; }
+    .trend-bar-row { display: flex; align-items: center; gap: 8px; font-size: 11px; }
+    .trend-bar-label { color: var(--text3); min-width: 80px; text-align: right; }
+    .trend-bar-wrap { flex: 1; background: var(--bg3); border-radius: 3px; height: 16px; overflow: hidden; }
+    .trend-bar-fill { height: 100%; border-radius: 3px; display: flex; align-items: center; padding-left: 6px; font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.8); transition: width 0.6s ease; }
+
+    @media (max-width: 900px) { .charts-row, .charts-row-3 { grid-template-columns: 1fr; } }
+    @media (max-width: 700px) {
+      .search-layout { grid-template-columns: 1fr; }
+      .sidebar { border-right: none; border-bottom: 0.5px solid var(--border); }
+      .compare-body { flex-direction: column !important; }
+      .compare-divider { display: none; }
+    }
+  </style>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<!-- Preview Modal -->
+<div class="modal-overlay hidden" id="previewModal" onclick="closeModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">Önizleme</div>
+      <button class="modal-close" onclick="closePreviewModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-svg-wrap" id="modalSvgWrap"></div>
+      <div class="modal-meta" id="modalMeta"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Detay Modalı (2.12) -->
+<div class="modal-overlay hidden" id="detailModal" onclick="if(event.target===this)closeDetailModal()">
+  <div class="modal detail-modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title" id="detailModalTitle">Dosya Detayı</div>
+      <button class="modal-close" onclick="closeDetailModal()">×</button>
+    </div>
+    <div class="modal-body" id="detailModalBody"></div>
+  </div>
+</div>
+
+<!-- Karşılaştırma Modalı (2.11) -->
+<div class="modal-overlay hidden" id="compareModal" onclick="if(event.target===this)closeCompareModal()">
+  <div class="modal compare-modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title" id="compareModalTitle">Karşılaştırma</div>
+      <button class="modal-close" onclick="closeCompareModal()">×</button>
+    </div>
+    <div class="modal-body compare-body" id="compareModalBody"></div>
+  </div>
+</div>
+
+<!-- Topbar -->
+<div class="topbar">
+  <div class="logo"><span>CAD</span>Search</div>
+  <div style="display:flex;align-items:center;gap:6px;margin-left:6px">
+    <div class="dot" id="statusDot" style="background:var(--text3)"></div>
+    <span style="font-size:12px;color:var(--text3)" id="statusText">Bağlanıyor...</span>
+  </div>
+  <div class="topbar-right">
+    <div class="tstat">
+      <div class="tstat-val" id="totalFiles">—</div>
+      <div class="tstat-lbl">kalıp</div>
+    </div>
+    <button class="logout-btn" onclick="logout()">Çıkış</button>
+  </div>
+</div>
+
+<!-- Tab bar -->
+<div class="tabbar">
+  <div class="tab active" id="tab-search" onclick="switchTab('search')">Ara</div>
+  <div class="tab" id="tab-db" onclick="switchTab('db')">DB</div>
+  <div class="tab" id="tab-cat" onclick="switchTab('cat')">Kategoriler</div>
+  <div class="tab" id="tab-analytics" onclick="switchTab('analytics')">📊 Analitik</div>
+</div>
+
+<!-- ═══════════════ ARA SAYFASI ═══════════════ -->
+<div class="page active" id="page-search">
+  <div class="search-layout">
+    <div class="sidebar">
+      <div class="upload-zone" id="uploadZone"
+        ondragover="handleDragOver(event)" ondragleave="handleDragLeave()"
+        ondrop="handleDrop(event)" onclick="document.getElementById('fileInput').click()">
+        <div class="upload-icon">
+          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        </div>
+        <div class="upload-title">DXF / DWG Yükle</div>
+        <div class="upload-sub" id="uploadSub">Sorgu dosyanızı sürükleyin</div>
+        <div class="upload-fname" id="uploadFname"></div>
+      </div>
+      <input type="file" id="fileInput" accept=".dxf,.dwg,.jpg,.jpeg,.png" style="display:none" onchange="onFileSelect(event)">
+
+      <!-- Anlık önizleme -->
+      <div class="sidebar-preview" id="sidebarPreview" style="display:none">
+        <div class="sidebar-preview-label">
+          <span>Önizleme</span>
+          <span id="sidebarPreviewInfo" style="color:var(--text2)"></span>
+        </div>
+        <div id="sidebarPreviewSvg"></div>
+      </div>
+
+      <div class="divider"></div>
+      <div class="section-label">Kategori Filtresi</div>
+      <select id="searchCategorySelect" style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:6px;color:var(--text);padding:6px 8px;font-size:12px;width:100%;outline:none">
+        <option value="">Tüm kategoriler</option>
+      </select>
+      <div id="searchCatInfo" style="font-size:11px;color:var(--text3);display:none"></div>
+
+      <div class="divider"></div>
+      <div class="section-label">Arama Ayarları</div>
+      <div class="filter-group">
+        <div class="filter-row">
+          <label>Sonuç sayısı</label>
+          <span class="filter-val" id="topkVal">10</span>
+        </div>
+        <input type="range" min="5" max="50" step="5" value="10" id="topkSlider"
+          oninput="document.getElementById('topkVal').textContent=this.value">
+        <div class="filter-row">
+          <label>Min. benzerlik</label>
+          <span class="filter-val" id="minSimVal">20%</span>
+        </div>
+        <input type="range" min="0" max="95" step="5" value="20" id="minSimSlider"
+          oninput="document.getElementById('minSimVal').textContent=this.value+'%'">
+        <div class="filter-row"><label>Sıralama</label></div>
+        <select id="sortSelect">
+          <option value="similarity">Benzerlik (yüksek → düşük)</option>
+          <option value="entity_count">Entity sayısı</option>
+          <option value="layer_count">Katman sayısı</option>
+        </select>
+      </div>
+      <button class="search-btn" id="searchBtn" onclick="doSearch()" disabled>Benzer Çizimleri Bul</button>
+
+      <div class="divider"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div class="section-label">Arama Geçmişi</div>
+        <button onclick="clearHistory()" style="background:transparent;border:none;color:var(--text3);font-size:11px;cursor:pointer;padding:0" title="Geçmişi temizle">✕ Temizle</button>
+      </div>
+      <div id="historyList" style="display:flex;flex-direction:column;gap:6px"></div>
+    </div>
+
+    <div class="main" id="searchMain">
+      <div class="empty-state">
+        <div class="empty-icon">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </div>
+        <div class="empty-title">Arama yapmaya hazır</div>
+        <div class="empty-sub">Sol taraftan bir DXF/DWG dosyası yükleyin. DB'nizdeki kalıplar arasında en benzerleri bulunacak.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ DB SAYFASI ═══════════════ -->
+<div class="page" id="page-db">
+  <div class="db-layout">
+
+    <!-- Upload kartı -->
+    <div class="db-upload-card">
+      <h2>Kalıp Yükle</h2>
+      <p>DWG, DXF veya PDF dosyalarınızı sürükleyin. Toplu yükleme desteklenir.</p>
+      <div class="db-drop" id="dbDrop"
+        ondragover="dbDragOver(event)" ondragleave="dbDragLeave()"
+        ondrop="dbDropped(event)" onclick="document.getElementById('dbFileInput').click()">
+        <div class="db-drop-icon">
+          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        </div>
+        <h3>Dosyaları buraya sürükleyin</h3>
+        <p>veya tıklayarak seçin — birden fazla dosya seçebilirsiniz</p>
+        <div class="formats">
+          <span class="fmt-badge fmt-dwg">DWG</span>
+          <span class="fmt-badge fmt-dxf">DXF</span>
+          <span class="fmt-badge fmt-pdf">PDF</span>
+          <span class="fmt-badge" style="background:rgba(34,197,94,0.15);color:#16a34a">JPG</span>
+          <span class="fmt-badge" style="background:rgba(234,179,8,0.15);color:#ca8a04">ZIP</span>
+          <span class="fmt-badge" style="background:rgba(234,179,8,0.15);color:#ca8a04">RAR</span>
+        </div>
+      </div>
+      <input type="file" id="dbFileInput" accept=".dxf,.dwg,.pdf,.jpg,.jpeg,.png,.zip,.rar" multiple style="display:none" onchange="dbFilesSelected(event)">
+
+      <!-- Kategori + CLIP seçimi -->
+      <div style="margin-top:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <label style="font-size:12px;color:var(--text3);white-space:nowrap">Kategori:</label>
+        <select id="dbCategorySelect" style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:6px;color:var(--text);padding:6px 10px;font-size:12px;outline:none;min-width:160px">
+          <option value="">— Kategori seçin (isteğe bağlı) —</option>
+        </select>
+      </div>
+      <div style="margin-top:10px;display:flex;align-items:center;gap:8px">
+        <input type="checkbox" id="dbSkipClip" checked style="accent-color:var(--blue);cursor:pointer">
+        <label for="dbSkipClip" style="font-size:12px;color:var(--text2);cursor:pointer">
+          Hızlı mod (AI görsel analiz atla) — <span style="color:var(--text3)">büyük yüklemeler için önerilir</span>
+        </label>
+      </div>
+
+      <!-- Seçili dosyalar -->
+      <div class="db-selected-files" id="dbSelectedFiles">
+        <h4 id="dbSelectedCount"></h4>
+        <div class="db-file-chips" id="dbFileChips"></div>
+      </div>
+
+      <!-- Progress -->
+      <div class="db-progress" id="dbProgress">
+        <div class="db-progress-label" id="dbProgressLabel">Yükleniyor...</div>
+        <div class="db-progress-bar-wrap"><div class="db-progress-bar" id="dbProgressBar"></div></div>
+        <div class="db-upload-stats">
+          <span>Başarılı: <span class="ok-count" id="dbOkCount">0</span></span>
+          <span>Hatalı: <span class="fail-count" id="dbFailCount">0</span></span>
+        </div>
+        <div class="db-error-list" id="dbErrorList"></div>
+      </div>
+
+      <div class="db-actions">
+        <button class="btn-primary" id="dbUploadBtn" onclick="startDbUpload()" disabled>Yükle ve İndeksle</button>
+        <button class="btn-secondary" id="dbClearBtn" onclick="clearDbSelection()" style="display:none">Temizle</button>
+      </div>
+    </div>
+
+    <!-- Dosya listesi -->
+    <div class="db-files-card">
+      <div class="db-files-header">
+        <h2>Kayıtlı Kalıplar <span id="dbTotalBadge" style="font-size:12px;color:var(--text3);font-weight:400"></span></h2>
+        <input class="db-search-box" id="dbSearchBox" placeholder="Dosya ara..." oninput="dbSearchDebounce()" />
+      </div>
+      <div class="db-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:48px"></th>
+              <th>Dosya Adı</th>
+              <th>Format</th>
+              <th>Kategori</th>
+              <th>Entity</th>
+              <th>Katman</th>
+              <th>Boyut</th>
+              <th>Eklenme</th>
+              <th>İşlem</th>
+            </tr>
+          </thead>
+          <tbody id="dbTableBody">
+            <tr><td colspan="7" class="db-empty">Yükleniyor...</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="db-pagination" id="dbPagination" style="display:none">
+        <span id="dbPageInfo"></span>
+        <div class="db-pagination-btns">
+          <button class="pg-btn" id="dbPrevBtn" onclick="dbChangePage(-1)">‹ Önceki</button>
+          <button class="pg-btn" id="dbNextBtn" onclick="dbChangePage(1)">Sonraki ›</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════ KATEGORİLER SAYFASI ═══════════════ -->
+<div class="page" id="page-cat">
+  <div class="cat-layout">
+
+    <!-- Yeni kategori ekle -->
+    <div class="cat-add-card">
+      <h2>Yeni Kategori</h2>
+      <div class="cat-add-row">
+        <input class="cat-name-input" id="catNameInput" placeholder="Kategori adı..." maxlength="60"
+          onkeydown="if(event.key==='Enter') addCategory()">
+        <div class="cat-color-wrap">
+          <label>Renk</label>
+          <input type="color" id="catColorInput" value="#6366f1">
+        </div>
+        <button class="btn-primary" onclick="addCategory()">Ekle</button>
+      </div>
+      <div id="catAddMsg" style="margin-top:8px;font-size:12px;display:none"></div>
+    </div>
+
+    <!-- Kategori listesi -->
+    <div class="cat-list-card">
+      <div class="cat-list-header">
+        Kategoriler <span id="catListBadge" style="font-size:12px;color:var(--text3);font-weight:400"></span>
+      </div>
+      <div id="catListBody">
+        <div class="cat-empty">Yükleniyor...</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════ ANALİTİK SAYFASI ═══════════════ -->
+<div class="page" id="page-analytics">
+  <div class="analytics-layout">
+
+    <!-- KPI Kartları -->
+    <div class="analytics-grid" id="analyticsKpiGrid">
+      <div class="kpi-card"><div class="kpi-label">Toplam Dosya</div><div class="kpi-value" id="kpiTotal">—</div><div class="kpi-sub">indexlenmiş kalıplar</div><div class="kpi-bar"><div class="kpi-bar-fill" id="kpiTotalBar" style="background:var(--blue);width:0%"></div></div></div>
+      <div class="kpi-card"><div class="kpi-label">İndekslenmiş</div><div class="kpi-value" id="kpiIndexed" style="color:var(--green)">—</div><div class="kpi-sub" id="kpiIndexedSub">—</div><div class="kpi-bar"><div class="kpi-bar-fill" id="kpiIndexedBar" style="background:var(--green);width:0%"></div></div></div>
+      <div class="kpi-card"><div class="kpi-label">CLIP Vektörü</div><div class="kpi-value" id="kpiClip" style="color:var(--violet)">—</div><div class="kpi-sub" id="kpiClipSub">AI görsel vektörü</div><div class="kpi-bar"><div class="kpi-bar-fill" id="kpiClipBar" style="background:var(--violet);width:0%"></div></div></div>
+      <div class="kpi-card"><div class="kpi-label">Ort. Entity</div><div class="kpi-value" id="kpiAvgEnt" style="color:var(--cyan)">—</div><div class="kpi-sub">dosya başına</div><div class="kpi-bar"><div class="kpi-bar-fill" id="kpiAvgEntBar" style="background:var(--cyan);width:60%"></div></div></div>
+      <div class="kpi-card"><div class="kpi-label">Ort. Katman</div><div class="kpi-value" id="kpiAvgLay" style="color:var(--amber)">—</div><div class="kpi-sub">dosya başına</div><div class="kpi-bar"><div class="kpi-bar-fill" id="kpiAvgLayBar" style="background:var(--amber);width:50%"></div></div></div>
+      <div class="kpi-card"><div class="kpi-label">Top. Arama</div><div class="kpi-value" id="kpiSearchTotal" style="color:var(--pink)">—</div><div class="kpi-sub" id="kpiSearchSub">geçmişteki toplam</div><div class="kpi-bar"><div class="kpi-bar-fill" id="kpiSearchBar" style="background:var(--pink);width:0%"></div></div></div>
+    </div>
+
+    <!-- Format + Kategori dağılımı -->
+    <div class="charts-row">
+      <div class="chart-card">
+        <div class="chart-title">📁 Format Dağılımı <span class="chart-badge" style="background:rgba(59,130,246,0.15);color:var(--blue)">Dosya tipi</span></div>
+        <div class="chart-wrap"><canvas id="chartFormats"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">🏷️ Kategori Dağılımı <span class="chart-badge" style="background:rgba(139,92,246,0.15);color:var(--violet)">Gruplar</span></div>
+        <div class="chart-wrap"><canvas id="chartCategories"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Entity tipleri + Günlük upload -->
+    <div class="charts-row">
+      <div class="chart-card">
+        <div class="chart-title">⚙️ En Sık Entity Tipleri <span class="chart-badge" style="background:rgba(6,182,212,0.15);color:var(--cyan)">Top 10</span></div>
+        <div class="chart-wrap"><canvas id="chartEntities"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">📈 Günlük Upload Trendi <span class="chart-badge" style="background:rgba(34,197,94,0.15);color:var(--green)">Son 30 gün</span></div>
+        <div class="chart-wrap"><canvas id="chartUploads"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Arama istatistikleri + En çok aranan -->
+    <div class="charts-row">
+      <div class="chart-card">
+        <div class="chart-title">🔍 Günlük Arama Trendi <span class="chart-badge" style="background:rgba(236,72,153,0.15);color:var(--pink)">Son 30 gün</span></div>
+        <div class="chart-wrap"><canvas id="chartSearches"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">🏆 En Çok Aranan Dosyalar <span class="chart-badge" style="background:rgba(245,158,11,0.15);color:var(--amber)">Top 10</span></div>
+        <div class="top-files-list" id="topFilesList">
+          <div class="analytics-empty">Yükleniyor...</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const API = 'http://localhost:8000';
+const token = localStorage.getItem('token');
+if (!token) window.location.href = 'login.html';
+const authH = () => ({ 'Authorization': `Bearer ${token}` });
+
+// ── Tab yönetimi ──────────────────────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  document.getElementById('page-' + name).classList.add('active');
+  if (name === 'db')        { loadDbFiles(); loadCategoriesIntoSelect(); }
+  if (name === 'cat')       loadCategories();
+  if (name === 'analytics') loadAnalytics();
+}
+
+// ── Stats (topbar) ────────────────────────────────────────────────────────────
+async function loadStats() {
+  try {
+    const r = await fetch(`${API}/stats`, { headers: authH() });
+    if (r.status === 401) { logout(); return; }
+    const d = await r.json();
+    document.getElementById('totalFiles').textContent = d.total_files.toLocaleString('tr');
+    document.getElementById('statusDot').style.background = '#22c55e';
+    document.getElementById('statusText').textContent = 'Bağlı';
+  } catch {
+    document.getElementById('statusDot').style.background = '#ef4444';
+    document.getElementById('statusText').textContent = 'Bağlantı yok';
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  ARA SAYFASI
+// ══════════════════════════════════════════════════════════════════════════════
+const searchState = { file: null, results: null, view: 'grid' };
+const compareState = { items: [] };
+
+function handleDragOver(e) { e.preventDefault(); document.getElementById('uploadZone').classList.add('drag'); }
+function handleDragLeave() { document.getElementById('uploadZone').classList.remove('drag'); }
+function handleDrop(e) { e.preventDefault(); handleDragLeave(); const f = e.dataTransfer.files[0]; if (f) setFile(f); }
+function onFileSelect(e) { if (e.target.files[0]) setFile(e.target.files[0]); }
+
+function setFile(f) {
+  searchState.file = f;
+  document.getElementById('uploadFname').textContent = f.name;
+  document.getElementById('uploadSub').textContent = (f.size / 1024).toFixed(1) + ' KB';
+  document.getElementById('uploadZone').classList.add('loaded');
+  document.getElementById('searchBtn').disabled = false;
+  previewFileInSidebar(f);
+}
+
+async function doSearch() {
+  if (!searchState.file) return;
+  const topk = document.getElementById('topkSlider').value;
+  const minSim = document.getElementById('minSimSlider').value / 100;
+  const main = document.getElementById('searchMain');
+  main.innerHTML = `<div class="loading"><div class="spinner"></div><div>${searchState.file.name} analiz ediliyor...</div></div>`;
+  try {
+    const catId = document.getElementById('searchCategorySelect').value;
+    const catParam = catId ? `&category_id=${catId}` : '';
+    const fd = new FormData();
+    fd.append('file', searchState.file);
+    const r = await fetch(`${API}/search?top_k=${topk}&min_similarity=${minSim}${catParam}`, { method: 'POST', headers: authH(), body: fd });
+    if (r.status === 401) { logout(); return; }
+    if (!r.ok) throw new Error(await r.text());
+    const data = await r.json();
+    const sort = document.getElementById('sortSelect').value;
+    if (sort === 'entity_count') data.results.sort((a,b) => b.entity_count - a.entity_count);
+    else if (sort === 'layer_count') data.results.sort((a,b) => b.layer_count - a.layer_count);
+    searchState.results = data;
+    renderResults(data);
+    loadHistory();
+  } catch (err) {
+    main.innerHTML = `<div class="empty-state"><div class="empty-icon" style="background:rgba(239,68,68,0.1)"><svg viewBox="0 0 24 24" style="stroke:#ef4444;fill:none;stroke-width:1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div><div class="empty-title" style="color:#ef4444">Hata</div><div class="empty-sub">${err.message}</div></div>`;
+  }
+}
+
+function badgeClass(sim) { return sim >= 80 ? 'badge-high' : sim >= 60 ? 'badge-med' : 'badge-low'; }
+function simColor(sim) { return sim >= 80 ? '#22c55e' : sim >= 60 ? '#f59e0b' : '#ef4444'; }
+
+function renderResults(data) {
+  const main = document.getElementById('searchMain');
+  if (!data.results.length) {
+    const minSim = document.getElementById('minSimSlider').value;
+    main.innerHTML = `<div class="empty-state"><div class="empty-title">Sonuç bulunamadı</div><div class="empty-sub">Min. benzerlik şu an %${minSim} — kaydırıcıyı düşürüp tekrar deneyin. DB'de hiç dosya yoksa önce DB sekmesinden yükleme yapın.</div></div>`;
+    return;
+  }
+  const qs = data.query_stats || {};
+  const queryPreviewHtml = data.query_preview
+    ? `<img src="${data.query_preview}" alt="Aranan dosya görseli">`
+    : `<div class="query-preview-fallback">Önizleme üretilemedi</div>`;
+  const isGrid = searchState.view === 'grid';
+  main.innerHTML = `
+    <div class="results-header">
+      <div><div class="results-title">${data.total_matches} eşleşme</div><div class="results-meta">"${data.query_file}"</div></div>
+      <div class="view-toggle">
+        <button class="vbtn ${isGrid?'active':''}" onclick="setView('grid')">▦ Grid</button>
+        <button class="vbtn ${!isGrid?'active':''}" onclick="setView('list')">☰ Liste</button>
+      </div>
+    </div>
+    <div class="query-summary">
+      <div class="query-preview-card">
+        <div class="query-preview-label">Aranan Dosya</div>
+        <div class="query-preview-media">${queryPreviewHtml}</div>
+      </div>
+      <div class="query-bar">
+        <div class="qstat"><div class="qstat-label">Dosya</div><div class="qstat-val">${data.query_file}</div></div>
+        <div class="qstat"><div class="qstat-label">Entity</div><div class="qstat-val">${Number(qs.entity_count || 0).toLocaleString('tr')}</div></div>
+        <div class="qstat"><div class="qstat-label">Katman</div><div class="qstat-val">${Number(qs.layer_count || 0)}</div></div>
+        <div class="qstat"><div class="qstat-label">Genişlik</div><div class="qstat-val">${Number(qs.bbox_width || 0).toFixed(0)}</div></div>
+        <div class="qstat"><div class="qstat-label">Yükseklik</div><div class="qstat-val">${Number(qs.bbox_height || 0).toFixed(0)}</div></div>
+      </div>
+    </div>
+    <div class="${isGrid ? 'results-grid' : 'results-list'}" id="resultsContainer">
+      ${data.results.map((r,i) => isGrid ? renderGridCard(r,i) : renderListCard(r,i)).join('')}
+    </div>`;
+  // Canvas preview
+  if (isGrid) data.results.forEach(r => {
+    const c = document.getElementById('canvas_'+r.id);
+    if (c) setTimeout(() => drawPreview(c, r), 30);
+  });
+}
+
+function renderGridCard(r) {
+  const chips = (r.layers||[]).slice(0,4).map(l=>`<span class="layer-chip">${l}</span>`).join('');
+  const catBadge = r.category_name
+    ? `<span style="background:${r.category_color||'#6366f1'}22;color:${r.category_color||'#6366f1'};border:0.5px solid ${r.category_color||'#6366f1'}55;font-size:10px;font-weight:600;padding:1px 7px;border-radius:20px">${r.category_name}</span>`
+    : '';
+  const cmpActive = compareState.items.some(c => c.id === r.id);
+  const previewHtml = r.jpg_preview
+    ? `<img src="${r.jpg_preview}" style="width:100%;height:128px;object-fit:contain;background:#e9e9ea;display:block">`
+    : (r.svg_preview
+      ? `<div style="width:100%;height:128px;display:flex;align-items:center;justify-content:center;background:#0f1117;overflow:hidden">${r.svg_preview}</div>`
+      : `<canvas id="canvas_${r.id}" width="236" height="128" style="opacity:0.8"></canvas>`);
+  return `<div class="result-card ${cmpActive?'selected':''}" onclick="selectCard(${r.id})" data-result-id="${r.id}">
+    <div class="card-preview">
+      ${previewHtml}
+      <div class="card-badge ${badgeClass(r.similarity)}">${r.similarity}%</div>
+    </div>
+    <div class="card-body">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+        <div class="card-name" title="${r.filename}" style="margin-bottom:0;flex:1">${r.filename}</div>
+        ${catBadge}
+      </div>
+      <div class="card-path">${r.filepath}</div>
+      <div class="card-stats">
+        <div class="cstat">Entity: <span>${r.entity_count.toLocaleString('tr')}</span></div>
+        <div class="cstat">Katman: <span>${r.layer_count}</span></div>
+        <div class="cstat">Format: <span>${r.file_format.toUpperCase()}</span></div>
+      </div>
+      ${chips ? `<div class="layer-chips">${chips}</div>` : ''}
+      <div class="sim-bar-wrap">
+        <div class="sim-bar-label"><span>Benzerlik</span><span>${r.similarity}%</span></div>
+        <div class="sim-bar"><div class="sim-fill" style="width:${r.similarity}%;background:${simColor(r.similarity)}"></div></div>
+      </div>
+      <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap" onclick="event.stopPropagation()">
+        <button class="cmp-btn ${cmpActive?'active':''}" onclick="toggleCompare(${r.id})">${cmpActive?'✓ Seçildi':'+ Karşılaştır'}</button>
+        ${compareState.items.length===2&&compareState.items.every(c=>c)?`<button class="cmp-btn" style="border-color:var(--amber);color:var(--amber)" onclick="openCompareModal()">Karşılaştır →</button>`:''}
+        <button class="cmp-btn" style="border-color:rgba(59,130,246,0.4);color:var(--blue)" onclick="downloadFile(${r.id},'${r.filename.replace(/'/g,"\\'")}','${r.file_format||'dwg'}')">↓ İndir</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderListCard(r, i) {
+  const cmpActive = compareState.items.some(c => c.id === r.id);
+  return `<div class="result-list-card ${cmpActive?'selected':''}" onclick="selectCard(${r.id})" data-result-id="${r.id}">
+    <div class="list-rank">#${i+1}</div>
+    <div class="list-info">
+      <div class="list-name">${r.filename}</div>
+      <div class="list-path">${r.filepath}</div>
+    </div>
+    <div class="list-stats">
+      <div class="lstat"><div class="lstat-val">${r.entity_count.toLocaleString('tr')}</div><div class="lstat-lbl">entity</div></div>
+      <div class="lstat"><div class="lstat-val">${r.layer_count}</div><div class="lstat-lbl">katman</div></div>
+      <div class="lstat"><div class="lstat-val">${r.file_format.toUpperCase()}</div><div class="lstat-lbl">format</div></div>
+    </div>
+    <div class="sim-pill ${badgeClass(r.similarity)}">${r.similarity}%</div>
+    <button class="cmp-btn ${cmpActive?'active':''}" onclick="event.stopPropagation();toggleCompare(${r.id})">${cmpActive?'✓':'+ Kıyas'}</button>
+  </div>`;
+}
+
+function setView(v) { searchState.view = v; if (searchState.results) renderResults(searchState.results); }
+function selectCard(id) {
+  document.querySelectorAll('.result-card,.result-list-card').forEach(el => el.classList.remove('selected'));
+  const el = document.querySelector(`[data-result-id="${id}"]`);
+  if (el) el.classList.add('selected');
+}
+
+function drawPreview(canvas, result) {
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+  const types = result.entity_types || {};
+  const seed = result.id * 7919;
+  const rng = n => { let x = Math.sin(seed + n) * 10000; return x - Math.floor(x); };
+  ctx.strokeStyle = '#3b82f6'; ctx.lineWidth = 0.8; ctx.globalAlpha = 0.6;
+  for (let i = 0; i < Math.min(types.LINE || 0, 40); i++) {
+    ctx.beginPath(); ctx.moveTo(rng(i)*w, rng(i+0.3)*h); ctx.lineTo(rng(i+0.6)*w, rng(i+0.9)*h); ctx.stroke();
+  }
+  ctx.strokeStyle = '#60a5fa';
+  for (let i = 0; i < Math.min(types.CIRCLE || 0, 15); i++) {
+    ctx.beginPath(); ctx.arc(rng(i+1)*w, rng(i+1.3)*h, 3 + rng(i+1.6)*12, 0, Math.PI*2); ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  DB SAYFASI
+// ══════════════════════════════════════════════════════════════════════════════
+const dbState = { files: [], isZip: false, page: 1, perPage: 20, total: 0, search: '', searchTimer: null };
+
+// Drag & drop
+function dbDragOver(e) { e.preventDefault(); document.getElementById('dbDrop').classList.add('drag'); }
+function dbDragLeave() { document.getElementById('dbDrop').classList.remove('drag'); }
+function dbDropped(e) {
+  e.preventDefault(); dbDragLeave();
+  dbFilesSelected({ target: { files: e.dataTransfer.files } });
+}
+
+function dbFilesSelected(e) {
+  const rawFiles = Array.from(e.target.files);
+  const zips = rawFiles.filter(f => /\.(zip|rar)$/i.test(f.name));
+  const cads = rawFiles.filter(f => /\.(dwg|dxf|pdf|jpg|jpeg|png)$/i.test(f.name));
+
+  // ZIP ve CAD aynı anda seçilmesin
+  if (zips.length > 0 && cads.length > 0) {
+    alert('Arşiv (ZIP/RAR) ile DWG/DXF/PDF dosyalarını aynı anda seçemezsiniz. Sadece arşiv veya sadece CAD dosyaları seçin.');
+    document.getElementById('dbFileInput').value = '';
+    return;
+  }
+
+  const all = zips.length > 0 ? zips : cads;
+  dbState.files = all;
+  dbState.isZip = zips.length > 0;
+
+  const sel = document.getElementById('dbSelectedFiles');
+  const chips = document.getElementById('dbFileChips');
+  const btn = document.getElementById('dbUploadBtn');
+  const clearBtn = document.getElementById('dbClearBtn');
+  if (all.length === 0) { sel.style.display = 'none'; btn.disabled = true; clearBtn.style.display = 'none'; return; }
+
+  const label = dbState.isZip
+    ? `${all.length} arşiv seçildi (ZIP/RAR — içindeki CAD dosyaları indexlenecek)`
+    : `${all.length} dosya seçildi`;
+  document.getElementById('dbSelectedCount').textContent = label;
+  chips.innerHTML = all.slice(0, 30).map(f => `<span class="db-file-chip">${f.name}</span>`).join('')
+    + (all.length > 30 ? `<span class="db-file-chip">+${all.length-30} daha</span>` : '');
+  sel.style.display = '';
+  btn.disabled = false;
+  clearBtn.style.display = '';
+  // Progress sıfırla
+  document.getElementById('dbProgress').style.display = 'none';
+  document.getElementById('dbProgressBar').style.width = '0%';
+  document.getElementById('dbOkCount').textContent = '0';
+  document.getElementById('dbFailCount').textContent = '0';
+  document.getElementById('dbErrorList').innerHTML = '';
+}
+
+function clearDbSelection() {
+  dbState.files = [];
+  dbState.isZip = false;
+  document.getElementById('dbSelectedFiles').style.display = 'none';
+  document.getElementById('dbUploadBtn').disabled = true;
+  document.getElementById('dbClearBtn').style.display = 'none';
+  document.getElementById('dbProgress').style.display = 'none';
+  document.getElementById('dbFileInput').value = '';
+}
+
+async function startDbUpload() {
+  if (!dbState.files.length) return;
+  const btn = document.getElementById('dbUploadBtn');
+  btn.disabled = true;
+  document.getElementById('dbProgress').style.display = '';
+  document.getElementById('dbErrorList').innerHTML = '';
+
+  const catId = document.getElementById('dbCategorySelect').value;
+  const skipClip = document.getElementById('dbSkipClip').checked;
+  const qp = new URLSearchParams();
+  if (catId) qp.set('category_id', catId);
+  qp.set('skip_clip', skipClip);
+  const catParam = '?' + qp.toString();
+  let ok = 0, fail = 0;
+
+  if (dbState.isZip) {
+    // ZIP modu: her ZIP'i ayrı ayrı gönder
+    const total = dbState.files.length;
+    for (let i = 0; i < total; i++) {
+      const f = dbState.files[i];
+      document.getElementById('dbProgressLabel').textContent = `ZIP işleniyor: ${f.name} (${i+1}/${total})`;
+      document.getElementById('dbProgressBar').style.width = Math.round((i / total) * 100) + '%';
+      const fd = new FormData();
+      fd.append('file', f);
+      try {
+        const r = await fetch(`${API}/index/bulk-zip${catParam}`, { method: 'POST', headers: authH(), body: fd });
+        if (r.status === 401) { logout(); return; }
+        const d = await r.json();
+        ok += d.success || 0;
+        fail += d.failed || 0;
+        (d.errors || []).forEach(err => {
+          const el = document.createElement('div');
+          el.className = 'db-error-item';
+          el.textContent = `${err.filename}: ${err.reason}`;
+          document.getElementById('dbErrorList').appendChild(el);
+        });
+      } catch {
+        fail++;
+      }
+      document.getElementById('dbOkCount').textContent = ok;
+      document.getElementById('dbFailCount').textContent = fail;
+    }
+    document.getElementById('dbProgressBar').style.width = '100%';
+  } else {
+    // Normal mod: 10'lu batch
+    const BATCH = 10;
+    const total = dbState.files.length;
+    let done = 0;
+    for (let i = 0; i < total; i += BATCH) {
+      const batch = dbState.files.slice(i, i + BATCH);
+      const fd = new FormData();
+      batch.forEach(f => fd.append('files', f));
+      try {
+        const r = await fetch(`${API}/index/bulk${catParam}`, { method: 'POST', headers: authH(), body: fd });
+        if (r.status === 401) { logout(); return; }
+        const d = await r.json();
+        ok += d.success || 0;
+        fail += d.failed || 0;
+        done += batch.length;
+        (d.errors || []).forEach(err => {
+          const el = document.createElement('div');
+          el.className = 'db-error-item';
+          el.textContent = `${err.filename}: ${err.reason}`;
+          document.getElementById('dbErrorList').appendChild(el);
+        });
+      } catch {
+        fail += batch.length; done += batch.length;
+      }
+      const pct = Math.round(done / total * 100);
+      document.getElementById('dbProgressBar').style.width = pct + '%';
+      document.getElementById('dbProgressLabel').textContent = `${done} / ${total} dosya işlendi`;
+      document.getElementById('dbOkCount').textContent = ok;
+      document.getElementById('dbFailCount').textContent = fail;
+    }
+  }
+
+  document.getElementById('dbProgressLabel').textContent = `Tamamlandı — ${ok} başarılı, ${fail} hatalı`;
+  btn.disabled = false;
+  loadStats();
+  loadDbFiles();
+}
+
+// Dosya listesi
+function dbSearchDebounce() {
+  clearTimeout(dbState.searchTimer);
+  dbState.searchTimer = setTimeout(() => {
+    dbState.search = document.getElementById('dbSearchBox').value.trim();
+    dbState.page = 1;
+    loadDbFiles();
+  }, 400);
+}
+
+async function loadDbFiles() {
+  const { page, perPage, search } = dbState;
+  const url = `${API}/files?page=${page}&per_page=${perPage}${search ? '&search='+encodeURIComponent(search) : ''}`;
+  try {
+    const r = await fetch(url, { headers: authH() });
+    if (r.status === 401) { logout(); return; }
+    const d = await r.json();
+    dbState.total = d.total;
+    renderDbTable(d.files);
+    renderDbPagination(d.total, d.page, d.per_page);
+    document.getElementById('dbTotalBadge').textContent = `(${d.total.toLocaleString('tr')} kayıt)`;
+  } catch {
+    document.getElementById('dbTableBody').innerHTML = '<tr><td colspan="8" class="db-empty">Veriler yüklenemedi.</td></tr>';
+  }
+}
+
+function renderDbTable(files) {
+  const tbody = document.getElementById('dbTableBody');
+  if (!files.length) {
+    tbody.innerHTML = `<tr><td colspan="9" class="db-empty">Henüz kalıp yok. Yükle sekmesinden ekleyin.</td></tr>`;
+    return;
+  }
+  const fmtColor = { dwg: 'fmt-dwg', dxf: 'fmt-dxf', pdf: 'fmt-pdf' };
+  tbody.innerHTML = files.map(f => {
+    const fmt = (f.file_format || '').toLowerCase();
+    const date = f.indexed_at ? new Date(f.indexed_at).toLocaleDateString('tr-TR') : '—';
+    const size = (f.bbox_width && f.bbox_height)
+      ? `${f.bbox_width.toFixed(0)}×${f.bbox_height.toFixed(0)}`
+      : '—';
+    const catBadge = f.category_name
+      ? `<span style="background:${f.category_color||'#6366f1'}22;color:${f.category_color||'#6366f1'};border:0.5px solid ${f.category_color||'#6366f1'}55;font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;white-space:nowrap">${f.category_name}</span>`
+      : `<span style="color:var(--text3);font-size:11px">—</span>`;
+    const thumb = f.jpg_preview
+      ? `<img src="${f.jpg_preview}" style="width:44px;height:32px;object-fit:contain;border-radius:4px;border:0.5px solid var(--border);background:#0a0d14;cursor:pointer" onclick="event.stopPropagation();showDetailModal(${f.id})" title="Önizle">`
+      : `<div style="width:44px;height:32px;border-radius:4px;border:0.5px solid var(--border);background:#0a0d14;display:flex;align-items:center;justify-content:center"><span style="font-size:9px;color:var(--text3)">${fmt.toUpperCase()}</span></div>`;
+    const hasData = f.has_file_data;
+    return `<tr class="clickable-row" onclick="showDetailModal(${f.id})">
+      <td style="padding:4px 8px">${thumb}</td>
+      <td><div class="td-filename" title="${f.filepath}">${f.filename}</div></td>
+      <td><span class="td-format ${fmtColor[fmt]||''}">${fmt.toUpperCase()}</span></td>
+      <td>${catBadge}</td>
+      <td>${(f.entity_count||0).toLocaleString('tr')}</td>
+      <td>${f.layer_count||0}</td>
+      <td>${size}</td>
+      <td class="td-date">${date}</td>
+      <td style="display:flex;gap:6px;align-items:center" onclick="event.stopPropagation()">
+        <button class="del-btn" style="background:rgba(59,130,246,0.12);color:var(--blue);border-color:rgba(59,130,246,0.3)" onclick="downloadFile(${f.id},'${f.filename.replace(/'/g,"\\'")}')">↓</button>
+        <button class="del-btn" onclick="deleteFile(${f.id},'${f.filename.replace(/'/g,"\\'")}')">Sil</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function renderDbPagination(total, page, perPage) {
+  const pages = Math.ceil(total / perPage);
+  const pg = document.getElementById('dbPagination');
+  if (pages <= 1) { pg.style.display = 'none'; return; }
+  pg.style.display = 'flex';
+  document.getElementById('dbPageInfo').textContent = `Sayfa ${page} / ${pages}`;
+  document.getElementById('dbPrevBtn').disabled = page <= 1;
+  document.getElementById('dbNextBtn').disabled = page >= pages;
+}
+
+function dbChangePage(dir) {
+  const pages = Math.ceil(dbState.total / dbState.perPage);
+  dbState.page = Math.max(1, Math.min(pages, dbState.page + dir));
+  loadDbFiles();
+}
+
+async function deleteFile(id, name) {
+  if (!confirm(`"${name}" silinsin mi?`)) return;
+  try {
+    const r = await fetch(`${API}/files/${id}`, { method: 'DELETE', headers: authH() });
+    if (r.status === 401) { logout(); return; }
+    if (!r.ok) throw new Error();
+    loadStats();
+    loadDbFiles();
+  } catch {
+    alert('Silme başarısız.');
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  KATEGORİLER
+// ══════════════════════════════════════════════════════════════════════════════
+let catState = [];
+
+async function loadCategories() {
+  try {
+    const r = await fetch(`${API}/categories`, { headers: authH() });
+    if (r.status === 401) { logout(); return; }
+    catState = await r.json();
+    renderCategories();
+  } catch {
+    document.getElementById('catListBody').innerHTML = '<div class="cat-empty">Yüklenemedi.</div>';
+  }
+}
+
+function renderCategories() {
+  const badge = document.getElementById('catListBadge');
+  badge.textContent = `(${catState.length})`;
+  const body = document.getElementById('catListBody');
+  if (!catState.length) {
+    body.innerHTML = '<div class="cat-empty">Henüz kategori yok. Yukarıdan ekleyin.</div>';
+    return;
+  }
+  body.innerHTML = catState.map(c => `
+    <div class="cat-item" id="cat-row-${c.id}">
+      <div class="cat-dot" style="background:${c.color}"></div>
+      <div class="cat-info">
+        <div class="cat-name" id="cat-name-${c.id}">${c.name}</div>
+        <div class="cat-count">${c.file_count} dosya</div>
+      </div>
+      <div class="cat-edit-row" id="cat-view-${c.id}">
+        <button class="cat-btn" onclick="startEditCat(${c.id})">Düzenle</button>
+        <button class="cat-btn danger" onclick="deleteCat(${c.id},'${c.name.replace(/'/g,"\\'")}')">Sil</button>
+      </div>
+      <div class="cat-edit-row" id="cat-edit-${c.id}" style="display:none">
+        <input class="cat-edit-input" id="cat-edit-name-${c.id}" value="${c.name}" maxlength="60">
+        <input type="color" id="cat-edit-color-${c.id}" value="${c.color}" style="width:28px;height:28px;border:0.5px solid var(--border2);border-radius:4px;background:var(--bg3);cursor:pointer;padding:1px">
+        <button class="cat-btn save" onclick="saveCat(${c.id})">Kaydet</button>
+        <button class="cat-btn" onclick="cancelEditCat(${c.id})">İptal</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function startEditCat(id) {
+  document.getElementById(`cat-view-${id}`).style.display = 'none';
+  document.getElementById(`cat-edit-${id}`).style.display = 'flex';
+  document.getElementById(`cat-edit-name-${id}`).focus();
+}
+
+function cancelEditCat(id) {
+  document.getElementById(`cat-view-${id}`).style.display = 'flex';
+  document.getElementById(`cat-edit-${id}`).style.display = 'none';
+}
+
+async function saveCat(id) {
+  const name  = document.getElementById(`cat-edit-name-${id}`).value.trim();
+  const color = document.getElementById(`cat-edit-color-${id}`).value;
+  if (!name) return;
+  try {
+    const r = await fetch(`${API}/categories/${id}`, {
+      method: 'PUT', headers: { ...authH(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, color }),
+    });
+    if (!r.ok) { const d = await r.json(); alert(d.detail || 'Hata'); return; }
+    await loadCategories();
+    loadCategoriesIntoSelect();
+  } catch { alert('Kaydedilemedi.'); }
+}
+
+async function deleteCat(id, name) {
+  if (!confirm(`"${name}" silinsin mi?\nBu kategorideki dosyalar kategorisiz kalır.`)) return;
+  try {
+    const r = await fetch(`${API}/categories/${id}`, { method: 'DELETE', headers: authH() });
+    if (!r.ok) return;
+    await loadCategories();
+    loadCategoriesIntoSelect();
+    loadDbFiles();
+  } catch { alert('Silinemedi.'); }
+}
+
+async function addCategory() {
+  const name  = document.getElementById('catNameInput').value.trim();
+  const color = document.getElementById('catColorInput').value;
+  const msg   = document.getElementById('catAddMsg');
+  if (!name) { showCatMsg('Kategori adı boş olamaz.', 'error'); return; }
+  try {
+    const r = await fetch(`${API}/categories`, {
+      method: 'POST', headers: { ...authH(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, color }),
+    });
+    const d = await r.json();
+    if (!r.ok) { showCatMsg(d.detail || 'Hata', 'error'); return; }
+    document.getElementById('catNameInput').value = '';
+    showCatMsg(`"${d.name}" eklendi.`, 'ok');
+    await loadCategories();
+    loadCategoriesIntoSelect();
+  } catch { showCatMsg('Eklenemedi.', 'error'); }
+}
+
+function showCatMsg(text, type) {
+  const el = document.getElementById('catAddMsg');
+  el.textContent = text;
+  el.style.color = type === 'ok' ? 'var(--green)' : 'var(--red)';
+  el.style.display = '';
+  setTimeout(() => { el.style.display = 'none'; }, 3000);
+}
+
+// DB sekmesindeki kategori dropdown'ını doldur
+async function loadCategoriesIntoSelect() {
+  try {
+    const r = await fetch(`${API}/categories`, { headers: authH() });
+    if (!r.ok) return;
+    const cats = await r.json();
+
+    // DB sekmesi — upload kategori seçici
+    const dbSel = document.getElementById('dbCategorySelect');
+    const dbCurrent = dbSel.value;
+    dbSel.innerHTML = '<option value="">— Kategori seçin (isteğe bağlı) —</option>'
+      + cats.map(c => `<option value="${c.id}" ${dbCurrent == c.id ? 'selected' : ''}>${c.name}</option>`).join('');
+
+    // Ara sekmesi — kategori filtresi
+    const searchSel = document.getElementById('searchCategorySelect');
+    const searchCurrent = searchSel.value;
+    searchSel.innerHTML = '<option value="">Tüm kategoriler</option>'
+      + cats.map(c => `<option value="${c.id}" ${searchCurrent == c.id ? 'selected' : ''}>${c.name}</option>`).join('');
+  } catch {}
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  PREVIEW — sidebar (Ara sekmesi) + modal (DB sekmesi)
+// ══════════════════════════════════════════════════════════════════════════════
+
+// Tarayıcıda DXF raw parse edip SVG üret (backend'e gitmeden)
+function parseDxfToSvg(text, w, h) {
+  const lines = text.split('\n');
+  const entities = [];
+  let inEntities = false, i = 0;
+  while (i < lines.length) {
+    const ln = lines[i].trim();
+    if (ln === 'ENTITIES') inEntities = true;
+    if (ln === 'ENDSEC' && inEntities) { inEntities = false; }
+    if (!inEntities) { i++; continue; }
+    if (['LINE','CIRCLE','ARC','LWPOLYLINE','POLYLINE'].includes(ln)) {
+      const etype = ln;
+      const ent = { type: etype, layer: '0', x1:0, y1:0, x2:0, y2:0, r:0, sa:0, ea:90 };
+      i++;
+      let depth = 0;
+      while (i < lines.length && depth < 200) {
+        const code = parseInt(lines[i]?.trim());
+        const val = lines[i+1]?.trim() || '';
+        i += 2;
+        if (isNaN(code) || code === 0) { i -= 2; break; }
+        if (code === 8)  ent.layer = val;
+        if (code === 10) ent.x1 = parseFloat(val)||0;
+        if (code === 20) ent.y1 = parseFloat(val)||0;
+        if (code === 11) ent.x2 = parseFloat(val)||0;
+        if (code === 21) ent.y2 = parseFloat(val)||0;
+        if (code === 40) ent.r  = parseFloat(val)||0;
+        if (code === 50) ent.sa = parseFloat(val)||0;
+        if (code === 51) ent.ea = parseFloat(val)||0;
+        depth++;
+      }
+      entities.push(ent);
+    } else { i++; }
+  }
+  if (!entities.length) return null;
+
+  const xs = entities.flatMap(e => [e.x1, e.x2]);
+  const ys = entities.flatMap(e => [e.y1, e.y2]);
+  const bx0 = Math.min(...xs), bx1 = Math.max(...xs);
+  const by0 = Math.min(...ys), by1 = Math.max(...ys);
+  const bw = (bx1-bx0)||1, bh = (by1-by0)||1;
+  const pad = 16, vw = w-pad*2, vh = h-pad*2;
+  const sx = x => pad + (x-bx0)/bw*vw;
+  const sy = y => pad + (1-(y-by0)/bh)*vh;
+
+  const colors = ['#60a5fa','#34d399','#f59e0b','#f87171','#a78bfa','#38bdf8'];
+  const layerIdx = {};
+  const lc = l => { if (!(l in layerIdx)) layerIdx[l]=Object.keys(layerIdx).length; return colors[layerIdx[l]%colors.length]; };
+
+  const svgLines = [];
+  for (const e of entities.slice(0, 3000)) {
+    const c = lc(e.layer);
+    if (e.type === 'LINE') {
+      svgLines.push(`<line x1="${sx(e.x1).toFixed(1)}" y1="${sy(e.y1).toFixed(1)}" x2="${sx(e.x2).toFixed(1)}" y2="${sy(e.y2).toFixed(1)}" stroke="${c}" stroke-width="0.8"/>`);
+    } else if (e.type === 'CIRCLE' && e.r > 0) {
+      const rp = e.r/bw*vw;
+      if (rp > 0.3 && rp < vw) svgLines.push(`<circle cx="${sx(e.x1).toFixed(1)}" cy="${sy(e.y1).toFixed(1)}" r="${rp.toFixed(1)}" stroke="${c}" fill="none" stroke-width="0.8"/>`);
+    } else if (e.type === 'ARC' && e.r > 0) {
+      const rp = e.r/bw*vw;
+      if (rp < 1 || rp > vw) continue;
+      const sa = e.sa*Math.PI/180, ea = e.ea*Math.PI/180;
+      let sweep = ea - sa; if (sweep < 0) sweep += 2*Math.PI;
+      const large = sweep > Math.PI ? 1 : 0;
+      const x1a = sx(e.x1 + e.r*Math.cos(sa)), y1a = sy(e.y1 + e.r*Math.sin(sa));
+      const x2a = sx(e.x1 + e.r*Math.cos(ea)), y2a = sy(e.y1 + e.r*Math.sin(ea));
+      svgLines.push(`<path d="M${x1a.toFixed(1)},${y1a.toFixed(1)} A${rp.toFixed(1)},${rp.toFixed(1)} 0 ${large},0 ${x2a.toFixed(1)},${y2a.toFixed(1)}" stroke="${c}" fill="none" stroke-width="0.8"/>`);
+    }
+  }
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" style="background:#0a0d14;display:block;width:100%;height:auto">${svgLines.join('')}</svg>`;
+}
+
+// Ara sekmesi: dosya seçilince sidebar'da önizle
+function previewFileInSidebar(file) {
+  const wrap = document.getElementById('sidebarPreview');
+  const svgEl = document.getElementById('sidebarPreviewSvg');
+  const info = document.getElementById('sidebarPreviewInfo');
+  wrap.style.display = '';
+  svgEl.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text3);font-size:12px">Yükleniyor...</div>';
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    const text = e.target.result;
+    const svg = parseDxfToSvg(text, 248, 180);
+    if (svg) {
+      svgEl.innerHTML = svg;
+      // entity sayısını say
+      const lineCount = (text.match(/^LINE\s*$/mg)||[]).length;
+      const circCount = (text.match(/^CIRCLE\s*$/mg)||[]).length;
+      info.textContent = `${lineCount} çizgi · ${circCount} daire`;
+    } else {
+      svgEl.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text3);font-size:12px">Önizleme yok<br><span style="font-size:10px">DWG veya hatalı DXF</span></div>';
+      info.textContent = '';
+    }
+  };
+  reader.readAsText(file);
+}
+
+// DB sekmesi: kayıtlı dosyanın SVG'sini modal'da göster
+const dbFileSvgCache = {};
+
+async function showDbPreview(fileId) {
+  // Cache'te var mı?
+  if (!dbFileSvgCache[fileId]) {
+    try {
+      const r = await fetch(`${API}/files/${fileId}`, { headers: authH() });
+      if (!r.ok) return;
+      const d = await r.json();
+      dbFileSvgCache[fileId] = d;
+    } catch { return; }
+  }
+  const f = dbFileSvgCache[fileId];
+  openPreviewModal(f.filename, f.svg_preview, {
+    'Entity': (f.entity_count||0).toLocaleString('tr'),
+    'Katman': f.layer_count||0,
+    'Format': (f.file_format||'').toUpperCase(),
+    'Boyut': (f.bbox_width && f.bbox_height) ? `${f.bbox_width.toFixed(0)} × ${f.bbox_height.toFixed(0)}` : '—',
+  });
+}
+
+function openPreviewModal(title, svgContent, meta) {
+  document.getElementById('modalTitle').textContent = title;
+  const svgWrap = document.getElementById('modalSvgWrap');
+  if (svgContent) {
+    // viewBox'u büyük yap
+    const enlarged = svgContent.replace(/width="\d+"/, 'width="720"').replace(/height="\d+"/, 'height="520"');
+    svgWrap.innerHTML = enlarged;
+    svgWrap.style.display = '';
+  } else {
+    svgWrap.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text3);font-size:13px">Bu dosya için önizleme yok</div>';
+  }
+  document.getElementById('modalMeta').innerHTML = Object.entries(meta||{}).map(([k,v]) =>
+    `<div class="modal-meta-item"><div class="modal-meta-label">${k}</div><div class="modal-meta-val">${v}</div></div>`
+  ).join('');
+  document.getElementById('previewModal').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+function closePreviewModal() {
+  document.getElementById('previewModal').classList.add('hidden');
+  document.body.style.overflow = '';
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('previewModal')) closePreviewModal();
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    closePreviewModal();
+    closeDetailModal();
+    closeCompareModal();
+  }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  ARAMA GEÇMİŞİ
+// ══════════════════════════════════════════════════════════════════════════════
+
+async function loadHistory() {
+  const el = document.getElementById('historyList');
+  if (!el) return;
+  try {
+    const r = await fetch(`${API}/history?limit=10`, { headers: authH() });
+    if (!r.ok) return;
+    const items = await r.json();
+    if (!items.length) {
+      el.innerHTML = '<div style="font-size:11px;color:var(--text3);text-align:center;padding:8px 0">Henüz arama yapılmadı</div>';
+      return;
+    }
+    el.innerHTML = items.map(h => {
+      const dt = h.searched_at ? new Date(h.searched_at).toLocaleString('tr-TR', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : '';
+      const catBadge = h.category_name
+        ? `<span style="background:${h.category_color||'#6366f1'}22;color:${h.category_color||'#6366f1'};font-size:9px;padding:1px 5px;border-radius:10px;margin-left:4px">${h.category_name}</span>`
+        : '';
+      return `<div style="background:var(--bg3);border:0.5px solid var(--border);border-radius:6px;padding:7px 10px;cursor:pointer;position:relative" onclick="historyRedo(${h.id})" title="${h.query_filename}">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:4px">
+          <div style="font-size:11px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${h.query_filename}</div>
+          <button onclick="event.stopPropagation();deleteHistoryItem(${h.id})" style="background:transparent;border:none;color:var(--text3);font-size:12px;cursor:pointer;line-height:1;padding:0 2px;flex-shrink:0">✕</button>
+        </div>
+        <div style="font-size:10px;color:var(--text3);margin-top:3px;display:flex;align-items:center;gap:6px">
+          <span>${h.result_count} sonuç</span>
+          <span>·</span>
+          <span>${dt}</span>
+          ${catBadge}
+        </div>
+      </div>`;
+    }).join('');
+  } catch {}
+}
+
+async function deleteHistoryItem(id) {
+  try {
+    await fetch(`${API}/history/${id}`, { method: 'DELETE', headers: authH() });
+    loadHistory();
+  } catch {}
+}
+
+async function clearHistory() {
+  if (!confirm('Tüm arama geçmişi silinsin mi?')) return;
+  try {
+    await fetch(`${API}/history`, { method: 'DELETE', headers: authH() });
+    loadHistory();
+  } catch {}
+}
+
+function historyRedo(id) {
+  // Geçmiş öğesine tıklandığında sadece dosya adını göster, yeni arama için kullanıcı yeni dosya yüklemeli
+  // Şimdilik sadece ilgili öğeyi highlight yapıyoruz (yeniden arama için dosya şart)
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  2.12 — DOSYA DETAY MODALI
+// ══════════════════════════════════════════════════════════════════════════════
+
+async function showDetailModal(fileId) {
+  const modal = document.getElementById('detailModal');
+  const body = document.getElementById('detailModalBody');
+  const title = document.getElementById('detailModalTitle');
+
+  modal.classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+  body.innerHTML = '<div class="loading"><div class="spinner"></div><div>Yükleniyor...</div></div>';
+
+  try {
+    const r = await fetch(`${API}/files/${fileId}`, { headers: authH() });
+    if (!r.ok) throw new Error('Dosya bulunamadı');
+    const f = await r.json();
+
+    title.textContent = f.filename;
+
+    const size = (f.bbox_width && f.bbox_height)
+      ? `${f.bbox_width.toFixed(0)} × ${f.bbox_height.toFixed(0)}`
+      : '—';
+    const area = f.bbox_area ? f.bbox_area.toFixed(0) : '—';
+    const date = f.indexed_at ? new Date(f.indexed_at).toLocaleString('tr-TR') : '—';
+    const fmt = (f.file_format || '').toUpperCase();
+    const fmtColors = { DWG: '#60a5fa', DXF: '#4ade80', PDF: '#fbbf24' };
+    const fmtColor = fmtColors[fmt] || '#8b93a8';
+
+    // Entity tipleri
+    const etypes = f.entity_types || {};
+    const etypeChips = Object.entries(etypes)
+      .sort((a,b) => b[1]-a[1])
+      .map(([k,v]) => `<span class="detail-chip">${k}<span class="detail-chip-count">${v}</span></span>`)
+      .join('');
+
+    // Katmanlar
+    const layers = f.layers || [];
+    const layerChips = layers.map(l => `<span class="detail-chip">${l}</span>`).join('');
+
+    // Önizleme — JPG önce, yoksa SVG
+    const previewSection = f.jpg_preview
+      ? `<div>
+          <div class="detail-section-title">Önizleme</div>
+          <div style="background:#0a0d14;border-radius:var(--radius);overflow:hidden;border:0.5px solid var(--border);text-align:center;padding:8px">
+            <img src="${f.jpg_preview}" style="max-width:100%;max-height:320px;object-fit:contain;border-radius:4px">
+          </div>
+         </div>`
+      : f.svg_preview
+        ? `<div>
+            <div class="detail-section-title">Önizleme</div>
+            <div style="background:#0a0d14;border-radius:var(--radius);overflow:hidden;border:0.5px solid var(--border)">${f.svg_preview}</div>
+           </div>`
+        : '';
+
+    body.innerHTML = `
+      <div class="detail-sections">
+        ${previewSection}
+        <div>
+          <div class="detail-section-title">Genel Bilgi</div>
+          <div class="detail-grid">
+            <div class="detail-stat">
+              <div class="detail-stat-label">Format</div>
+              <div class="detail-stat-val" style="color:${fmtColor}">${fmt}</div>
+            </div>
+            <div class="detail-stat">
+              <div class="detail-stat-label">Entity Sayısı</div>
+              <div class="detail-stat-val">${(f.entity_count||0).toLocaleString('tr')}</div>
+            </div>
+            <div class="detail-stat">
+              <div class="detail-stat-label">Katman Sayısı</div>
+              <div class="detail-stat-val">${f.layer_count||0}</div>
+            </div>
+            <div class="detail-stat">
+              <div class="detail-stat-label">Boyutlar</div>
+              <div class="detail-stat-val" style="font-size:13px">${size}</div>
+            </div>
+            <div class="detail-stat">
+              <div class="detail-stat-label">Alan</div>
+              <div class="detail-stat-val" style="font-size:13px">${area}</div>
+            </div>
+            <div class="detail-stat">
+              <div class="detail-stat-label">Eklenme</div>
+              <div class="detail-stat-val" style="font-size:11px;font-weight:400;color:var(--text2)">${date}</div>
+            </div>
+          </div>
+        </div>
+        ${etypeChips ? `<div>
+          <div class="detail-section-title">Entity Tipleri</div>
+          <div class="detail-chips">${etypeChips}</div>
+        </div>` : ''}
+        ${layerChips ? `<div>
+          <div class="detail-section-title">Katmanlar (${layers.length})</div>
+          <div class="detail-chips">${layerChips}</div>
+        </div>` : ''}
+        <div>
+          <div class="detail-section-title">Dosya Yolu</div>
+          <div style="font-size:12px;color:var(--text3);word-break:break-all;background:var(--bg3);padding:8px 12px;border-radius:6px;border:0.5px solid var(--border)">${f.filepath}</div>
+        </div>
+        ${f.file_data !== null && f.file_data !== undefined ? `
+        <div>
+          <button onclick="downloadFile(${f.id},'${(f.filename||'').replace(/'/g,"\\'")}','${f.file_format||'dwg'}')" style="background:rgba(59,130,246,0.12);color:var(--blue);border:0.5px solid rgba(59,130,246,0.3);border-radius:6px;padding:8px 20px;font-size:13px;font-weight:500;cursor:pointer;width:100%">
+            ↓ ${f.filename} İndir
+          </button>
+        </div>` : ''}
+      </div>`;
+  } catch (err) {
+    body.innerHTML = `<div style="color:var(--red);padding:20px">${err.message}</div>`;
+  }
+}
+
+function closeDetailModal() {
+  document.getElementById('detailModal').classList.add('hidden');
+  document.body.style.overflow = '';
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  2.11 — KARŞILAŞTIRMA MODALI
+// ══════════════════════════════════════════════════════════════════════════════
+
+
+function toggleCompare(id) {
+  const results = searchState.results?.results || [];
+  const item = results.find(r => r.id === id);
+  if (!item) return;
+
+  const idx = compareState.items.findIndex(c => c.id === id);
+  if (idx >= 0) {
+    compareState.items.splice(idx, 1);
+  } else {
+    if (compareState.items.length >= 2) {
+      compareState.items.shift();  // en eskiyi çıkar
+    }
+    compareState.items.push(item);
+  }
+
+  // Kartları yeniden render et
+  if (searchState.results) renderResults(searchState.results);
+
+  // 2 seçili ise bildirim göster
+  if (compareState.items.length === 2) {
+    showCompareToast();
+  }
+}
+
+function showCompareToast() {
+  let toast = document.getElementById('compareToast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'compareToast';
+    toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--bg2);border:0.5px solid var(--amber);border-radius:10px;padding:10px 20px;display:flex;align-items:center;gap:12px;z-index:200;font-size:13px;box-shadow:0 4px 24px rgba(0,0,0,0.4)';
+    document.body.appendChild(toast);
+  }
+  toast.innerHTML = `
+    <span style="color:var(--amber)">2 dosya seçildi</span>
+    <button onclick="openCompareModal()" style="background:var(--amber);color:#000;border:none;border-radius:6px;padding:5px 14px;font-size:12px;font-weight:600;cursor:pointer">Karşılaştır →</button>
+    <button onclick="clearCompare()" style="background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:16px;line-height:1">×</button>`;
+  toast.style.display = 'flex';
+}
+
+function clearCompare() {
+  compareState.items = [];
+  const toast = document.getElementById('compareToast');
+  if (toast) toast.style.display = 'none';
+  if (searchState.results) renderResults(searchState.results);
+}
+
+function openCompareModal() {
+  if (compareState.items.length < 2) return;
+  const [a, b] = compareState.items;
+
+  document.getElementById('compareModalTitle').textContent = 'Karşılaştırma';
+  const body = document.getElementById('compareModalBody');
+
+  function colHtml(item, label, color) {
+    const etypes = item.entity_types || {};
+    const topTypes = Object.entries(etypes).sort((x,y)=>y[1]-x[1]).slice(0,5)
+      .map(([k,v]) => `<span class="detail-chip">${k}<span class="detail-chip-count">${v}</span></span>`).join('');
+    const layers = (item.layers||[]).slice(0,8).map(l=>`<span class="detail-chip">${l}</span>`).join('');
+    return `
+      <div class="compare-col">
+        <div class="compare-col-header" style="background:${color}18;color:${color};border:0.5px solid ${color}44">${label}: ${item.filename}</div>
+        <div style="background:#0a0d14;border-radius:var(--radius);overflow:hidden;border:0.5px solid var(--border);min-height:120px;display:flex;align-items:center;justify-content:center" id="cmp_preview_${item.id}">
+          <span style="font-size:11px;color:var(--text3)">Yükleniyor...</span>
+        </div>
+        <div class="compare-stats">
+          <div class="compare-stat-row">
+            <span class="compare-stat-label">Benzerlik</span>
+            <span class="compare-stat-val" style="color:${simColor(item.similarity)}">${item.similarity}%</span>
+          </div>
+          <div class="compare-stat-row">
+            <span class="compare-stat-label">Entity</span>
+            <span class="compare-stat-val">${(item.entity_count||0).toLocaleString('tr')}</span>
+          </div>
+          <div class="compare-stat-row">
+            <span class="compare-stat-label">Katman</span>
+            <span class="compare-stat-val">${item.layer_count||0}</span>
+          </div>
+          <div class="compare-stat-row">
+            <span class="compare-stat-label">Boyut</span>
+            <span class="compare-stat-val" style="font-size:11px">${item.bbox_width?item.bbox_width.toFixed(0):'—'} × ${item.bbox_height?item.bbox_height.toFixed(0):'—'}</span>
+          </div>
+          <div class="compare-stat-row">
+            <span class="compare-stat-label">Alan</span>
+            <span class="compare-stat-val">${item.bbox_area?item.bbox_area.toFixed(0):'—'}</span>
+          </div>
+          <div class="compare-stat-row">
+            <span class="compare-stat-label">Format</span>
+            <span class="compare-stat-val">${(item.file_format||'').toUpperCase()}</span>
+          </div>
+        </div>
+        ${topTypes ? `<div><div class="detail-section-title" style="margin-top:4px">Entity Tipleri</div><div class="detail-chips">${topTypes}</div></div>` : ''}
+        ${layers ? `<div><div class="detail-section-title" style="margin-top:4px">Katmanlar</div><div class="detail-chips">${layers}</div></div>` : ''}
+      </div>`;
+  }
+
+  body.innerHTML =
+    colHtml(a, 'A', '#3b82f6') +
+    '<div class="compare-divider"></div>' +
+    colHtml(b, 'B', '#f59e0b');
+
+  // SVG önizlemelerini async yükle
+  loadCompareSvg(a.id, body.querySelector('.compare-col:first-child'), 'A');
+  loadCompareSvg(b.id, body.querySelector('.compare-col:last-child'), 'B');
+
+  document.getElementById('compareModal').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+async function loadCompareSvg(fileId, colEl, label) {
+  try {
+    const r = await fetch(`${API}/files/${fileId}`, { headers: authH() });
+    if (!r.ok) return;
+    const f = await r.json();
+    const previewEl = document.getElementById(`cmp_preview_${fileId}`);
+    if (previewEl) {
+      if (f.jpg_preview) {
+        previewEl.innerHTML = `<img src="${f.jpg_preview}" style="max-width:100%;max-height:300px;object-fit:contain;border-radius:4px">`;
+      } else if (f.svg_preview) {
+        previewEl.innerHTML = f.svg_preview;
+      } else {
+        previewEl.innerHTML = `<span style="font-size:11px;color:var(--text3)">Önizleme yok</span>`;
+      }
+    }
+  } catch {}
+}
+
+function closeCompareModal() {
+  document.getElementById('compareModal').classList.add('hidden');
+  document.body.style.overflow = '';
+}
+
+function logout() { localStorage.clear(); window.location.href = 'login.html'; }
+
+async function downloadFile(fileId, filename, fmt) {
+  try {
+    const r = await fetch(`${API}/files/${fileId}/download`, { headers: authH() });
+    if (r.status === 401) { logout(); return; }
+    if (!r.ok) {
+      const d = await r.json().catch(() => ({}));
+      alert(d.detail || 'İndirme verisi bulunamadı. Dosya yeniden yüklenmesi gerekebilir.');
+      return;
+    }
+    const blob = await r.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename || `file_${fileId}.${fmt||'dwg'}`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } catch (e) {
+    alert('İndirme başarısız: ' + e.message);
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  ANALİTİK DASHBOARD (Faza 3.2)
+// ══════════════════════════════════════════════════════════════════════════════
+const analyticsState = { loaded: false, charts: {} };
+
+// Chart.js global defaults — dark theme
+function initChartDefaults() {
+  if (typeof Chart === 'undefined') return;
+  Chart.defaults.color = '#8b93a8';
+  Chart.defaults.borderColor = 'rgba(255,255,255,0.06)';
+  Chart.defaults.font.family = "-apple-system,'Segoe UI',sans-serif";
+  Chart.defaults.font.size = 11;
+}
+
+function destroyChart(key) {
+  if (analyticsState.charts[key]) {
+    analyticsState.charts[key].destroy();
+    delete analyticsState.charts[key];
+  }
+}
+
+async function loadAnalytics() {
+  if (typeof Chart === 'undefined') { console.warn('Chart.js yüklenemedi'); return; }
+  initChartDefaults();
+
+  try {
+    const [ovRes, trendRes, searchRes] = await Promise.all([
+      fetch(`${API}/analytics/overview`, { headers: authH() }),
+      fetch(`${API}/analytics/uploads-trend?days=30`, { headers: authH() }),
+      fetch(`${API}/analytics/search-stats?limit=10`, { headers: authH() }),
+    ]);
+
+    if (ovRes.status === 401) { logout(); return; }
+    const ov = await ovRes.json();
+    const trend = await trendRes.json();
+    const search = await searchRes.json();
+
+    // Boş veri varsayılanları
+    if (!ov.totals) ov.totals = { total_files:0, indexed_files:0, clip_files:0, total_entities:0, avg_entities:0, avg_layers:0 };
+    if (!ov.formats) ov.formats = [];
+    if (!ov.categories) ov.categories = [];
+    if (!ov.top_entities) ov.top_entities = [];
+    if (!search.summary) search.summary = { total_searches:0, avg_results:0, avg_threshold:50 };
+    if (!search.top_files) search.top_files = [];
+    if (!search.daily_searches) search.daily_searches = [];
+
+    renderKPIs(ov, search);
+    renderFormatChart(ov.formats);
+    renderCategoryChart(ov.categories);
+    renderEntityChart(ov.top_entities);
+    renderUploadTrend(Array.isArray(trend) ? trend : []);
+    renderSearchTrend(search.daily_searches);
+    renderTopFiles(search.top_files);
+
+    analyticsState.loaded = true;
+  } catch (e) {
+    console.error('Analitik yüklenemedi:', e);
+    document.getElementById('kpiTotal') && setText('kpiTotal', '—');
+  }
+}
+
+function renderKPIs(ov, search) {
+  const t = ov.totals;
+  const pct = (n, d) => d > 0 ? Math.round(n / d * 100) : 0;
+
+  setText('kpiTotal', t.total_files.toLocaleString('tr'));
+  setText('kpiIndexed', t.indexed_files.toLocaleString('tr'));
+  setText('kpiIndexedSub', `${pct(t.indexed_files, t.total_files)}% kapsama`);
+  setBarWidth('kpiIndexedBar', pct(t.indexed_files, t.total_files));
+  setBarWidth('kpiTotalBar', 100);
+
+  setText('kpiClip', t.clip_files.toLocaleString('tr'));
+  setText('kpiClipSub', `${pct(t.clip_files, t.total_files)}% AI vektörü`);
+  setBarWidth('kpiClipBar', pct(t.clip_files, t.total_files));
+
+  setText('kpiAvgEnt', t.avg_entities.toLocaleString('tr', {maximumFractionDigits:0}));
+  setText('kpiAvgLay', t.avg_layers.toLocaleString('tr', {maximumFractionDigits:1}));
+
+  const s = search.summary;
+  setText('kpiSearchTotal', (s.total_searches || 0).toLocaleString('tr'));
+  setText('kpiSearchSub', `ort. ${s.avg_results} sonuç/arama`);
+  setBarWidth('kpiSearchBar', Math.min(s.total_searches, 100));
+}
+
+function setText(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
+function setBarWidth(id, pct) { const el = document.getElementById(id); if (el) el.style.width = Math.max(0, Math.min(100, pct)) + '%'; }
+
+const PIE_COLORS = ['#3b82f6','#8b5cf6','#06b6d4','#f59e0b','#ec4899','#22c55e','#ef4444','#f97316'];
+const BAR_GRADIENT = (ctx, color) => {
+  const g = ctx.createLinearGradient(0, 0, 0, 220);
+  g.addColorStop(0, color + 'cc'); g.addColorStop(1, color + '33'); return g;
+};
+
+function renderFormatChart(formats) {
+  destroyChart('formats');
+  const ctx = document.getElementById('chartFormats')?.getContext('2d');
+  if (!ctx || !formats.length) return;
+  analyticsState.charts['formats'] = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: formats.map(f => f.format.toUpperCase()),
+      datasets: [{ data: formats.map(f => f.count), backgroundColor: PIE_COLORS, borderWidth: 2, borderColor: '#161b27' }],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: true,
+      cutout: '65%',
+      plugins: {
+        legend: { position: 'right', labels: { boxWidth: 12, padding: 14, color: '#8b93a8' } },
+        tooltip: { callbacks: { label: c => ` ${c.label}: ${c.raw} dosya` } },
+      },
+    },
+  });
+}
+
+function renderCategoryChart(categories) {
+  destroyChart('categories');
+  const ctx = document.getElementById('chartCategories')?.getContext('2d');
+  if (!ctx || !categories.length) return;
+  analyticsState.charts['categories'] = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: categories.map(c => c.name),
+      datasets: [{ data: categories.map(c => c.count), backgroundColor: categories.map((c,i) => c.color || PIE_COLORS[i%PIE_COLORS.length]), borderWidth: 2, borderColor: '#161b27' }],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: true,
+      cutout: '65%',
+      plugins: {
+        legend: { position: 'right', labels: { boxWidth: 12, padding: 14, color: '#8b93a8' } },
+        tooltip: { callbacks: { label: c => ` ${c.label}: ${c.raw} dosya` } },
+      },
+    },
+  });
+}
+
+function renderEntityChart(entities) {
+  destroyChart('entities');
+  const ctx = document.getElementById('chartEntities')?.getContext('2d');
+  if (!ctx || !entities.length) return;
+  const gradient = BAR_GRADIENT(ctx, '#06b6d4');
+  analyticsState.charts['entities'] = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: entities.map(e => e.type),
+      datasets: [{ label: 'Adet', data: entities.map(e => e.count), backgroundColor: gradient, borderRadius: 4, borderSkipped: false }],
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true, maintainAspectRatio: false,
+      scales: {
+        x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#555e72' } },
+        y: { grid: { display: false }, ticks: { color: '#8b93a8' } },
+      },
+      plugins: { legend: { display: false } },
+    },
+  });
+  document.getElementById('chartEntities').parentElement.style.height = '220px';
+}
+
+function renderUploadTrend(days) {
+  destroyChart('uploads');
+  const ctx = document.getElementById('chartUploads')?.getContext('2d');
+  if (!ctx) return;
+  if (!days.length) { ctx.canvas.parentElement.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text3);font-size:12px">Henüz veri yok</div>'; return; }
+  const gradient = BAR_GRADIENT(ctx, '#22c55e');
+  analyticsState.charts['uploads'] = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: days.map(d => fmtDay(d.day)),
+      datasets: [{ label: 'Upload', data: days.map(d => d.count), backgroundColor: gradient, borderRadius: 3, borderSkipped: false }],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: true,
+      scales: {
+        x: { grid: { display: false }, ticks: { color: '#555e72', maxTicksLimit: 7 } },
+        y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#555e72', stepSize: 1, precision: 0 } },
+      },
+      plugins: { legend: { display: false } },
+    },
+  });
+}
+
+function renderSearchTrend(days) {
+  destroyChart('searches');
+  const ctx = document.getElementById('chartSearches')?.getContext('2d');
+  if (!ctx) return;
+  if (!days.length) { ctx.canvas.parentElement.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text3);font-size:12px">Henüz arama yapılmadı</div>'; return; }
+  analyticsState.charts['searches'] = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: days.map(d => fmtDay(d.day)),
+      datasets: [{
+        label: 'Arama',
+        data: days.map(d => d.count),
+        borderColor: '#ec4899',
+        backgroundColor: 'rgba(236,72,153,0.08)',
+        borderWidth: 2,
+        tension: 0.4,
+        fill: true,
+        pointRadius: 3,
+        pointBackgroundColor: '#ec4899',
+      }],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: true,
+      scales: {
+        x: { grid: { display: false }, ticks: { color: '#555e72', maxTicksLimit: 7 } },
+        y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#555e72', stepSize: 1, precision: 0 } },
+      },
+      plugins: { legend: { display: false } },
+    },
+  });
+}
+
+function renderTopFiles(files) {
+  const el = document.getElementById('topFilesList');
+  if (!el) return;
+  if (!files.length) {
+    el.innerHTML = '<div class="analytics-empty">Henüz arama yapılmadı.</div>';
+    return;
+  }
+  el.innerHTML = files.map((f, i) => {
+    const medals = ['🥇','🥈','🥉'];
+    const icon = medals[i] || `<span class="top-file-rank">#${i+1}</span>`;
+    return `<div class="top-file-row">
+      <span style="font-size:14px">${icon}</span>
+      <div class="top-file-name" title="${f.filename}">${f.filename}</div>
+      <span class="top-file-count">${f.search_count}×</span>
+      <span style="font-size:11px;color:var(--text3)">ort.${f.avg_results}</span>
+    </div>`;
+  }).join('');
+}
+
+function fmtDay(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return d.toLocaleDateString('tr-TR', { month: 'short', day: 'numeric' });
+}
+
+// Init
+window.addEventListener('load', () => { loadStats(); loadCategoriesIntoSelect(); loadHistory(); });
+setInterval(loadStats, 30000);
+</script>
+</body>
+</html>

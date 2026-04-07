@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# Virtual envs
+venv/
+.venv/
+backend/venv/
+
+# Environment / secrets
+.env
+backend/.env
+frontend/.env
+
+# macOS
+.DS_Store
+
+# Editors
+.idea/
+.vscode/
+
+# Logs
+*.log
+
+# Build / cache
+.pytest_cache/
+.mypy_cache/
+dist/
+build/
+
+# Node
+node_modules/

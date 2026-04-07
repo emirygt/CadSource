@@ -1,0 +1,17 @@
+venv/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+.env
+*.log
+dist/
+build/
+.git/
+*.png
+*.dwg
+*.dxf
+uploads/
+tmp/

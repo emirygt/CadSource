@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CAD Arama — Dosya Yükle</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: #0d1117; color: #e6edf3; padding: 2rem;
+  }
+  header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid #30363d;
+  }
+  header h1 { font-size: 1.2rem; }
+  nav a { color: #58a6ff; text-decoration: none; margin-left: 1rem; font-size: 0.9rem; }
+  .card {
+    background: #161b22; border: 1px solid #30363d; border-radius: 12px;
+    padding: 2rem; max-width: 700px; margin: 0 auto;
+  }
+  h2 { font-size: 1.1rem; margin-bottom: 0.4rem; }
+  p.sub { color: #8b949e; font-size: 0.85rem; margin-bottom: 1.5rem; }
+
+  .drop-zone {
+    border: 2px dashed #30363d; border-radius: 8px;
+    padding: 3rem 2rem; text-align: center; cursor: pointer;
+    transition: border-color 0.2s;
+  }
+  .drop-zone:hover, .drop-zone.drag-over { border-color: #58a6ff; }
+  .drop-zone input { display: none; }
+  .drop-zone .icon { font-size: 2.5rem; margin-bottom: 0.8rem; }
+  .drop-zone p { color: #8b949e; font-size: 0.9rem; }
+  .drop-zone strong { color: #58a6ff; }
+
+  .file-list { margin-top: 1.2rem; max-height: 200px; overflow-y: auto; }
+  .file-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0.4rem 0; border-bottom: 1px solid #21262d; font-size: 0.85rem;
+  }
+  .file-item .name { color: #8b949e; }
+  .file-item .size { color: #484f58; }
+
+  .progress-section { margin-top: 1.5rem; display: none; }
+  .progress-bar-wrap {
+    background: #21262d; border-radius: 4px; height: 8px; overflow: hidden;
+    margin: 0.6rem 0;
+  }
+  .progress-bar { height: 100%; background: #238636; transition: width 0.3s; width: 0%; }
+  .progress-label { font-size: 0.85rem; color: #8b949e; }
+
+  .stats { display: flex; gap: 1.5rem; margin-top: 1rem; }
+  .stat { font-size: 0.85rem; }
+  .stat span { font-weight: 700; }
+  .stat .ok { color: #3fb950; }
+  .stat .fail { color: #f85149; }
+
+  .error-list { margin-top: 1rem; max-height: 150px; overflow-y: auto; }
+  .error-item {
+    padding: 0.3rem 0.6rem; background: #1c1010; border-left: 3px solid #f85149;
+    margin-bottom: 0.3rem; font-size: 0.8rem; border-radius: 2px;
+  }
+  .error-item .fname { color: #f85149; font-weight: 600; }
+  .error-item .reason { color: #8b949e; }
+
+  .actions { display: flex; gap: 0.8rem; margin-top: 1.5rem; }
+  button {
+    padding: 0.65rem 1.4rem; border-radius: 6px; cursor: pointer;
+    font-size: 0.9rem; font-weight: 600; border: none;
+  }
+  button.primary { background: #238636; color: #fff; border: 1px solid #2ea043; }
+  button.primary:hover { background: #2ea043; }
+  button.primary:disabled { opacity: 0.4; cursor: not-allowed; }
+  button.secondary { background: transparent; color: #58a6ff; border: 1px solid #30363d; }
+  button.secondary:hover { border-color: #58a6ff; }
+
+  .done-banner {
+    margin-top: 1rem; padding: 0.8rem 1rem; background: #0f2a1a;
+    border: 1px solid #2ea043; border-radius: 6px; color: #3fb950;
+    font-size: 0.9rem; display: none;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>CAD Arama Motoru</h1>
+  <nav>
+    <a href="index.html">Aramaya Git</a>
+    <a href="#" onclick="logout()">Çıkış</a>
+  </nav>
+</header>
+
+<div class="card">
+  <h2>Dosyalarınızı Yükleyin</h2>
+  <p class="sub">DWG ve DXF formatlarını destekler. Birden fazla dosyayı aynı anda seçebilirsiniz.</p>
+
+  <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+    <input type="file" id="fileInput" multiple accept=".dwg,.dxf" onchange="onFilesSelected(this.files)">
+    <div class="icon">📁</div>
+    <p>Dosyaları buraya sürükleyin veya <strong>tıklayın</strong></p>
+    <p style="margin-top:0.4rem;font-size:0.8rem;">DWG, DXF — maksimum 100MB/dosya</p>
+  </div>
+
+  <div class="file-list" id="fileList"></div>
+
+  <div class="progress-section" id="progressSection">
+    <div class="progress-label" id="progressLabel">Hazırlanıyor...</div>
+    <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar"></div></div>
+    <div class="stats">
+      <div class="stat">Toplam: <span id="statTotal">0</span></div>
+      <div class="stat">Başarılı: <span class="ok" id="statOk">0</span></div>
+      <div class="stat">Başarısız: <span class="fail" id="statFail">0</span></div>
+    </div>
+    <div class="error-list" id="errorList"></div>
+  </div>
+
+  <div class="done-banner" id="doneBanner">
+    ✓ Yükleme tamamlandı! Artık arama yapabilirsiniz.
+  </div>
+
+  <div class="actions">
+    <button class="primary" id="btnUpload" onclick="startUpload()" disabled>Yüklemeyi Başlat</button>
+    <button class="secondary" onclick="window.location.href='index.html'">Aramaya Git</button>
+  </div>
+</div>
+
+<script>
+const API = window.API_URL || 'http://localhost:8000';
+const BATCH_SIZE = 20; // Her seferde kaç dosya gönderilecek
+
+let selectedFiles = [];
+
+// Token kontrolü
+const token = localStorage.getItem('token');
+if (!token) window.location.href = 'login.html';
+
+// Drag & drop
+const dz = document.getElementById('dropZone');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag-over'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+dz.addEventListener('drop', e => {
+  e.preventDefault(); dz.classList.remove('drag-over');
+  onFilesSelected(e.dataTransfer.files);
+});
+
+function onFilesSelected(fileList) {
+  selectedFiles = Array.from(fileList).filter(f =>
+    f.name.toLowerCase().endsWith('.dwg') || f.name.toLowerCase().endsWith('.dxf')
+  );
+  renderFileList();
+  document.getElementById('btnUpload').disabled = selectedFiles.length === 0;
+}
+
+function renderFileList() {
+  const el = document.getElementById('fileList');
+  if (selectedFiles.length === 0) { el.innerHTML = ''; return; }
+  el.innerHTML = selectedFiles.slice(0, 50).map(f =>
+    `<div class="file-item">
+      <span class="name">${f.name}</span>
+      <span class="size">${(f.size / 1024).toFixed(0)} KB</span>
+    </div>`
+  ).join('') + (selectedFiles.length > 50
+    ? `<div class="file-item"><span class="name" style="color:#58a6ff">...ve ${selectedFiles.length - 50} dosya daha</span></div>`
+    : '');
+}
+
+async function startUpload() {
+  if (selectedFiles.length === 0) return;
+
+  document.getElementById('btnUpload').disabled = true;
+  document.getElementById('progressSection').style.display = '';
+  document.getElementById('doneBanner').style.display = 'none';
+  document.getElementById('errorList').innerHTML = '';
+
+  const total = selectedFiles.length;
+  let success = 0, failed = 0, done = 0;
+
+  document.getElementById('statTotal').textContent = total;
+
+  // Batch'ler halinde gönder
+  for (let i = 0; i < selectedFiles.length; i += BATCH_SIZE) {
+    const batch = selectedFiles.slice(i, i + BATCH_SIZE);
+    const formData = new FormData();
+    batch.forEach(f => formData.append('files', f));
+
+    try {
+      const res = await fetch(`${API}/index/bulk`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData,
+      });
+      if (res.status === 401) { window.location.href = 'login.html'; return; }
+      const data = await res.json();
+
+      success += data.success || 0;
+      failed += data.failed || 0;
+      done += batch.length;
+
+      // Hataları göster
+      (data.errors || []).forEach(err => {
+        const el = document.createElement('div');
+        el.className = 'error-item';
+        el.innerHTML = `<span class="fname">${err.filename}</span><br><span class="reason">${err.reason}</span>`;
+        document.getElementById('errorList').appendChild(el);
+      });
+
+    } catch (e) {
+      failed += batch.length;
+      done += batch.length;
+    }
+
+    // Progress güncelle
+    const pct = Math.round((done / total) * 100);
+    document.getElementById('progressBar').style.width = pct + '%';
+    document.getElementById('progressLabel').textContent = `${done} / ${total} dosya işlendi`;
+    document.getElementById('statOk').textContent = success;
+    document.getElementById('statFail').textContent = failed;
+  }
+
+  document.getElementById('progressLabel').textContent = 'Tamamlandı';
+  document.getElementById('doneBanner').style.display = '';
+  document.getElementById('btnUpload').disabled = false;
+}
+
+function logout() {
+  localStorage.clear();
+  window.location.href = 'login.html';
+}
+</script>
+</body>
+</html>
