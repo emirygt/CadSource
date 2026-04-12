@@ -18,6 +18,14 @@ LOCAL_GITHUB_CREDENTIALS.md
 *.local.md
 secrets/
 
+# Internal docs (kept in docs/internal branch)
+CLAUDE.md
+AGENTS.md
+MEMORY.md
+ARCHITECTURE.md
+DEV_SETUP.md
+proje_plan.md
+
 # macOS
 .DS_Store
 
