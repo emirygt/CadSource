@@ -12,6 +12,7 @@ from routes.search import router as search_router
 from routes.categories import router as categories_router
 from routes.history import router as history_router
 from routes.analytics import router as analytics_router
+from routes.contour import router as contour_router
 
 app = FastAPI(
     title="CAD Arama Motoru",
@@ -45,3 +46,4 @@ app.include_router(search_router)      # /search, /files, /stats
 app.include_router(categories_router)  # /categories CRUD
 app.include_router(history_router)     # /history
 app.include_router(analytics_router)   # /analytics
+app.include_router(contour_router)     # /contour/vectorize
