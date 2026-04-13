@@ -482,7 +482,7 @@
 <div class="tabbar">
   <div class="tab active" id="tab-search" onclick="switchTab('search')">Ara</div>
   <div class="tab" id="tab-db" onclick="switchTab('db')">DB</div>
-  <div class="tab" id="tab-approved" onclick="switchTab('approved')">Ürün Durumları</div>
+  <div class="tab" id="tab-approved" onclick="switchTab('approved')">Ürünler</div>
   <div class="tab" id="tab-contour" onclick="switchTab('contour')">Kontur DXF</div>
   <div class="tab" id="tab-cat" onclick="switchTab('cat')">Kategoriler</div>
   <div class="tab" id="tab-analytics" onclick="switchTab('analytics')">📊 Analitik</div>
@@ -687,55 +687,85 @@
   </div>
 </div>
 
-<!-- ═══════════════ ÜRÜN DURUMLARI SAYFASI ═══════════════ -->
+<!-- ═══════════════ ÜRÜNLER SAYFASI ═══════════════ -->
 <div class="page" id="page-approved">
-  <div class="db-layout">
-    <div class="db-files-card">
-      <div class="db-files-header">
-        <h2>Ürün Durumları <span id="approvedTotalBadge" style="font-size:12px;color:var(--text3);font-weight:400"></span></h2>
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-          <select id="approvedStatusFilter" onchange="approvedStatusFilterChanged()" style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:6px;color:var(--text);padding:6px 8px;font-size:12px;outline:none">
-            <option value="uploaded">Yüklendi</option>
-            <option value="approved">Onaylı</option>
-            <option value="draft">Draft</option>
-          </select>
-          <input class="db-search-box" id="approvedSearchBox" placeholder="Duruma göre dosya ara..." oninput="approvedSearchDebounce()" />
-          <span id="approvedSelectedInfo" style="font-size:11px;color:var(--text3);white-space:nowrap">0 seçili</span>
-          <select id="approvedBulkStatusSelect" style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:6px;color:var(--text);padding:6px 8px;font-size:12px;outline:none">
-            <option value="uploaded">Yüklendi</option>
-            <option value="draft">Draft</option>
-            <option value="approved">Onaylı</option>
-          </select>
-          <button class="pg-btn" id="approvedApplyStatusBtn" onclick="applyStatusFromStatusPage()" disabled>Seçilenlere Durum Uygula</button>
+  <div class="db-layout" style="grid-template-columns:1fr;display:block">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(520px,1fr));gap:12px;align-items:start">
+      <div class="db-files-card">
+        <div class="db-files-header">
+          <h2>Draft <span id="draftTotalBadge" style="font-size:12px;color:var(--text3);font-weight:400"></span></h2>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <input class="db-search-box" id="draftSearchBox" placeholder="Draft dosya ara..." oninput="productSearchDebounce('draft')" />
+            <span id="draftSelectedInfo" style="font-size:11px;color:var(--text3);white-space:nowrap">0 seçili</span>
+            <button class="pg-btn" id="draftToApprovedBtn" onclick="moveProductSelection('draft')" disabled>Seçilenleri Onaylıya Taşı</button>
+          </div>
+        </div>
+        <div class="db-table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:30px;text-align:center"><input id="draftSelectAll" type="checkbox" onchange="toggleProductSelectAll('draft', this.checked)" style="accent-color:var(--blue);cursor:pointer"></th>
+                <th style="width:48px"></th>
+                <th>Dosya Adı</th>
+                <th>Format</th>
+                <th>Kategori</th>
+                <th>Entity</th>
+                <th>Katman</th>
+                <th>Boyut</th>
+                <th>Tarih</th>
+                <th>İşlem</th>
+              </tr>
+            </thead>
+            <tbody id="draftTableBody">
+              <tr><td colspan="10" class="db-empty">Yükleniyor...</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="db-pagination" id="draftPagination" style="display:none">
+          <span id="draftPageInfo"></span>
+          <div class="db-pagination-btns">
+            <button class="pg-btn" id="draftPrevBtn" onclick="productChangePage('draft', -1)">‹ Önceki</button>
+            <button class="pg-btn" id="draftNextBtn" onclick="productChangePage('draft', 1)">Sonraki ›</button>
+          </div>
         </div>
       </div>
-      <div class="db-table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th style="width:30px;text-align:center"><input id="approvedSelectAll" type="checkbox" onchange="toggleApprovedSelectAll(this.checked)" style="accent-color:var(--blue);cursor:pointer"></th>
-              <th style="width:48px"></th>
-              <th>Dosya Adı</th>
-              <th>Format</th>
-              <th>Kategori</th>
-              <th>Entity</th>
-              <th>Katman</th>
-              <th>Boyut</th>
-              <th>Durum</th>
-              <th>Durum Tarihi</th>
-              <th>İşlem</th>
-            </tr>
-          </thead>
-          <tbody id="approvedTableBody">
-            <tr><td colspan="11" class="db-empty">Yükleniyor...</td></tr>
-          </tbody>
-        </table>
-      </div>
-      <div class="db-pagination" id="approvedPagination" style="display:none">
-        <span id="approvedPageInfo"></span>
-        <div class="db-pagination-btns">
-          <button class="pg-btn" id="approvedPrevBtn" onclick="approvedChangePage(-1)">‹ Önceki</button>
-          <button class="pg-btn" id="approvedNextBtn" onclick="approvedChangePage(1)">Sonraki ›</button>
+
+      <div class="db-files-card">
+        <div class="db-files-header">
+          <h2>Onaylı <span id="approvedTotalBadge" style="font-size:12px;color:var(--text3);font-weight:400"></span></h2>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <input class="db-search-box" id="approvedSearchBox" placeholder="Onaylı dosya ara..." oninput="productSearchDebounce('approved')" />
+            <span id="approvedSelectedInfo" style="font-size:11px;color:var(--text3);white-space:nowrap">0 seçili</span>
+            <button class="pg-btn" id="approvedToDraftBtn" onclick="moveProductSelection('approved')" disabled>Seçilenleri Drafta Taşı</button>
+          </div>
+        </div>
+        <div class="db-table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:30px;text-align:center"><input id="approvedSelectAll" type="checkbox" onchange="toggleProductSelectAll('approved', this.checked)" style="accent-color:var(--blue);cursor:pointer"></th>
+                <th style="width:48px"></th>
+                <th>Dosya Adı</th>
+                <th>Format</th>
+                <th>Kategori</th>
+                <th>Entity</th>
+                <th>Katman</th>
+                <th>Boyut</th>
+                <th>Tarih</th>
+                <th>İşlem</th>
+              </tr>
+            </thead>
+            <tbody id="approvedTableBody">
+              <tr><td colspan="10" class="db-empty">Yükleniyor...</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="db-pagination" id="approvedPagination" style="display:none">
+          <span id="approvedPageInfo"></span>
+          <div class="db-pagination-btns">
+            <button class="pg-btn" id="approvedPrevBtn" onclick="productChangePage('approved', -1)">‹ Önceki</button>
+            <button class="pg-btn" id="approvedNextBtn" onclick="productChangePage('approved', 1)">Sonraki ›</button>
+          </div>
         </div>
       </div>
     </div>
@@ -1239,15 +1269,25 @@ const dbState = {
   pageIds: [],
 };
 
-const approvedState = {
-  page: 1,
-  perPage: 20,
-  total: 0,
-  status: 'uploaded',
-  search: '',
-  searchTimer: null,
-  selectedIds: new Set(),
-  pageIds: [],
+const productsState = {
+  draft: {
+    page: 1,
+    perPage: 20,
+    total: 0,
+    search: '',
+    searchTimer: null,
+    selectedIds: new Set(),
+    pageIds: [],
+  },
+  approved: {
+    page: 1,
+    perPage: 20,
+    total: 0,
+    search: '',
+    searchTimer: null,
+    selectedIds: new Set(),
+    pageIds: [],
+  },
 };
 
 function updateDbApprovalSelectionUi() {
@@ -1726,7 +1766,8 @@ async function applyStatusToDbSelection() {
   try {
     await setFilesStatus(ids, status);
     dbState.selectedIds.clear();
-    approvedState.selectedIds.clear();
+    productsState.draft.selectedIds.clear();
+    productsState.approved.selectedIds.clear();
     updateDbApprovalSelectionUi();
     updateApprovedSelectionUi();
     await Promise.all([loadDbFiles(), loadApprovedFiles()]);
@@ -1735,99 +1776,108 @@ async function applyStatusToDbSelection() {
   }
 }
 
-function approvedSearchDebounce() {
-  clearTimeout(approvedState.searchTimer);
-  approvedState.searchTimer = setTimeout(() => {
-    approvedState.search = document.getElementById('approvedSearchBox').value.trim();
-    approvedState.page = 1;
-    loadApprovedFiles();
+function getProductsColumn(kind) {
+  return productsState[kind];
+}
+
+function productSearchDebounce(kind) {
+  const st = getProductsColumn(kind);
+  clearTimeout(st.searchTimer);
+  st.searchTimer = setTimeout(() => {
+    const input = document.getElementById(`${kind}SearchBox`);
+    st.search = input ? input.value.trim() : '';
+    st.page = 1;
+    loadProductFiles(kind);
   }, 400);
 }
 
-function approvedStatusFilterChanged() {
-  approvedState.status = document.getElementById('approvedStatusFilter')?.value || 'uploaded';
-  approvedState.page = 1;
-  approvedState.selectedIds.clear();
-  updateApprovedSelectionUi();
-  loadApprovedFiles();
-}
-
-function updateApprovedSelectionUi() {
-  const selected = approvedState.selectedIds.size;
-  const info = document.getElementById('approvedSelectedInfo');
-  const applyBtn = document.getElementById('approvedApplyStatusBtn');
+function updateProductSelectionUi(kind) {
+  const st = getProductsColumn(kind);
+  const info = document.getElementById(`${kind}SelectedInfo`);
+  const btn = document.getElementById(kind === 'draft' ? 'draftToApprovedBtn' : 'approvedToDraftBtn');
+  const selected = st.selectedIds.size;
   if (info) info.textContent = `${selected} seçili`;
-  if (applyBtn) applyBtn.disabled = selected === 0;
+  if (btn) btn.disabled = selected === 0;
 
-  const allBox = document.getElementById('approvedSelectAll');
+  const allBox = document.getElementById(`${kind}SelectAll`);
   if (!allBox) return;
-  const pageIds = approvedState.pageIds;
-  if (!pageIds.length) {
+  if (!st.pageIds.length) {
     allBox.checked = false;
     allBox.indeterminate = false;
     return;
   }
-  const hit = pageIds.filter(id => approvedState.selectedIds.has(id)).length;
-  allBox.checked = hit === pageIds.length;
-  allBox.indeterminate = hit > 0 && hit < pageIds.length;
+  const hit = st.pageIds.filter(id => st.selectedIds.has(id)).length;
+  allBox.checked = hit === st.pageIds.length;
+  allBox.indeterminate = hit > 0 && hit < st.pageIds.length;
 }
 
-function toggleApprovedSelect(fileId, checked) {
+function updateApprovedSelectionUi() {
+  updateProductSelectionUi('draft');
+  updateProductSelectionUi('approved');
+}
+
+function toggleProductSelect(kind, fileId, checked) {
+  const st = getProductsColumn(kind);
   const id = Number(fileId);
   if (!id) return;
-  if (checked) approvedState.selectedIds.add(id);
-  else approvedState.selectedIds.delete(id);
-  updateApprovedSelectionUi();
+  if (checked) st.selectedIds.add(id);
+  else st.selectedIds.delete(id);
+  updateProductSelectionUi(kind);
 }
 
-function toggleApprovedSelectAll(checked) {
-  approvedState.pageIds.forEach(id => {
-    if (checked) approvedState.selectedIds.add(id);
-    else approvedState.selectedIds.delete(id);
+function toggleProductSelectAll(kind, checked) {
+  const st = getProductsColumn(kind);
+  st.pageIds.forEach(id => {
+    if (checked) st.selectedIds.add(id);
+    else st.selectedIds.delete(id);
   });
-  updateApprovedSelectionUi();
-  approvedState.pageIds.forEach(id => {
-    const el = document.getElementById(`approvedSel_${id}`);
+  updateProductSelectionUi(kind);
+  st.pageIds.forEach(id => {
+    const el = document.getElementById(`${kind}Sel_${id}`);
     if (el) el.checked = checked;
   });
 }
 
-async function loadApprovedFiles() {
-  const { page, perPage, search, status } = approvedState;
-  const url = `${API}/files?page=${page}&per_page=${perPage}&status=${encodeURIComponent(status)}${search ? '&search='+encodeURIComponent(search) : ''}`;
+async function loadProductFiles(kind) {
+  const st = getProductsColumn(kind);
+  const url = `${API}/files?page=${st.page}&per_page=${st.perPage}&status=${kind}${st.search ? '&search=' + encodeURIComponent(st.search) : ''}`;
   try {
     const r = await fetch(url, { headers: authH() });
     if (r.status === 401) { logout(); return; }
     const d = await r.json();
-    approvedState.total = d.total;
-    renderApprovedTable(d.files || []);
-    renderApprovedPagination(d.total, d.page, d.per_page);
-    document.getElementById('approvedTotalBadge').textContent = `(${d.total.toLocaleString('tr')} kayıt)`;
+    st.total = d.total;
+    renderProductTable(kind, d.files || []);
+    renderProductPagination(kind, d.total, d.page, d.per_page);
+    const badge = document.getElementById(`${kind}TotalBadge`);
+    if (badge) badge.textContent = `(${d.total.toLocaleString('tr')} kayıt)`;
   } catch {
-    approvedState.pageIds = [];
-    updateApprovedSelectionUi();
-    document.getElementById('approvedTableBody').innerHTML = '<tr><td colspan="11" class="db-empty">Durum listesi yüklenemedi.</td></tr>';
+    st.pageIds = [];
+    updateProductSelectionUi(kind);
+    const tbody = document.getElementById(`${kind}TableBody`);
+    if (tbody) tbody.innerHTML = '<tr><td colspan="10" class="db-empty">Veriler yüklenemedi.</td></tr>';
   }
 }
 
-function renderApprovedTable(files) {
-  const tbody = document.getElementById('approvedTableBody');
-  approvedState.pageIds = files.map(f => Number(f.id)).filter(Boolean);
+function renderProductTable(kind, files) {
+  const st = getProductsColumn(kind);
+  const tbody = document.getElementById(`${kind}TableBody`);
+  if (!tbody) return;
+  st.pageIds = files.map(f => Number(f.id)).filter(Boolean);
   if (!files.length) {
-    tbody.innerHTML = `<tr><td colspan="11" class="db-empty">Bu durumda (${statusLabel(approvedState.status)}) kayıt yok.</td></tr>`;
-    updateApprovedSelectionUi();
+    tbody.innerHTML = `<tr><td colspan="10" class="db-empty">${kind === 'draft' ? 'Draft' : 'Onaylı'} listesi boş.</td></tr>`;
+    updateProductSelectionUi(kind);
     return;
   }
+
   const fmtColor = { dwg: 'fmt-dwg', dxf: 'fmt-dxf', pdf: 'fmt-pdf' };
   tbody.innerHTML = files.map(f => {
     const fmt = (f.file_format || '').toLowerCase();
+    const dateRaw = kind === 'approved' ? (f.approved_at || f.indexed_at) : f.indexed_at;
+    const date = dateRaw ? new Date(dateRaw).toLocaleDateString('tr-TR') : '—';
     const size = (f.bbox_width && f.bbox_height)
       ? `${f.bbox_width.toFixed(0)}×${f.bbox_height.toFixed(0)}`
       : '—';
-    const status = (f.approval_status || (f.approved ? 'approved' : 'uploaded')).toLowerCase();
-    const statusAtRaw = status === 'approved' ? f.approved_at : f.indexed_at;
-    const statusAt = statusAtRaw ? new Date(statusAtRaw).toLocaleString('tr-TR') : '—';
-    const checked = approvedState.selectedIds.has(Number(f.id)) ? 'checked' : '';
+    const checked = st.selectedIds.has(Number(f.id)) ? 'checked' : '';
     const catBadge = f.category_name
       ? `<span style="background:${f.category_color||'#6366f1'}22;color:${f.category_color||'#6366f1'};border:0.5px solid ${f.category_color||'#6366f1'}55;font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;white-space:nowrap">${f.category_name}</span>`
       : `<span style="color:var(--text3);font-size:11px">—</span>`;
@@ -1835,7 +1885,7 @@ function renderApprovedTable(files) {
       ? `<img src="${f.jpg_preview}" style="width:44px;height:32px;object-fit:contain;border-radius:4px;border:0.5px solid var(--border);background:#0a0d14;cursor:pointer" onclick="event.stopPropagation();showDetailModal(${f.id})" title="Önizle">`
       : `<div style="width:44px;height:32px;border-radius:4px;border:0.5px solid var(--border);background:#0a0d14;display:flex;align-items:center;justify-content:center"><span style="font-size:9px;color:var(--text3)">${fmt.toUpperCase()}</span></div>`;
     return `<tr class="clickable-row" onclick="showDetailModal(${f.id})">
-      <td style="text-align:center" onclick="event.stopPropagation()"><input id="approvedSel_${f.id}" type="checkbox" ${checked} onchange="toggleApprovedSelect(${f.id}, this.checked)" style="accent-color:var(--blue);cursor:pointer"></td>
+      <td style="text-align:center" onclick="event.stopPropagation()"><input id="${kind}Sel_${f.id}" type="checkbox" ${checked} onchange="toggleProductSelect('${kind}', ${f.id}, this.checked)" style="accent-color:var(--blue);cursor:pointer"></td>
       <td style="padding:4px 8px">${thumb}</td>
       <td><div class="td-filename" title="${f.filepath}">${f.filename}</div></td>
       <td><span class="td-format ${fmtColor[fmt]||''}">${fmt.toUpperCase()}</span></td>
@@ -1843,46 +1893,53 @@ function renderApprovedTable(files) {
       <td>${(f.entity_count||0).toLocaleString('tr')}</td>
       <td>${f.layer_count||0}</td>
       <td>${size}</td>
-      <td>${statusBadge(status)}</td>
-      <td class="td-date">${statusAt}</td>
+      <td class="td-date">${date}</td>
       <td style="display:flex;gap:6px;align-items:center" onclick="event.stopPropagation()">
         <button class="del-btn" style="background:rgba(59,130,246,0.12);color:var(--blue);border-color:rgba(59,130,246,0.3)" onclick="downloadFile(${f.id},'${f.filename.replace(/'/g,"\\'")}')">↓</button>
       </td>
     </tr>`;
   }).join('');
-  updateApprovedSelectionUi();
+  updateProductSelectionUi(kind);
 }
 
-function renderApprovedPagination(total, page, perPage) {
+function renderProductPagination(kind, total, page, perPage) {
+  const pg = document.getElementById(`${kind}Pagination`);
+  if (!pg) return;
   const pages = Math.ceil(total / perPage);
-  const pg = document.getElementById('approvedPagination');
   if (pages <= 1) { pg.style.display = 'none'; return; }
   pg.style.display = 'flex';
-  document.getElementById('approvedPageInfo').textContent = `Sayfa ${page} / ${pages}`;
-  document.getElementById('approvedPrevBtn').disabled = page <= 1;
-  document.getElementById('approvedNextBtn').disabled = page >= pages;
+  document.getElementById(`${kind}PageInfo`).textContent = `Sayfa ${page} / ${pages}`;
+  document.getElementById(`${kind}PrevBtn`).disabled = page <= 1;
+  document.getElementById(`${kind}NextBtn`).disabled = page >= pages;
 }
 
-function approvedChangePage(dir) {
-  const pages = Math.ceil(approvedState.total / approvedState.perPage);
-  approvedState.page = Math.max(1, Math.min(pages, approvedState.page + dir));
-  loadApprovedFiles();
+function productChangePage(kind, dir) {
+  const st = getProductsColumn(kind);
+  const pages = Math.ceil(st.total / st.perPage);
+  st.page = Math.max(1, Math.min(pages, st.page + dir));
+  loadProductFiles(kind);
 }
 
-async function applyStatusFromStatusPage() {
-  const ids = Array.from(approvedState.selectedIds);
+async function moveProductSelection(kind) {
+  const st = getProductsColumn(kind);
+  const ids = Array.from(st.selectedIds);
   if (!ids.length) return;
-  const status = document.getElementById('approvedBulkStatusSelect')?.value || 'draft';
+  const target = kind === 'draft' ? 'approved' : 'draft';
   try {
-    await setFilesStatus(ids, status);
-    ids.forEach(id => approvedState.selectedIds.delete(id));
+    await setFilesStatus(ids, target);
+    productsState.draft.selectedIds.clear();
+    productsState.approved.selectedIds.clear();
     ids.forEach(id => dbState.selectedIds.delete(id));
     updateApprovedSelectionUi();
     updateDbApprovalSelectionUi();
-    await Promise.all([loadApprovedFiles(), loadDbFiles()]);
+    await Promise.all([loadProductFiles('draft'), loadProductFiles('approved'), loadDbFiles()]);
   } catch (err) {
-    alert(err.message || 'Toplu durum işlemi başarısız.');
+    alert(err.message || 'Durum taşıma işlemi başarısız.');
   }
+}
+
+async function loadApprovedFiles() {
+  await Promise.all([loadProductFiles('draft'), loadProductFiles('approved')]);
 }
 
 async function deleteFile(id, name) {
@@ -1892,7 +1949,8 @@ async function deleteFile(id, name) {
     if (r.status === 401) { logout(); return; }
     if (!r.ok) throw new Error();
     dbState.selectedIds.delete(Number(id));
-    approvedState.selectedIds.delete(Number(id));
+    productsState.draft.selectedIds.delete(Number(id));
+    productsState.approved.selectedIds.delete(Number(id));
     updateDbApprovalSelectionUi();
     updateApprovedSelectionUi();
     loadStats();
