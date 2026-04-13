@@ -40,14 +40,16 @@ class BulkApprovePayload(BaseModel):
 def _normalize_status(status: Optional[str], approved: Optional[bool] = None) -> str:
     if status is not None:
         s = str(status).strip().lower()
+        if s in ("uploaded", "yuklendi", "yüklendi"):
+            return "uploaded"
         if s in ("approved", "onayli", "onaylı"):
             return "approved"
         if s in ("draft", "taslak"):
             return "draft"
-        raise HTTPException(status_code=400, detail="Geçersiz status. 'draft' veya 'approved' olmalı.")
+        raise HTTPException(status_code=400, detail="Geçersiz status. 'uploaded', 'draft' veya 'approved' olmalı.")
     if approved is not None:
         return "approved" if approved else "draft"
-    return "approved"
+    return "uploaded"
 
 
 def _parse_error_detail(filename: str, is_dwg: bool) -> str:
@@ -884,7 +886,7 @@ def list_files(
                 "jpg_preview": f.jpg_preview,
                 "approved": bool(f.approved),
                 "approved_at": f.approved_at.isoformat() if f.approved_at else None,
-                "approval_status": f.approval_status or ("approved" if f.approved else "draft"),
+                "approval_status": f.approval_status or ("approved" if f.approved else "uploaded"),
                 "has_file_data": f.has_file_data,
                 "category_id": f.category_id,
                 "category_name": f.category_name,
@@ -984,7 +986,7 @@ def get_file(
         "bbox_area": m["bbox_area"],
         "approved": bool(m["approved"]),
         "approved_at": m["approved_at"].isoformat() if m["approved_at"] else None,
-        "approval_status": m["approval_status"] or ("approved" if m["approved"] else "draft"),
+        "approval_status": m["approval_status"] or ("approved" if m["approved"] else "uploaded"),
         "svg_preview": m["svg_preview"],
         "jpg_preview": m["jpg_preview"],
         "category_id": m["category_id"],

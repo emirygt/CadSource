@@ -134,7 +134,7 @@ cad_files (
   file_data BYTEA,
   approved BOOLEAN DEFAULT FALSE,
   approved_at TIMESTAMP,
-  approval_status VARCHAR(20) DEFAULT 'draft',
+  approval_status VARCHAR(20) DEFAULT 'uploaded',
   category_id → categories(id)
 )
 
@@ -158,7 +158,7 @@ users (id, email, password_hash, schema_name, company_name, created_at)
 | POST | /index | Tek dosya indexle |
 | POST | /index/bulk | Toplu dosya indexle |
 | POST | /search | Hibrit vektör araması |
-| GET | /files | Dosya listesi (sayfalı, `status=draft|approved` ve `approved=true/false` filtreleri) |
+| GET | /files | Dosya listesi (sayfalı, `status=uploaded|draft|approved` ve `approved=true/false` filtreleri) |
 | POST | /files/approve/bulk | Toplu durum atama (`file_ids[]`, `status`) |
 | GET | /files/{id} | Dosya detayı |
 | GET | /files/{id}/download | Orijinal dosya indir (DB `file_data`) |

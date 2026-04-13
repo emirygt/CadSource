@@ -42,7 +42,7 @@ class CadFile(Base):
     # --- İş akışı ---
     approved      = Column(Boolean, default=False)
     approved_at   = Column(DateTime, nullable=True)
-    approval_status = Column(String, default="draft")
+    approval_status = Column(String, default="uploaded")
 
     # --- Özellik vektörleri (pgvector) ---
     # 128 boyutlu birleşik özellik vektörü
@@ -107,12 +107,17 @@ def init_db():
         """))
         conn.execute(text("""
             DO $$ BEGIN
-                ALTER TABLE cad_files ADD COLUMN IF NOT EXISTS approval_status VARCHAR(20) DEFAULT 'draft';
+                ALTER TABLE cad_files ADD COLUMN IF NOT EXISTS approval_status VARCHAR(20) DEFAULT 'uploaded';
+            EXCEPTION WHEN others THEN NULL; END $$;
+        """))
+        conn.execute(text("""
+            DO $$ BEGIN
+                ALTER TABLE cad_files ALTER COLUMN approval_status SET DEFAULT 'uploaded';
             EXCEPTION WHEN others THEN NULL; END $$;
         """))
         conn.execute(text("""
             UPDATE cad_files
-            SET approval_status = CASE WHEN approved THEN 'approved' ELSE 'draft' END
+            SET approval_status = CASE WHEN approved THEN 'approved' ELSE 'uploaded' END
             WHERE approval_status IS NULL OR approval_status = '';
         """))
         conn.commit()
@@ -162,12 +167,17 @@ def init_db():
             """))
             conn.execute(text(f"""
                 DO $$ BEGIN
-                    ALTER TABLE {schema}.cad_files ADD COLUMN IF NOT EXISTS approval_status VARCHAR(20) DEFAULT 'draft';
+                    ALTER TABLE {schema}.cad_files ADD COLUMN IF NOT EXISTS approval_status VARCHAR(20) DEFAULT 'uploaded';
+                EXCEPTION WHEN others THEN NULL; END $$;
+            """))
+            conn.execute(text(f"""
+                DO $$ BEGIN
+                    ALTER TABLE {schema}.cad_files ALTER COLUMN approval_status SET DEFAULT 'uploaded';
                 EXCEPTION WHEN others THEN NULL; END $$;
             """))
             conn.execute(text(f"""
                 UPDATE {schema}.cad_files
-                SET approval_status = CASE WHEN approved THEN 'approved' ELSE 'draft' END
+                SET approval_status = CASE WHEN approved THEN 'approved' ELSE 'uploaded' END
                 WHERE approval_status IS NULL OR approval_status = '';
             """))
             conn.execute(text(f"""
