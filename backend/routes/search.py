@@ -22,11 +22,26 @@ from features import (
     _dwg_to_dxf_bytes,
     _is_binary_dwg,
     _extract_from_doc,
+    DWG2DXF_BIN,
 )
 from middleware.tenant import get_current_tenant, apply_tenant_schema
 from clip_encoder import extract_clip_vector, extract_clip_vector_from_bytes
 
 router = APIRouter(tags=["search"])
+
+
+def _parse_error_detail(filename: str, is_dwg: bool) -> str:
+    if is_dwg:
+        if DWG2DXF_BIN is None:
+            return (
+                f"'{filename}' okunamadı. Sunucuda DWG dönüştürücü (dwg2dxf) kurulu değil. "
+                "VPS/backend imajına LibreDWG kurup `dwg2dxf` komutunu erişilebilir yapın."
+            )
+        return (
+            f"'{filename}' okunamadı. DWG dosyası bozuk olabilir veya sürümü desteklenmiyor "
+            "(özellikle R12 ve öncesi)."
+        )
+    return f"'{filename}' okunamadı. Geçerli bir DXF/DWG dosyası yükleyin."
 
 
 def _decode_image_data_url(data_url: Optional[str]) -> Optional[bytes]:
@@ -622,12 +637,14 @@ async def search_similar(
 
     content = await file.read()
     filename = file.filename or "upload.dxf"
+    ext = filename.lower().rsplit(".", 1)[-1] if "." in filename else ""
+    is_dwg = ext == "dwg" or _is_binary_dwg(content)
 
     data = parse_dxf_bytes(content, filename)
     if data is None:
         raise HTTPException(
-            status_code=400,
-            detail=f"'{filename}' okunamadı. Geçerli bir DXF/DWG dosyası yükleyin."
+            status_code=500 if (is_dwg and DWG2DXF_BIN is None) else 400,
+            detail=_parse_error_detail(filename, is_dwg),
         )
 
     query_vec = extract_features(data)

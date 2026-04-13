@@ -24,6 +24,7 @@ from features import (
     generate_svg_preview,
     generate_jpg_preview,
     generate_jpg_preview_from_bytes,
+    DWG2DXF_BIN,
 )
 from middleware.tenant import get_current_tenant, apply_tenant_schema
 from clip_encoder import extract_clip_vector, extract_clip_vector_from_bytes
@@ -35,6 +36,28 @@ MAX_SINGLE_FILE_MB = 50
 MAX_ZIP_FILE_MB = 500
 MAX_SINGLE_BYTES = MAX_SINGLE_FILE_MB * 1024 * 1024
 MAX_ZIP_BYTES = MAX_ZIP_FILE_MB * 1024 * 1024
+
+
+def _parse_error_detail(filename: str, ext: str) -> str:
+    if ext == "dwg":
+        if DWG2DXF_BIN is None:
+            return (
+                f"'{filename}' okunamadı. Sunucuda DWG dönüştürücü (dwg2dxf) kurulu değil. "
+                "VPS/backend imajına LibreDWG kurup `dwg2dxf` komutunu erişilebilir yapın."
+            )
+        return (
+            f"'{filename}' okunamadı. DWG dosyası bozuk olabilir veya sürümü desteklenmiyor "
+            "(özellikle R12 ve öncesi)."
+        )
+    return (
+        f"'{filename}' okunamadı. Desteklenen formatlar: DXF, DWG, PDF, JPG, PNG."
+    )
+
+
+def _parse_error_status(ext: str) -> int:
+    if ext == "dwg" and DWG2DXF_BIN is None:
+        return 500
+    return 400
 
 
 def _upsert_file(db, stored_path, filename, ext, data, category_id, skip_clip: bool = False, raw_bytes: bytes = None):
@@ -147,9 +170,10 @@ async def index_file(
 
     data = parse_dxf_bytes(content, filename)
     if data is None:
-        raise HTTPException(status_code=400,
-            detail=f"'{filename}' okunamadı. Desteklenen formatlar: DXF, DWG, PDF. "
-                   "Eski DWG versiyonları (R12 ve öncesi) desteklenmeyebilir.")
+        raise HTTPException(
+            status_code=_parse_error_status(ext),
+            detail=_parse_error_detail(filename, ext),
+        )
 
     status = _upsert_file(db, stored_path, filename, ext, data, category_id, skip_clip=skip_clip, raw_bytes=content)
     db.commit()
@@ -185,8 +209,7 @@ async def bulk_index(
 
             data = parse_dxf_bytes(content, filename)
             if data is None:
-                raise ValueError(
-                    "Dosya okunamadı — desteklenmeyen format, bozuk dosya veya eski DWG versiyonu (R12 ve öncesi)")
+                raise ValueError(_parse_error_detail(filename, ext))
 
             _upsert_file(db, stored_path, filename, ext, data, category_id, skip_clip=skip_clip, raw_bytes=content)
             db.commit()
@@ -270,8 +293,7 @@ async def bulk_index_zip(
 
             data = parse_dxf_bytes(file_bytes, filename)
             if data is None:
-                raise ValueError(
-                    "Dosya okunamadı — desteklenmeyen format, bozuk dosya veya eski DWG versiyonu (R12 ve öncesi)")
+                raise ValueError(_parse_error_detail(filename, ext))
 
             _upsert_file(db, stored_path, filename, ext, data, category_id, skip_clip=skip_clip, raw_bytes=file_bytes)
             db.commit()

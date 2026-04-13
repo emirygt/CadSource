@@ -87,7 +87,64 @@
 </div>
 
 <script>
-const API = window.API_URL || '/api';
+const API_CANDIDATES = (() => {
+  const list = [];
+  if (window.API_URL) list.push(window.API_URL);
+  const saved = localStorage.getItem('api_base');
+  if (saved) list.push(saved);
+  list.push('/api');
+  if (['localhost', '127.0.0.1'].includes(window.location.hostname)) {
+    list.push('http://localhost:8000');
+  } else {
+    list.push(`${window.location.protocol}//${window.location.hostname}:8000`);
+  }
+  return [...new Set(list)];
+})();
+
+let API = API_CANDIDATES[0];
+let API_READY = false;
+
+async function ensureApiBase() {
+  if (API_READY) return API;
+  for (const base of API_CANDIDATES) {
+    try {
+      const res = await fetch(`${base}/health`, { cache: 'no-store' });
+      const text = (await res.text()).trim();
+      if (res.ok && text.startsWith('{')) {
+        API = base;
+        API_READY = true;
+        localStorage.setItem('api_base', API);
+        return API;
+      }
+    } catch (_) {}
+  }
+  API = API_CANDIDATES[0] || '/api';
+  API_READY = true;
+  return API;
+}
+
+async function parseJsonResponse(res, failPrefix) {
+  const body = await res.text();
+  let data = null;
+  if (body) {
+    try {
+      data = JSON.parse(body);
+    } catch (_) {
+      if (body.trim().startsWith('<')) {
+        throw new Error(
+          `${failPrefix}: API yerine HTML döndü. Nginx'te /api proxy backend'e gitmiyor olabilir veya backend kapalı.`
+        );
+      }
+      throw new Error(`${failPrefix}: API JSON dönmedi (HTTP ${res.status})`);
+    }
+  }
+
+  if (!res.ok) {
+    const detail = data && data.detail ? data.detail : `${failPrefix} (HTTP ${res.status})`;
+    throw new Error(detail);
+  }
+  return data || {};
+}
 
 function showTab(tab) {
   document.getElementById('form-login').style.display = tab === 'login' ? '' : 'none';
@@ -106,13 +163,13 @@ async function doLogin() {
 
   btn.disabled = true; btn.textContent = 'Giriş yapılıyor...';
   try {
+    await ensureApiBase();
     const res = await fetch(`${API}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.detail || 'Giriş başarısız');
+    const data = await parseJsonResponse(res, 'Giriş başarısız');
     localStorage.setItem('token', data.token);
     localStorage.setItem('email', data.email);
     window.location.href = 'index.html';
@@ -135,16 +192,16 @@ async function doRegister() {
 
   btn.disabled = true; btn.textContent = 'Kayıt yapılıyor...';
   try {
+    await ensureApiBase();
     const res = await fetch(`${API}/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password, company_name }),
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.detail || 'Kayıt başarısız');
+    const data = await parseJsonResponse(res, 'Kayıt başarısız');
     localStorage.setItem('token', data.token);
     localStorage.setItem('email', data.email);
-    window.location.href = 'upload.html';
+    window.location.href = 'index.html';
   } catch (e) {
     msg.className = 'error'; msg.textContent = e.message;
   } finally {
