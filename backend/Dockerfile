@@ -17,7 +17,7 @@ WORKDIR /tmp
 RUN wget -q https://ftp.gnu.org/gnu/libredwg/libredwg-${LIBREDWG_VERSION}.tar.xz \
     && tar -xf libredwg-${LIBREDWG_VERSION}.tar.xz \
     && cd libredwg-${LIBREDWG_VERSION} \
-    && ./configure --disable-shared --disable-python --disable-bindings \
+    && ./configure --disable-shared --disable-python --disable-bindings --disable-werror \
     # GCC 13+ ile gelen alloc-size warning'ini libredwg 0.13.3 build'inde fatal olmaktan cikar.
     && CFLAGS="-Wno-error=alloc-size" make -j"$(nproc)" \
     && cp programs/dwg2dxf /tmp/dwg2dxf
