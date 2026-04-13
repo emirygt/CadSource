@@ -28,6 +28,7 @@ from features import (
 )
 from middleware.tenant import get_current_tenant, apply_tenant_schema
 from clip_encoder import extract_clip_vector, extract_clip_vector_from_bytes
+from routes.activity import log_activity
 
 router = APIRouter(tags=["index"])
 
@@ -176,6 +177,7 @@ async def index_file(
         )
 
     status = _upsert_file(db, stored_path, filename, ext, data, category_id, skip_clip=skip_clip, raw_bytes=content)
+    log_activity(db, "upload", tenant.get("email", ""), filename=filename)
     db.commit()
     return {"status": status, "filename": filename}
 
@@ -212,6 +214,7 @@ async def bulk_index(
                 raise ValueError(_parse_error_detail(filename, ext))
 
             _upsert_file(db, stored_path, filename, ext, data, category_id, skip_clip=skip_clip, raw_bytes=content)
+            log_activity(db, "upload", tenant.get("email", ""), filename=filename)
             db.commit()
             results["success"] += 1
         except Exception as e:
@@ -296,6 +299,7 @@ async def bulk_index_zip(
                 raise ValueError(_parse_error_detail(filename, ext))
 
             _upsert_file(db, stored_path, filename, ext, data, category_id, skip_clip=skip_clip, raw_bytes=file_bytes)
+            log_activity(db, "upload", tenant.get("email", ""), filename=filename)
             db.commit()
             results["success"] += 1
         except Exception as e:

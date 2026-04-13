@@ -27,6 +27,7 @@ from features import (
 )
 from middleware.tenant import get_current_tenant, apply_tenant_schema
 from clip_encoder import extract_clip_vector, extract_clip_vector_from_bytes
+from routes.activity import log_activity
 
 router = APIRouter(tags=["search"])
 
@@ -922,11 +923,25 @@ def bulk_approve_files(
     """).bindparams(bindparam("ids", expanding=True))
 
     try:
+        # Log icin dosya isimlerini al
+        file_rows = db.execute(
+            text("SELECT id, filename FROM cad_files WHERE id IN :ids").bindparams(
+                bindparam("ids", expanding=True)
+            ), {"ids": ids}
+        ).fetchall()
+
         result = db.execute(stmt, {
             "approval_status": status_norm,
             "approved": approved_bool,
             "ids": ids,
         })
+
+        user_email = tenant.get("email", "")
+        for fr in file_rows:
+            log_activity(db, status_norm, user_email,
+                         filename=fr.filename, file_id=fr.id,
+                         details=f"Durum: {status_norm}")
+
         db.commit()
     except Exception:
         db.rollback()

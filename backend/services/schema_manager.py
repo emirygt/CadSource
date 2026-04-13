@@ -52,6 +52,16 @@ CREATE TABLE IF NOT EXISTS {schema}.cad_files (
     approval_status VARCHAR(20) DEFAULT 'uploaded'
 );
 
+CREATE TABLE IF NOT EXISTS {schema}.activity_log (
+    id          SERIAL PRIMARY KEY,
+    action      VARCHAR(50) NOT NULL,
+    filename    VARCHAR,
+    file_id     INTEGER,
+    user_email  VARCHAR,
+    details     VARCHAR,
+    created_at  TIMESTAMP DEFAULT NOW()
+);
+
 CREATE INDEX IF NOT EXISTS {schema}_vector_idx
     ON {schema}.cad_files
     USING hnsw (feature_vector vector_cosine_ops)

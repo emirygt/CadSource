@@ -186,6 +186,17 @@ def init_db():
                 USING hnsw (clip_vector vector_cosine_ops)
                 WITH (m = 16, ef_construction = 64);
             """))
+            conn.execute(text(f"""
+                CREATE TABLE IF NOT EXISTS {schema}.activity_log (
+                    id          SERIAL PRIMARY KEY,
+                    action      VARCHAR(50) NOT NULL,
+                    filename    VARCHAR,
+                    file_id     INTEGER,
+                    user_email  VARCHAR,
+                    details     VARCHAR,
+                    created_at  TIMESTAMP DEFAULT NOW()
+                )
+            """))
         conn.commit()
 
     # Default schema (public) için HNSW — tenant schema'larında schema_manager kurar

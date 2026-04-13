@@ -1,0 +1,57 @@
+:root {
+  /* ── New Design System (Clean Light Theme) ── */
+  --bg-base: #0D1B2A;
+  --bg-surface: #112236;
+  --bg-active: #1a73e8;
+  --bg-icon-badge: #1A3A5C;
+  --text-primary: #FFFFFF;
+  --text-secondary: #8BA4C0;
+  --text-muted: #4A6580;
+  --accent-blue: #1a73e8;
+  --border: #e2e8f0;
+
+  /* Typography */
+  --font-display: 'Plus Jakarta Sans', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+
+  /* Font sizes */
+  --text-xs: 11px;
+  --text-sm: 12px;
+  --text-base: 14px;
+  --text-md: 15px;
+  --text-lg: 18px;
+  --text-xl: 22px;
+  --text-2xl: 28px;
+
+  /* Compatibility aliases for existing pages */
+  --font-sans: var(--font-body);
+  --font-heading: var(--font-display);
+
+  /* Stable aliases for pages that have local --border, --text-* overrides */
+  --ds-bg-base: var(--bg-base);
+  --ds-bg-surface: var(--bg-surface);
+  --ds-bg-active: var(--bg-active);
+  --ds-bg-icon-badge: var(--bg-icon-badge);
+  --ds-text-primary: var(--text-primary);
+  --ds-text-secondary: var(--text-secondary);
+  --ds-text-muted: var(--text-muted);
+  --ds-accent-blue: var(--accent-blue);
+  --ds-border: var(--border);
+}
+
+html {
+  font-size: 16px;
+}
+
+body {
+  font-family: var(--font-body);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+}
+
+code, pre, .mono {
+  font-family: var(--font-mono);
+}
