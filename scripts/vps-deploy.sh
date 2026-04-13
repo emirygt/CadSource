@@ -33,8 +33,7 @@ if [ "$OS" = "ubuntu" ] || [ "$OS" = "debian" ]; then
         sudo apt-get install -y docker-compose-plugin
     fi
 elif [ "$OS" = "amzn" ]; then
-    sudo dnf update -y
-    sudo dnf install -y git docker
+    sudo dnf install -y --allowerasing git docker
     sudo systemctl enable docker
     sudo systemctl start docker
     if ! docker compose version &> /dev/null; then
