@@ -4,8 +4,9 @@ search.py — Vektör benzerlik araması (auth entegreli)
 from fastapi import APIRouter, UploadFile, File, Depends, HTTPException, Query
 from fastapi.responses import Response
 from sqlalchemy.orm import Session
-from sqlalchemy import text
-from typing import Optional, Tuple
+from sqlalchemy import text, bindparam
+from typing import Optional, Tuple, List
+from pydantic import BaseModel
 import base64
 import io
 import math
@@ -28,6 +29,11 @@ from middleware.tenant import get_current_tenant, apply_tenant_schema
 from clip_encoder import extract_clip_vector, extract_clip_vector_from_bytes
 
 router = APIRouter(tags=["search"])
+
+
+class BulkApprovePayload(BaseModel):
+    file_ids: List[int]
+    approved: bool = True
 
 
 def _parse_error_detail(filename: str, is_dwg: bool) -> str:
@@ -794,6 +800,7 @@ def list_files(
     page: int = Query(default=1, ge=1),
     per_page: int = Query(default=20, ge=1, le=100),
     search: Optional[str] = Query(default=None),
+    approved: Optional[bool] = Query(default=None),
     tenant: dict = Depends(get_current_tenant),
     db: Session = Depends(get_db),
 ):
@@ -802,10 +809,20 @@ def list_files(
 
     count_q = "SELECT COUNT(*) FROM cad_files"
     params: dict = {}
+    count_clauses = []
+    list_clauses = []
 
     if search:
-        count_q += " WHERE filename ILIKE :search"
         params["search"] = f"%{search}%"
+        count_clauses.append("filename ILIKE :search")
+        list_clauses.append("f.filename ILIKE :search")
+    if approved is not None:
+        params["approved"] = approved
+        count_clauses.append("approved = :approved")
+        list_clauses.append("f.approved = :approved")
+
+    if count_clauses:
+        count_q += " WHERE " + " AND ".join(count_clauses)
 
     total = db.execute(text(count_q), params).scalar()
 
@@ -813,14 +830,15 @@ def list_files(
         SELECT f.id, f.filename, f.filepath, f.file_format,
                f.entity_count, f.layer_count, f.bbox_width, f.bbox_height,
                f.indexed_at, f.svg_preview, f.jpg_preview,
+               f.approved, f.approved_at,
                (f.file_data IS NOT NULL) AS has_file_data,
                f.category_id,
                c.name AS category_name, c.color AS category_color
         FROM cad_files f
         LEFT JOIN categories c ON c.id = f.category_id
     """
-    if search:
-        list_q += " WHERE f.filename ILIKE :search"
+    if list_clauses:
+        list_q += " WHERE " + " AND ".join(list_clauses)
     list_q += " ORDER BY f.indexed_at DESC OFFSET :offset LIMIT :limit"
     params["offset"] = (page - 1) * per_page
     params["limit"] = per_page
@@ -844,6 +862,8 @@ def list_files(
                 "indexed_at": f.indexed_at.isoformat() if f.indexed_at else None,
                 "svg_preview": f.svg_preview,
                 "jpg_preview": f.jpg_preview,
+                "approved": bool(f.approved),
+                "approved_at": f.approved_at.isoformat() if f.approved_at else None,
                 "has_file_data": f.has_file_data,
                 "category_id": f.category_id,
                 "category_name": f.category_name,
@@ -851,6 +871,40 @@ def list_files(
             }
             for f in files
         ],
+    }
+
+
+@router.post("/files/approve/bulk")
+def bulk_approve_files(
+    payload: BulkApprovePayload,
+    tenant: dict = Depends(get_current_tenant),
+    db: Session = Depends(get_db),
+):
+    apply_tenant_schema(tenant, db)
+
+    ids = sorted({int(x) for x in payload.file_ids if int(x) > 0})
+    if not ids:
+        raise HTTPException(status_code=400, detail="file_ids boş olamaz")
+
+    stmt = text("""
+        UPDATE cad_files
+        SET
+            approved = :approved,
+            approved_at = CASE WHEN :approved THEN NOW() ELSE NULL END
+        WHERE id IN :ids
+    """).bindparams(bindparam("ids", expanding=True))
+
+    try:
+        result = db.execute(stmt, {"approved": payload.approved, "ids": ids})
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Toplu onaylama başarısız")
+
+    return {
+        "status": "ok",
+        "approved": payload.approved,
+        "updated_count": int(result.rowcount or 0),
     }
 
 
@@ -869,6 +923,7 @@ def get_file(
                 f.id, f.filename, f.filepath, f.file_format, f.indexed_at,
                 f.entity_count, f.layer_count, f.layers, f.entity_types,
                 f.bbox_width, f.bbox_height, f.bbox_area,
+                f.approved, f.approved_at,
                 f.svg_preview, f.jpg_preview, f.category_id,
                 c.name AS category_name, c.color AS category_color,
                 (f.file_data IS NOT NULL) AS has_file_data,
@@ -897,6 +952,8 @@ def get_file(
         "bbox_width": m["bbox_width"],
         "bbox_height": m["bbox_height"],
         "bbox_area": m["bbox_area"],
+        "approved": bool(m["approved"]),
+        "approved_at": m["approved_at"].isoformat() if m["approved_at"] else None,
         "svg_preview": m["svg_preview"],
         "jpg_preview": m["jpg_preview"],
         "category_id": m["category_id"],

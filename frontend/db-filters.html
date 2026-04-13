@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CAD DB Filtreler</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0f1117;
+      --bg2: #161b27;
+      --bg3: #1e2535;
+      --border: rgba(255,255,255,0.08);
+      --border2: rgba(255,255,255,0.14);
+      --text: #e8eaf0;
+      --text2: #8b93a8;
+      --text3: #555e72;
+      --blue: #3b82f6;
+      --blue2: #1d4ed8;
+      --green: #22c55e;
+      --amber: #f59e0b;
+      --red: #ef4444;
+      --radius: 10px;
+      --radius-lg: 14px;
+    }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, "Segoe UI", sans-serif;
+      font-size: 14px;
+      min-height: 100vh;
+    }
+    .topbar {
+      height: 56px;
+      padding: 0 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 0.5px solid var(--border);
+      background: var(--bg);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .logo { font-size: 16px; font-weight: 600; }
+    .logo span { color: var(--blue); }
+    .top-actions { display: flex; align-items: center; gap: 8px; }
+    .btn {
+      border: 0.5px solid var(--border2);
+      background: transparent;
+      color: var(--text2);
+      border-radius: 8px;
+      padding: 7px 12px;
+      font-size: 12px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .btn:hover { border-color: var(--blue); color: var(--blue); }
+    .btn.primary { background: var(--blue); border-color: var(--blue); color: #fff; }
+    .btn.primary:hover { background: var(--blue2); border-color: var(--blue2); color: #fff; }
+    .btn.success { background: rgba(34,197,94,0.15); border-color: rgba(34,197,94,0.35); color: #86efac; }
+    .btn.success:hover { border-color: rgba(34,197,94,0.7); color: #bbf7d0; }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    .layout {
+      padding: 20px;
+      max-width: 1300px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 16px;
+    }
+    .card {
+      background: var(--bg2);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+    .card-head {
+      padding: 14px 16px;
+      border-bottom: 0.5px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .card-head h2 { font-size: 14px; font-weight: 600; }
+    .card-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; }
+    .muted { color: var(--text3); font-size: 12px; }
+    .status {
+      font-size: 12px;
+      color: var(--text2);
+      border: 0.5px solid var(--border2);
+      border-radius: 8px;
+      padding: 8px 10px;
+      background: var(--bg3);
+    }
+    .status.good { color: #86efac; border-color: rgba(34,197,94,0.35); }
+    .status.warn { color: #fcd34d; border-color: rgba(245,158,11,0.4); }
+    .status.bad { color: #fca5a5; border-color: rgba(239,68,68,0.4); }
+
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    input[type="text"],
+    input[type="number"],
+    input[type="date"],
+    select {
+      width: 100%;
+      background: var(--bg3);
+      border: 0.5px solid var(--border2);
+      border-radius: 8px;
+      color: var(--text);
+      padding: 8px 10px;
+      font-size: 12px;
+      outline: none;
+    }
+    input:focus, select:focus { border-color: var(--blue); }
+    .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .formats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+    .fmt-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--bg3);
+      border: 0.5px solid var(--border);
+      border-radius: 8px;
+      padding: 7px 8px;
+      font-size: 12px;
+      color: var(--text2);
+    }
+    .fmt-item input { accent-color: var(--blue); }
+    .filter-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .kpi {
+      background: var(--bg3);
+      border: 0.5px solid var(--border);
+      border-radius: 10px;
+      padding: 10px;
+    }
+    .kpi-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text3);
+    }
+    .kpi-val {
+      margin-top: 4px;
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .table-wrap { overflow: auto; border-top: 0.5px solid var(--border); }
+    table { width: 100%; border-collapse: collapse; min-width: 860px; }
+    th {
+      text-align: left;
+      font-size: 11px;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 10px 12px;
+      border-bottom: 0.5px solid var(--border);
+      white-space: nowrap;
+    }
+    td {
+      padding: 10px 12px;
+      border-bottom: 0.5px solid var(--border);
+      font-size: 12px;
+      vertical-align: middle;
+    }
+    tbody tr:hover td { background: var(--bg3); }
+    .fname {
+      max-width: 260px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-weight: 500;
+    }
+    .badge {
+      font-size: 10px;
+      border-radius: 999px;
+      padding: 2px 8px;
+      border: 0.5px solid var(--border2);
+      color: var(--text2);
+      display: inline-block;
+      min-width: 44px;
+      text-align: center;
+    }
+    .pager {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 12px;
+    }
+    .pager .muted { font-size: 11px; }
+    .empty {
+      padding: 30px;
+      text-align: center;
+      color: var(--text3);
+      font-size: 13px;
+    }
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: 1fr; }
+      .summary { grid-template-columns: 1fr; }
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+  <div class="topbar">
+    <div class="logo"><span>CAD</span>Search · DB Filtreler</div>
+    <div class="top-actions">
+      <div class="muted" id="userEmail">—</div>
+      <a class="btn" href="index.html">Uygulamaya Dön</a>
+      <button class="btn" onclick="logout()">Çıkış</button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <section class="card">
+      <div class="card-head">
+        <h2>Filtreler</h2>
+        <button class="btn" id="refreshBtn" onclick="reloadAllData()">Veriyi Yenile</button>
+      </div>
+      <div class="card-body">
+        <div id="loadStatus" class="status">Hazırlanıyor...</div>
+
+        <div class="field">
+          <label for="fName">Dosya Adı</label>
+          <input id="fName" type="text" placeholder="örn: kesit, kolon, profil">
+        </div>
+
+        <div class="field">
+          <label>Format</label>
+          <div class="formats">
+            <label class="fmt-item"><input type="checkbox" class="fmtCheck" value="dwg" checked> DWG</label>
+            <label class="fmt-item"><input type="checkbox" class="fmtCheck" value="dxf" checked> DXF</label>
+            <label class="fmt-item"><input type="checkbox" class="fmtCheck" value="pdf" checked> PDF</label>
+            <label class="fmt-item"><input type="checkbox" class="fmtCheck" value="jpg" checked> JPG/JPEG</label>
+            <label class="fmt-item"><input type="checkbox" class="fmtCheck" value="png" checked> PNG</label>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="fCategory">Kategori</label>
+          <select id="fCategory">
+            <option value="">Tümü</option>
+          </select>
+        </div>
+
+        <div class="row-2">
+          <div class="field">
+            <label for="fEntityMin">Min Entity</label>
+            <input id="fEntityMin" type="number" min="0" placeholder="0">
+          </div>
+          <div class="field">
+            <label for="fEntityMax">Max Entity</label>
+            <input id="fEntityMax" type="number" min="0" placeholder="sınırsız">
+          </div>
+        </div>
+
+        <div class="row-2">
+          <div class="field">
+            <label for="fLayerMin">Min Katman</label>
+            <input id="fLayerMin" type="number" min="0" placeholder="0">
+          </div>
+          <div class="field">
+            <label for="fLayerMax">Max Katman</label>
+            <input id="fLayerMax" type="number" min="0" placeholder="sınırsız">
+          </div>
+        </div>
+
+        <div class="row-2">
+          <div class="field">
+            <label for="fDateFrom">Tarih Başlangıç</label>
+            <input id="fDateFrom" type="date">
+          </div>
+          <div class="field">
+            <label for="fDateTo">Tarih Bitiş</label>
+            <input id="fDateTo" type="date">
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="fPreview">Önizleme</label>
+          <select id="fPreview">
+            <option value="all">Tümü</option>
+            <option value="yes">Önizleme var</option>
+            <option value="no">Önizleme yok</option>
+          </select>
+        </div>
+
+        <div class="filter-actions">
+          <button class="btn primary" onclick="applyFilters(true)">Filtrele</button>
+          <button class="btn" onclick="clearFilters()">Temizle</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <h2>Filtre Sonuçları</h2>
+        <button class="btn success" id="excelBtn" onclick="exportExcel()" disabled>Excel İndir</button>
+      </div>
+
+      <div class="card-body">
+        <div class="summary">
+          <div class="kpi"><div class="kpi-label">Toplam Kayıt</div><div class="kpi-val" id="kTotal">0</div></div>
+          <div class="kpi"><div class="kpi-label">Filtre Sonucu</div><div class="kpi-val" id="kFiltered">0</div></div>
+          <div class="kpi"><div class="kpi-label">Sayfadaki</div><div class="kpi-val" id="kPage">0</div></div>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Dosya</th>
+              <th>Format</th>
+              <th>Kategori</th>
+              <th>Entity</th>
+              <th>Katman</th>
+              <th>BBox (W×H)</th>
+              <th>Önizleme</th>
+              <th>Eklenme</th>
+            </tr>
+          </thead>
+          <tbody id="resultBody">
+            <tr><td colspan="8" class="empty">Veriler yükleniyor...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pager">
+        <div class="muted" id="pageInfo">Sayfa 1 / 1</div>
+        <div style="display:flex;gap:8px">
+          <button class="btn" id="prevBtn" onclick="changePage(-1)">Önceki</button>
+          <button class="btn" id="nextBtn" onclick="changePage(1)">Sonraki</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const API = window.API_URL || localStorage.getItem('api_base') || '/api';
+    const token = localStorage.getItem('token');
+    if (!token) window.location.href = 'login.html';
+
+    const authH = () => ({ Authorization: `Bearer ${token}` });
+    const state = {
+      allFiles: [],
+      filtered: [],
+      page: 1,
+      perPage: 50,
+    };
+
+    function logout() {
+      localStorage.clear();
+      window.location.href = 'login.html';
+    }
+
+    function esc(v) {
+      return String(v ?? '').replace(/[&<>"']/g, c => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+      }[c]));
+    }
+
+    function setStatus(msg, tone = '') {
+      const el = document.getElementById('loadStatus');
+      el.className = `status ${tone}`.trim();
+      el.textContent = msg;
+    }
+
+    async function fetchJson(url) {
+      const r = await fetch(url, { headers: authH() });
+      if (r.status === 401) { logout(); throw new Error('Yetki yok'); }
+      const txt = await r.text();
+      let data = {};
+      try { data = txt ? JSON.parse(txt) : {}; } catch { data = {}; }
+      if (!r.ok) throw new Error(data.detail || `HTTP ${r.status}`);
+      return data;
+    }
+
+    async function loadCategories() {
+      try {
+        const cats = await fetchJson(`${API}/categories`);
+        const sel = document.getElementById('fCategory');
+        sel.innerHTML = '<option value="">Tümü</option>' +
+          (cats || []).map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('');
+      } catch {
+        // Kategori yüklenemese de sayfa çalışsın.
+      }
+    }
+
+    async function loadAllFiles() {
+      const all = [];
+      let page = 1;
+      const perPage = 100;
+      let total = 0;
+
+      while (true) {
+        const d = await fetchJson(`${API}/files?page=${page}&per_page=${perPage}`);
+        const list = Array.isArray(d.files) ? d.files : [];
+        total = Number(d.total || all.length + list.length);
+        all.push(...list);
+        setStatus(`Veriler alınıyor... ${all.length}/${total}`, 'warn');
+        if (!list.length || all.length >= total) break;
+        page += 1;
+      }
+
+      state.allFiles = all;
+      setStatus(`Veri hazır. ${all.length} kayıt yüklendi.`, 'good');
+    }
+
+    function selectedFormats() {
+      const checks = [...document.querySelectorAll('.fmtCheck:checked')].map(x => x.value);
+      return new Set(checks);
+    }
+
+    function toDayStart(d) {
+      const x = new Date(d);
+      x.setHours(0, 0, 0, 0);
+      return x;
+    }
+
+    function toDayEnd(d) {
+      const x = new Date(d);
+      x.setHours(23, 59, 59, 999);
+      return x;
+    }
+
+    function applyFilters(resetPage = true) {
+      const name = document.getElementById('fName').value.trim().toLowerCase();
+      const fmts = selectedFormats();
+      const cat = document.getElementById('fCategory').value;
+      const eMin = document.getElementById('fEntityMin').value;
+      const eMax = document.getElementById('fEntityMax').value;
+      const lMin = document.getElementById('fLayerMin').value;
+      const lMax = document.getElementById('fLayerMax').value;
+      const dFrom = document.getElementById('fDateFrom').value;
+      const dTo = document.getElementById('fDateTo').value;
+      const preview = document.getElementById('fPreview').value;
+
+      const eMinN = eMin === '' ? null : Number(eMin);
+      const eMaxN = eMax === '' ? null : Number(eMax);
+      const lMinN = lMin === '' ? null : Number(lMin);
+      const lMaxN = lMax === '' ? null : Number(lMax);
+      const fromDate = dFrom ? toDayStart(dFrom) : null;
+      const toDate = dTo ? toDayEnd(dTo) : null;
+
+      let out = state.allFiles.filter(f => {
+        const fileName = String(f.filename || '').toLowerCase();
+        const fmt = String(f.file_format || '').toLowerCase();
+        const entity = Number(f.entity_count || 0);
+        const layer = Number(f.layer_count || 0);
+        const hasPreview = Boolean(f.jpg_preview || f.svg_preview);
+        const indexedAt = f.indexed_at ? new Date(f.indexed_at) : null;
+
+        if (name && !fileName.includes(name)) return false;
+        if (fmts.size && !fmts.has(fmt)) return false;
+        if (cat && String(f.category_id || '') !== String(cat)) return false;
+        if (eMinN !== null && entity < eMinN) return false;
+        if (eMaxN !== null && entity > eMaxN) return false;
+        if (lMinN !== null && layer < lMinN) return false;
+        if (lMaxN !== null && layer > lMaxN) return false;
+        if (preview === 'yes' && !hasPreview) return false;
+        if (preview === 'no' && hasPreview) return false;
+        if (fromDate && (!indexedAt || indexedAt < fromDate)) return false;
+        if (toDate && (!indexedAt || indexedAt > toDate)) return false;
+        return true;
+      });
+
+      out.sort((a, b) => {
+        const da = a.indexed_at ? new Date(a.indexed_at).getTime() : 0;
+        const db = b.indexed_at ? new Date(b.indexed_at).getTime() : 0;
+        return db - da;
+      });
+
+      state.filtered = out;
+      if (resetPage) state.page = 1;
+      renderTable();
+      document.getElementById('excelBtn').disabled = !state.filtered.length;
+    }
+
+    function renderTable() {
+      const body = document.getElementById('resultBody');
+      const total = state.filtered.length;
+      const pages = Math.max(1, Math.ceil(total / state.perPage));
+      state.page = Math.max(1, Math.min(pages, state.page));
+
+      const start = (state.page - 1) * state.perPage;
+      const list = state.filtered.slice(start, start + state.perPage);
+
+      document.getElementById('kTotal').textContent = state.allFiles.length.toLocaleString('tr');
+      document.getElementById('kFiltered').textContent = total.toLocaleString('tr');
+      document.getElementById('kPage').textContent = list.length.toLocaleString('tr');
+
+      document.getElementById('pageInfo').textContent = `Sayfa ${state.page} / ${pages}`;
+      document.getElementById('prevBtn').disabled = state.page <= 1;
+      document.getElementById('nextBtn').disabled = state.page >= pages;
+
+      if (!list.length) {
+        body.innerHTML = '<tr><td colspan="8" class="empty">Filtreye uygun kayıt bulunamadı.</td></tr>';
+        return;
+      }
+
+      body.innerHTML = list.map(f => {
+        const fmt = String(f.file_format || '').toUpperCase();
+        const hasPreview = (f.jpg_preview || f.svg_preview) ? 'Var' : 'Yok';
+        const date = f.indexed_at ? new Date(f.indexed_at).toLocaleString('tr-TR') : '—';
+        const wh = (f.bbox_width && f.bbox_height)
+          ? `${Number(f.bbox_width).toFixed(0)} × ${Number(f.bbox_height).toFixed(0)}`
+          : '—';
+        return `
+          <tr>
+            <td class="fname" title="${esc(f.filename || '')}">${esc(f.filename || '')}</td>
+            <td><span class="badge">${esc(fmt)}</span></td>
+            <td>${esc(f.category_name || '—')}</td>
+            <td>${Number(f.entity_count || 0).toLocaleString('tr')}</td>
+            <td>${Number(f.layer_count || 0).toLocaleString('tr')}</td>
+            <td>${esc(wh)}</td>
+            <td>${hasPreview}</td>
+            <td>${esc(date)}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function changePage(dir) {
+      state.page += dir;
+      renderTable();
+    }
+
+    function clearFilters() {
+      document.getElementById('fName').value = '';
+      document.getElementById('fCategory').value = '';
+      document.getElementById('fEntityMin').value = '';
+      document.getElementById('fEntityMax').value = '';
+      document.getElementById('fLayerMin').value = '';
+      document.getElementById('fLayerMax').value = '';
+      document.getElementById('fDateFrom').value = '';
+      document.getElementById('fDateTo').value = '';
+      document.getElementById('fPreview').value = 'all';
+      document.querySelectorAll('.fmtCheck').forEach(x => { x.checked = true; });
+      applyFilters(true);
+    }
+
+    function exportExcel() {
+      if (!state.filtered.length) return;
+
+      const rows = state.filtered.map(f => ({
+        'Dosya Adi': f.filename || '',
+        'Format': String(f.file_format || '').toUpperCase(),
+        'Kategori': f.category_name || '',
+        'Entity': Number(f.entity_count || 0),
+        'Katman': Number(f.layer_count || 0),
+        'BBox Genislik': Number(f.bbox_width || 0),
+        'BBox Yukseklik': Number(f.bbox_height || 0),
+        'Eklenme': f.indexed_at ? new Date(f.indexed_at).toLocaleString('tr-TR') : '',
+        'Onizleme': (f.jpg_preview || f.svg_preview) ? 'Var' : 'Yok',
+        'Dosya Yolu': f.filepath || '',
+      }));
+
+      const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
+      const base = `cad-db-filtre-sonuc-${stamp}`;
+
+      if (window.XLSX) {
+        const ws = XLSX.utils.json_to_sheet(rows);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Sonuclar');
+        XLSX.writeFile(wb, `${base}.xlsx`);
+      } else {
+        const head = Object.keys(rows[0]);
+        const csv = [head.join(',')].concat(rows.map(r => head.map(k => {
+          const v = String(r[k] ?? '').replace(/"/g, '""');
+          return `"${v}"`;
+        }).join(','))).join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${base}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+    }
+
+    async function reloadAllData() {
+      const btn = document.getElementById('refreshBtn');
+      btn.disabled = true;
+      try {
+        setStatus('Veriler yenileniyor...', 'warn');
+        await loadAllFiles();
+        applyFilters(true);
+      } catch (e) {
+        setStatus(`Veriler yüklenemedi: ${e.message}`, 'bad');
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    async function init() {
+      document.getElementById('userEmail').textContent = localStorage.getItem('email') || 'Kullanici';
+
+      const watchIds = [
+        'fName', 'fCategory', 'fEntityMin', 'fEntityMax',
+        'fLayerMin', 'fLayerMax', 'fDateFrom', 'fDateTo', 'fPreview'
+      ];
+      watchIds.forEach(id => {
+        const el = document.getElementById(id);
+        const evt = id === 'fName' ? 'input' : 'change';
+        el.addEventListener(evt, () => applyFilters(true));
+      });
+      document.querySelectorAll('.fmtCheck').forEach(x => {
+        x.addEventListener('change', () => applyFilters(true));
+      });
+
+      try {
+        await loadCategories();
+        await loadAllFiles();
+        applyFilters(true);
+      } catch (e) {
+        setStatus(`Başlatılamadı: ${e.message}`, 'bad');
+        document.getElementById('resultBody').innerHTML =
+          '<tr><td colspan="8" class="empty">Veriler yüklenemedi.</td></tr>';
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>

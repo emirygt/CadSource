@@ -482,6 +482,7 @@
 <div class="tabbar">
   <div class="tab active" id="tab-search" onclick="switchTab('search')">Ara</div>
   <div class="tab" id="tab-db" onclick="switchTab('db')">DB</div>
+  <div class="tab" id="tab-approved" onclick="switchTab('approved')">Onaylı Ürünler</div>
   <div class="tab" id="tab-contour" onclick="switchTab('contour')">Kontur DXF</div>
   <div class="tab" id="tab-cat" onclick="switchTab('cat')">Kategoriler</div>
   <div class="tab" id="tab-analytics" onclick="switchTab('analytics')">📊 Analitik</div>
@@ -640,12 +641,19 @@
     <div class="db-files-card">
       <div class="db-files-header">
         <h2>Kayıtlı Kalıplar <span id="dbTotalBadge" style="font-size:12px;color:var(--text3);font-weight:400"></span></h2>
-        <input class="db-search-box" id="dbSearchBox" placeholder="Dosya ara..." oninput="dbSearchDebounce()" />
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <input class="db-search-box" id="dbSearchBox" placeholder="Dosya ara..." oninput="dbSearchDebounce()" />
+          <span id="dbSelectedApproveInfo" style="font-size:11px;color:var(--text3);white-space:nowrap">0 seçili</span>
+          <button class="pg-btn" id="dbApproveBtn" onclick="approveSelectedFromDb(true)" disabled>Seçilenleri Onayla</button>
+          <button class="pg-btn" id="dbUnapproveBtn" onclick="approveSelectedFromDb(false)" disabled>Onayı Kaldır</button>
+          <a href="db-filters.html" style="background:var(--bg3);border:0.5px solid var(--border2);color:var(--text2);padding:6px 10px;border-radius:6px;font-size:12px;text-decoration:none;white-space:nowrap">Gelişmiş Filtre</a>
+        </div>
       </div>
       <div class="db-table-wrap">
         <table>
           <thead>
             <tr>
+              <th style="width:30px;text-align:center"><input id="dbSelectAll" type="checkbox" onchange="toggleDbSelectAll(this.checked)" style="accent-color:var(--blue);cursor:pointer"></th>
               <th style="width:48px"></th>
               <th>Dosya Adı</th>
               <th>Format</th>
@@ -653,12 +661,13 @@
               <th>Entity</th>
               <th>Katman</th>
               <th>Boyut</th>
+              <th>Onay</th>
               <th>Eklenme</th>
               <th>İşlem</th>
             </tr>
           </thead>
           <tbody id="dbTableBody">
-            <tr><td colspan="7" class="db-empty">Yükleniyor...</td></tr>
+            <tr><td colspan="11" class="db-empty">Yükleniyor...</td></tr>
           </tbody>
         </table>
       </div>
@@ -671,6 +680,50 @@
       </div>
     </div>
 
+  </div>
+</div>
+
+<!-- ═══════════════ ONAYLI ÜRÜNLER SAYFASI ═══════════════ -->
+<div class="page" id="page-approved">
+  <div class="db-layout">
+    <div class="db-files-card">
+      <div class="db-files-header">
+        <h2>Onaylı Ürünler <span id="approvedTotalBadge" style="font-size:12px;color:var(--text3);font-weight:400"></span></h2>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <input class="db-search-box" id="approvedSearchBox" placeholder="Onaylı dosya ara..." oninput="approvedSearchDebounce()" />
+          <span id="approvedSelectedInfo" style="font-size:11px;color:var(--text3);white-space:nowrap">0 seçili</span>
+          <button class="pg-btn" id="approvedUnapproveBtn" onclick="unapproveSelectedFromApproved()" disabled>Seçilen Onayı Kaldır</button>
+        </div>
+      </div>
+      <div class="db-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:30px;text-align:center"><input id="approvedSelectAll" type="checkbox" onchange="toggleApprovedSelectAll(this.checked)" style="accent-color:var(--blue);cursor:pointer"></th>
+              <th style="width:48px"></th>
+              <th>Dosya Adı</th>
+              <th>Format</th>
+              <th>Kategori</th>
+              <th>Entity</th>
+              <th>Katman</th>
+              <th>Boyut</th>
+              <th>Onay Tarihi</th>
+              <th>İşlem</th>
+            </tr>
+          </thead>
+          <tbody id="approvedTableBody">
+            <tr><td colspan="10" class="db-empty">Yükleniyor...</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="db-pagination" id="approvedPagination" style="display:none">
+        <span id="approvedPageInfo"></span>
+        <div class="db-pagination-btns">
+          <button class="pg-btn" id="approvedPrevBtn" onclick="approvedChangePage(-1)">‹ Önceki</button>
+          <button class="pg-btn" id="approvedNextBtn" onclick="approvedChangePage(1)">Sonraki ›</button>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -952,6 +1005,7 @@ function switchTab(name) {
   document.getElementById('tab-' + name).classList.add('active');
   document.getElementById('page-' + name).classList.add('active');
   if (name === 'db')        { loadDbFiles(); loadCategoriesIntoSelect(); }
+  if (name === 'approved')  { loadApprovedFiles(); }
   if (name === 'contour')   initContourTab();
   if (name === 'cat')       loadCategories();
   if (name === 'analytics') loadAnalytics();
@@ -1155,7 +1209,72 @@ function drawPreview(canvas, result) {
 // ══════════════════════════════════════════════════════════════════════════════
 //  DB SAYFASI
 // ══════════════════════════════════════════════════════════════════════════════
-const dbState = { files: [], isZip: false, page: 1, perPage: 20, total: 0, search: '', searchTimer: null, uploading: false, previewUrls: [], dropPreviewUrl: null };
+const dbState = {
+  files: [],
+  isZip: false,
+  page: 1,
+  perPage: 20,
+  total: 0,
+  search: '',
+  searchTimer: null,
+  uploading: false,
+  previewUrls: [],
+  dropPreviewUrl: null,
+  selectedIds: new Set(),
+  pageIds: [],
+};
+
+const approvedState = {
+  page: 1,
+  perPage: 20,
+  total: 0,
+  search: '',
+  searchTimer: null,
+  selectedIds: new Set(),
+  pageIds: [],
+};
+
+function updateDbApprovalSelectionUi() {
+  const selected = dbState.selectedIds.size;
+  const info = document.getElementById('dbSelectedApproveInfo');
+  const approveBtn = document.getElementById('dbApproveBtn');
+  const unapproveBtn = document.getElementById('dbUnapproveBtn');
+  if (info) info.textContent = `${selected} seçili`;
+  if (approveBtn) approveBtn.disabled = selected === 0;
+  if (unapproveBtn) unapproveBtn.disabled = selected === 0;
+
+  const allBox = document.getElementById('dbSelectAll');
+  if (!allBox) return;
+  const pageIds = dbState.pageIds;
+  if (!pageIds.length) {
+    allBox.checked = false;
+    allBox.indeterminate = false;
+    return;
+  }
+  const hit = pageIds.filter(id => dbState.selectedIds.has(id)).length;
+  allBox.checked = hit === pageIds.length;
+  allBox.indeterminate = hit > 0 && hit < pageIds.length;
+}
+
+function toggleDbSelect(fileId, checked) {
+  const id = Number(fileId);
+  if (!id) return;
+  if (checked) dbState.selectedIds.add(id);
+  else dbState.selectedIds.delete(id);
+  updateDbApprovalSelectionUi();
+}
+
+function toggleDbSelectAll(checked) {
+  dbState.pageIds.forEach(id => {
+    if (checked) dbState.selectedIds.add(id);
+    else dbState.selectedIds.delete(id);
+  });
+  updateDbApprovalSelectionUi();
+  dbState.pageIds.forEach(id => {
+    const el = document.getElementById(`dbSel_${id}`);
+    if (el) el.checked = checked;
+  });
+}
 
 function isDbImageFile(file) {
   return /\.(jpg|jpeg|png)$/i.test(file.name || '');
@@ -1484,14 +1603,18 @@ async function loadDbFiles() {
     renderDbPagination(d.total, d.page, d.per_page);
     document.getElementById('dbTotalBadge').textContent = `(${d.total.toLocaleString('tr')} kayıt)`;
   } catch {
-    document.getElementById('dbTableBody').innerHTML = '<tr><td colspan="8" class="db-empty">Veriler yüklenemedi.</td></tr>';
+    dbState.pageIds = [];
+    updateDbApprovalSelectionUi();
+    document.getElementById('dbTableBody').innerHTML = '<tr><td colspan="11" class="db-empty">Veriler yüklenemedi.</td></tr>';
   }
 }
 
 function renderDbTable(files) {
   const tbody = document.getElementById('dbTableBody');
+  dbState.pageIds = files.map(f => Number(f.id)).filter(Boolean);
   if (!files.length) {
-    tbody.innerHTML = `<tr><td colspan="9" class="db-empty">Henüz kalıp yok. Yükle sekmesinden ekleyin.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="11" class="db-empty">Henüz kalıp yok. Yükle sekmesinden ekleyin.</td></tr>`;
+    updateDbApprovalSelectionUi();
     return;
   }
   const fmtColor = { dwg: 'fmt-dwg', dxf: 'fmt-dxf', pdf: 'fmt-pdf' };
@@ -1501,6 +1624,11 @@ function renderDbTable(files) {
     const size = (f.bbox_width && f.bbox_height)
       ? `${f.bbox_width.toFixed(0)}×${f.bbox_height.toFixed(0)}`
       : '—';
+    const approved = !!f.approved;
+    const approvedBadge = approved
+      ? '<span style="background:rgba(34,197,94,0.16);color:#4ade80;border:0.5px solid rgba(74,222,128,0.35);font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;white-space:nowrap">Onaylı</span>'
+      : '<span style="background:rgba(148,163,184,0.12);color:var(--text3);border:0.5px solid var(--border2);font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px;white-space:nowrap">Bekliyor</span>';
+    const checked = dbState.selectedIds.has(Number(f.id)) ? 'checked' : '';
     const catBadge = f.category_name
       ? `<span style="background:${f.category_color||'#6366f1'}22;color:${f.category_color||'#6366f1'};border:0.5px solid ${f.category_color||'#6366f1'}55;font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;white-space:nowrap">${f.category_name}</span>`
       : `<span style="color:var(--text3);font-size:11px">—</span>`;
@@ -1509,6 +1637,7 @@ function renderDbTable(files) {
       : `<div style="width:44px;height:32px;border-radius:4px;border:0.5px solid var(--border);background:#0a0d14;display:flex;align-items:center;justify-content:center"><span style="font-size:9px;color:var(--text3)">${fmt.toUpperCase()}</span></div>`;
     const hasData = f.has_file_data;
     return `<tr class="clickable-row" onclick="showDetailModal(${f.id})">
+      <td style="text-align:center" onclick="event.stopPropagation()"><input id="dbSel_${f.id}" type="checkbox" ${checked} onchange="toggleDbSelect(${f.id}, this.checked)" style="accent-color:var(--blue);cursor:pointer"></td>
       <td style="padding:4px 8px">${thumb}</td>
       <td><div class="td-filename" title="${f.filepath}">${f.filename}</div></td>
       <td><span class="td-format ${fmtColor[fmt]||''}">${fmt.toUpperCase()}</span></td>
@@ -1516,6 +1645,7 @@ function renderDbTable(files) {
       <td>${(f.entity_count||0).toLocaleString('tr')}</td>
       <td>${f.layer_count||0}</td>
       <td>${size}</td>
+      <td>${approvedBadge}</td>
       <td class="td-date">${date}</td>
       <td style="display:flex;gap:6px;align-items:center" onclick="event.stopPropagation()">
         <button class="del-btn" style="background:rgba(59,130,246,0.12);color:var(--blue);border-color:rgba(59,130,246,0.3)" onclick="downloadFile(${f.id},'${f.filename.replace(/'/g,"\\'")}')">↓</button>
@@ -1523,6 +1653,7 @@ function renderDbTable(files) {
       </td>
     </tr>`;
   }).join('');
+  updateDbApprovalSelectionUi();
 }
 
 function renderDbPagination(total, page, perPage) {
@@ -1541,14 +1672,205 @@ function dbChangePage(dir) {
   loadDbFiles();
 }
 
+async function setFilesApproval(fileIds, approved) {
+  const payload = {
+    file_ids: fileIds.map(x => Number(x)).filter(x => Number.isInteger(x) && x > 0),
+    approved: !!approved,
+  };
+  if (!payload.file_ids.length) return { updated_count: 0 };
+  const r = await fetch(`${API}/files/approve/bulk`, {
+    method: 'POST',
+    headers: { ...authH(), 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  if (r.status === 401) { logout(); throw new Error('Oturum sona erdi'); }
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(d.detail || 'Toplu onay işlemi başarısız');
+  return d;
+}
+
+async function approveSelectedFromDb(approved) {
+  const ids = Array.from(dbState.selectedIds);
+  if (!ids.length) return;
+  try {
+    await setFilesApproval(ids, approved);
+    dbState.selectedIds.clear();
+    approvedState.selectedIds.clear();
+    updateDbApprovalSelectionUi();
+    updateApprovedSelectionUi();
+    await Promise.all([loadDbFiles(), loadApprovedFiles()]);
+  } catch (err) {
+    alert(err.message || 'Toplu onay işlemi başarısız.');
+  }
+}
+
+function approvedSearchDebounce() {
+  clearTimeout(approvedState.searchTimer);
+  approvedState.searchTimer = setTimeout(() => {
+    approvedState.search = document.getElementById('approvedSearchBox').value.trim();
+    approvedState.page = 1;
+    loadApprovedFiles();
+  }, 400);
+}
+
+function updateApprovedSelectionUi() {
+  const selected = approvedState.selectedIds.size;
+  const info = document.getElementById('approvedSelectedInfo');
+  const unapproveBtn = document.getElementById('approvedUnapproveBtn');
+  if (info) info.textContent = `${selected} seçili`;
+  if (unapproveBtn) unapproveBtn.disabled = selected === 0;
+
+  const allBox = document.getElementById('approvedSelectAll');
+  if (!allBox) return;
+  const pageIds = approvedState.pageIds;
+  if (!pageIds.length) {
+    allBox.checked = false;
+    allBox.indeterminate = false;
+    return;
+  }
+  const hit = pageIds.filter(id => approvedState.selectedIds.has(id)).length;
+  allBox.checked = hit === pageIds.length;
+  allBox.indeterminate = hit > 0 && hit < pageIds.length;
+}
+
+function toggleApprovedSelect(fileId, checked) {
+  const id = Number(fileId);
+  if (!id) return;
+  if (checked) approvedState.selectedIds.add(id);
+  else approvedState.selectedIds.delete(id);
+  updateApprovedSelectionUi();
+}
+
+function toggleApprovedSelectAll(checked) {
+  approvedState.pageIds.forEach(id => {
+    if (checked) approvedState.selectedIds.add(id);
+    else approvedState.selectedIds.delete(id);
+  });
+  updateApprovedSelectionUi();
+  approvedState.pageIds.forEach(id => {
+    const el = document.getElementById(`approvedSel_${id}`);
+    if (el) el.checked = checked;
+  });
+}
+
+async function loadApprovedFiles() {
+  const { page, perPage, search } = approvedState;
+  const url = `${API}/files?page=${page}&per_page=${perPage}&approved=true${search ? '&search='+encodeURIComponent(search) : ''}`;
+  try {
+    const r = await fetch(url, { headers: authH() });
+    if (r.status === 401) { logout(); return; }
+    const d = await r.json();
+    approvedState.total = d.total;
+    renderApprovedTable(d.files || []);
+    renderApprovedPagination(d.total, d.page, d.per_page);
+    document.getElementById('approvedTotalBadge').textContent = `(${d.total.toLocaleString('tr')} kayıt)`;
+  } catch {
+    approvedState.pageIds = [];
+    updateApprovedSelectionUi();
+    document.getElementById('approvedTableBody').innerHTML = '<tr><td colspan="10" class="db-empty">Onaylı ürünler yüklenemedi.</td></tr>';
+  }
+}
+
+function renderApprovedTable(files) {
+  const tbody = document.getElementById('approvedTableBody');
+  approvedState.pageIds = files.map(f => Number(f.id)).filter(Boolean);
+  if (!files.length) {
+    tbody.innerHTML = '<tr><td colspan="10" class="db-empty">Henüz onaylı ürün yok.</td></tr>';
+    updateApprovedSelectionUi();
+    return;
+  }
+  const fmtColor = { dwg: 'fmt-dwg', dxf: 'fmt-dxf', pdf: 'fmt-pdf' };
+  tbody.innerHTML = files.map(f => {
+    const fmt = (f.file_format || '').toLowerCase();
+    const size = (f.bbox_width && f.bbox_height)
+      ? `${f.bbox_width.toFixed(0)}×${f.bbox_height.toFixed(0)}`
+      : '—';
+    const approvedAt = f.approved_at
+      ? new Date(f.approved_at).toLocaleString('tr-TR')
+      : '—';
+    const checked = approvedState.selectedIds.has(Number(f.id)) ? 'checked' : '';
+    const catBadge = f.category_name
+      ? `<span style="background:${f.category_color||'#6366f1'}22;color:${f.category_color||'#6366f1'};border:0.5px solid ${f.category_color||'#6366f1'}55;font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;white-space:nowrap">${f.category_name}</span>`
+      : `<span style="color:var(--text3);font-size:11px">—</span>`;
+    const thumb = f.jpg_preview
+      ? `<img src="${f.jpg_preview}" style="width:44px;height:32px;object-fit:contain;border-radius:4px;border:0.5px solid var(--border);background:#0a0d14;cursor:pointer" onclick="event.stopPropagation();showDetailModal(${f.id})" title="Önizle">`
+      : `<div style="width:44px;height:32px;border-radius:4px;border:0.5px solid var(--border);background:#0a0d14;display:flex;align-items:center;justify-content:center"><span style="font-size:9px;color:var(--text3)">${fmt.toUpperCase()}</span></div>`;
+    return `<tr class="clickable-row" onclick="showDetailModal(${f.id})">
+      <td style="text-align:center" onclick="event.stopPropagation()"><input id="approvedSel_${f.id}" type="checkbox" ${checked} onchange="toggleApprovedSelect(${f.id}, this.checked)" style="accent-color:var(--blue);cursor:pointer"></td>
+      <td style="padding:4px 8px">${thumb}</td>
+      <td><div class="td-filename" title="${f.filepath}">${f.filename}</div></td>
+      <td><span class="td-format ${fmtColor[fmt]||''}">${fmt.toUpperCase()}</span></td>
+      <td>${catBadge}</td>
+      <td>${(f.entity_count||0).toLocaleString('tr')}</td>
+      <td>${f.layer_count||0}</td>
+      <td>${size}</td>
+      <td class="td-date">${approvedAt}</td>
+      <td style="display:flex;gap:6px;align-items:center" onclick="event.stopPropagation()">
+        <button class="del-btn" style="background:rgba(59,130,246,0.12);color:var(--blue);border-color:rgba(59,130,246,0.3)" onclick="downloadFile(${f.id},'${f.filename.replace(/'/g,"\\'")}')">↓</button>
+        <button class="del-btn" style="background:rgba(239,68,68,0.12);color:var(--red);border-color:rgba(239,68,68,0.3)" onclick="setSingleApprove(${f.id},false)">Kaldır</button>
+      </td>
+    </tr>`;
+  }).join('');
+  updateApprovedSelectionUi();
+}
+
+function renderApprovedPagination(total, page, perPage) {
+  const pages = Math.ceil(total / perPage);
+  const pg = document.getElementById('approvedPagination');
+  if (pages <= 1) { pg.style.display = 'none'; return; }
+  pg.style.display = 'flex';
+  document.getElementById('approvedPageInfo').textContent = `Sayfa ${page} / ${pages}`;
+  document.getElementById('approvedPrevBtn').disabled = page <= 1;
+  document.getElementById('approvedNextBtn').disabled = page >= pages;
+}
+
+function approvedChangePage(dir) {
+  const pages = Math.ceil(approvedState.total / approvedState.perPage);
+  approvedState.page = Math.max(1, Math.min(pages, approvedState.page + dir));
+  loadApprovedFiles();
+}
+
+async function unapproveSelectedFromApproved() {
+  const ids = Array.from(approvedState.selectedIds);
+  if (!ids.length) return;
+  try {
+    await setFilesApproval(ids, false);
+    ids.forEach(id => approvedState.selectedIds.delete(id));
+    ids.forEach(id => dbState.selectedIds.delete(id));
+    updateApprovedSelectionUi();
+    updateDbApprovalSelectionUi();
+    await Promise.all([loadApprovedFiles(), loadDbFiles()]);
+  } catch (err) {
+    alert(err.message || 'Onay kaldırma işlemi başarısız.');
+  }
+}
+
+async function setSingleApprove(fileId, approved) {
+  try {
+    await setFilesApproval([fileId], approved);
+    approvedState.selectedIds.delete(Number(fileId));
+    dbState.selectedIds.delete(Number(fileId));
+    updateApprovedSelectionUi();
+    updateDbApprovalSelectionUi();
+    await Promise.all([loadApprovedFiles(), loadDbFiles()]);
+  } catch (err) {
+    alert(err.message || 'İşlem başarısız.');
+  }
+}
+
 async function deleteFile(id, name) {
   if (!confirm(`"${name}" silinsin mi?`)) return;
   try {
     const r = await fetch(`${API}/files/${id}`, { method: 'DELETE', headers: authH() });
     if (r.status === 401) { logout(); return; }
     if (!r.ok) throw new Error();
+    dbState.selectedIds.delete(Number(id));
+    approvedState.selectedIds.delete(Number(id));
+    updateDbApprovalSelectionUi();
+    updateApprovedSelectionUi();
     loadStats();
     loadDbFiles();
+    loadApprovedFiles();
   } catch {
     alert('Silme başarısız.');
   }
@@ -3269,7 +3591,13 @@ function fmtDay(iso) {
 }
 
 // Init
-window.addEventListener('load', () => { loadStats(); loadCategoriesIntoSelect(); loadHistory(); });
+window.addEventListener('load', () => {
+  loadStats();
+  loadCategoriesIntoSelect();
+  loadHistory();
+  updateDbApprovalSelectionUi();
+  updateApprovedSelectionUi();
+});
 setInterval(loadStats, 30000);
 </script>
 </body>

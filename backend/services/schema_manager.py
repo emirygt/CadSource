@@ -46,7 +46,9 @@ CREATE TABLE IF NOT EXISTS {schema}.cad_files (
     svg_preview     TEXT,
     jpg_preview     TEXT,
     file_data       BYTEA,
-    category_id     INTEGER REFERENCES {schema}.categories(id) ON DELETE SET NULL
+    category_id     INTEGER REFERENCES {schema}.categories(id) ON DELETE SET NULL,
+    approved        BOOLEAN DEFAULT FALSE,
+    approved_at     TIMESTAMP
 );
 
 CREATE INDEX IF NOT EXISTS {schema}_vector_idx

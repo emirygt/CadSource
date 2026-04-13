@@ -2,7 +2,7 @@
 db.py — PostgreSQL + pgvector bağlantısı ve şema
 """
 import os
-from sqlalchemy import create_engine, text, Column, Integer, String, Float, JSON, DateTime
+from sqlalchemy import create_engine, text, Column, Integer, String, Float, JSON, DateTime, Boolean
 from sqlalchemy.orm import declarative_base, sessionmaker
 from pgvector.sqlalchemy import Vector
 from dotenv import load_dotenv
@@ -38,6 +38,10 @@ class CadFile(Base):
 
     # --- Önizleme ---
     svg_preview    = Column(String, nullable=True)  # küçültülmüş SVG string
+
+    # --- İş akışı ---
+    approved      = Column(Boolean, default=False)
+    approved_at   = Column(DateTime, nullable=True)
 
     # --- Özellik vektörleri (pgvector) ---
     # 128 boyutlu birleşik özellik vektörü
@@ -90,6 +94,16 @@ def init_db():
                 ALTER TABLE cad_files ADD COLUMN IF NOT EXISTS file_data BYTEA;
             EXCEPTION WHEN others THEN NULL; END $$;
         """))
+        conn.execute(text("""
+            DO $$ BEGIN
+                ALTER TABLE cad_files ADD COLUMN IF NOT EXISTS approved BOOLEAN DEFAULT FALSE;
+            EXCEPTION WHEN others THEN NULL; END $$;
+        """))
+        conn.execute(text("""
+            DO $$ BEGIN
+                ALTER TABLE cad_files ADD COLUMN IF NOT EXISTS approved_at TIMESTAMP;
+            EXCEPTION WHEN others THEN NULL; END $$;
+        """))
         conn.commit()
     # Mevcut tenant schema'larına search_history tablosunu ekle
     with engine.connect() as conn:
@@ -123,6 +137,16 @@ def init_db():
             conn.execute(text(f"""
                 DO $$ BEGIN
                     ALTER TABLE {schema}.cad_files ADD COLUMN IF NOT EXISTS file_data BYTEA;
+                EXCEPTION WHEN others THEN NULL; END $$;
+            """))
+            conn.execute(text(f"""
+                DO $$ BEGIN
+                    ALTER TABLE {schema}.cad_files ADD COLUMN IF NOT EXISTS approved BOOLEAN DEFAULT FALSE;
+                EXCEPTION WHEN others THEN NULL; END $$;
+            """))
+            conn.execute(text(f"""
+                DO $$ BEGIN
+                    ALTER TABLE {schema}.cad_files ADD COLUMN IF NOT EXISTS approved_at TIMESTAMP;
                 EXCEPTION WHEN others THEN NULL; END $$;
             """))
             conn.execute(text(f"""
