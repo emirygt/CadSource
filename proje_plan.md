@@ -1,5 +1,5 @@
 # CAD-Search — Proje Planı
-> Son güncelleme: 2026-04-13
+> Son güncelleme: 2026-04-14
 
 ---
 
@@ -11,7 +11,7 @@
 
 | # | Görev | Durum | Not |
 |---|-------|-------|-----|
-| 1.1 | PostgreSQL + pgvector Docker container | ✅ | `cad_postgres`, port 5433, şifre `password` |
+| 1.1 | PostgreSQL + pgvector | ✅ | PostgreSQL servis |
 | 1.2 | FastAPI backend (uvicorn) | ✅ | `backend/main.py`, port 8000 |
 | 1.3 | Multi-tenant schema sistemi | ✅ | `services/schema_manager.py` — register → CREATE SCHEMA |
 | 1.4 | JWT auth (register + login) | ✅ | `routes/auth.py`, JWT payload'da `schema_name` |
@@ -30,7 +30,7 @@
 **Faza 1'de düzeltilen buglar:**
 - `routes/index.py`: `:param::json` → `CAST(:param AS jsonb)` (SQLAlchemy çakışması)
 - Tüm frontend path'leri absolute → relative (`/login.html` → `login.html`)
-- PostgreSQL container port 5433, şifre `password` (docker-compose.yml varsayılanından farklı)
+- PostgreSQL bağlantı ayarları ortam bazlı yönetildi
 
 **Faza 1'de yapılmayan (ertelendi):**
 - Nginx + SSL kurulumu → Faza 1 sonunda (VPS deploy henüz yapılmadı)
@@ -95,7 +95,7 @@
 | # | Görev | Durum |
 |---|-------|-------|
 | D.1 | VPS temin + SSH erişimi | ⬜ |
-| D.2 | Docker kurulumu + `cad_postgres` container | ⬜ |
+| D.2 | PostgreSQL servis kurulumu (Docker'sız) | ⬜ |
 | D.3 | Backend venv + PM2 ecosystem config | ⬜ |
 | D.4 | Nginx config + SSL (Let's Encrypt) | ⬜ |
 | D.5 | Domain bağlama | ⬜ |
@@ -125,6 +125,7 @@
 - `/files/{id}/download` ile orijinal dosya indirme
 - Sonuç ekranında "Aranan Dosya" görsel kartı (`query_preview`)
 - Search skorunda görsel karşılaştırma + geometri guard ile daha güvenli sıralama
+- NO_DOCKER operasyon politikası dökümana işlendi (AI ajanlar Docker önermez/kurmaz)
 
 ---
 

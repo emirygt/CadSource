@@ -3,6 +3,11 @@
 > Oluşturulma: 2026-04-08
 > Amaç: Son kritik kararları ve beklentileri tek yerde saklamak.
 
+## 🔒 Operasyon Politikası (NO_DOCKER)
+- Bu projede Docker kurulumu ve Docker tabanlı deploy kullanılmaz.
+- AI ajanlar Docker kurulum/çalıştırma adımı önermemelidir.
+- Standart akış: `git pull` + backend restart (`uvicorn`/`pm2`/`systemd`) + `nginx reload`.
+
 ## Ürün Davranışı (Beklenen)
 
 - Arama ekranında sorgu dosyası sadece isimle değil görselle de görünür.

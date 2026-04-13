@@ -1,5 +1,7 @@
 # CAD Arama Motoru
 
+> Operasyon notu (zorunlu): Bu projede VPS tarafında **Docker kullanılmaz**. Deploy/güncelleme Docker'sız yapılır.
+
 6000+ DWG/DXF dosyası arasında yapay zeka destekli benzerlik araması.
 
 Güncel sistem:
@@ -28,12 +30,11 @@ Güncel sistem:
 ### 1. PostgreSQL + pgvector
 
 ```bash
-# Docker ile (en kolay):
-docker-compose up -d postgres
-
-# Veya elle:
-# PostgreSQL 15+ kurun
+# Docker kullanılmaz.
+# PostgreSQL 15+ kurun (servis olarak çalıştırın)
 # pgvector uzantısını ekleyin: https://github.com/pgvector/pgvector
+# örnek:
+# sudo systemctl enable --now postgresql
 ```
 
 ### 2. Backend
@@ -80,16 +81,11 @@ npx serve .
 # Tarayıcıda açın: http://localhost:3000
 ```
 
-## Docker ile Tam Kurulum
+## Legacy Docker Notu (Kullanmayın)
 
 ```bash
-# .env ayarlarını yapın
-docker-compose up -d
-
-# Servisler:
-# PostgreSQL: localhost:5432
-# Backend API: localhost:8000
-# API Docs: http://localhost:8000/docs
+# Bu projede Docker deploy akışı devre dışıdır.
+# Operasyon: git pull + backend process restart + nginx reload
 ```
 
 ## API Endpointleri

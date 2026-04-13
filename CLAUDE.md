@@ -1,5 +1,10 @@
 # CAD-Search Project Memory
 
+## 🔒 NO_DOCKER Politikası (Zorunlu)
+- Bu projede Docker kurulumu/çalıştırması **yasak**.
+- AI ajanlar `docker`/`docker compose` kurulum veya deploy akışı önermemeli.
+- Operasyon akışı: `git pull` + backend process restart (`uvicorn`/`pm2`/`systemd`) + `nginx reload`.
+
 ---
 ## ⚡ Aktif Görev
 Faza 3.1 ✅ TAMAMLANDI — CLIP embedding + hibrit arama bitti.
@@ -17,7 +22,7 @@ AI destekli CAD dosyası benzerlik arama motoru. DWG/DXF dosyalarını 128 boyut
 ## Mimari Kararlar (Kesin)
 - **Model:** SaaS, müşteri hiçbir şey kurmaz
 - **İzolasyon:** Her müşteri = kendi PostgreSQL schema'sı (aynı DB instance)
-- **DB:** VPS'te Docker container içinde PostgreSQL 16 + pgvector
+- **DB:** PostgreSQL 16 + pgvector (Docker'sız servis)
 - **Backend:** FastAPI + Uvicorn → PM2 ile process yönetimi (Docker'sız)
 - **Frontend:** Şimdilik Vanilla JS, ilerisi React
 - **Auth:** JWT, payload'da `schema_name` claim'i var
@@ -72,6 +77,7 @@ Her request:
 - `proje_plan.md` — Görev takibi (her işlem sonrası güncelle)
 
 ## 🚫 Yasaklar
+- Docker kurmak/çalıştırmak/öneri vermek (`docker`, `docker compose`, kurulum scriptleri)
 - `features.py` — DOKUNMA, geometric vektör sabittir
 - `schema_manager.py` → TENANT_SCHEMA_SQL'i migration loop yazmadan değiştirme
 - Mevcut DB şemasını migration yazmadan bozma
@@ -88,7 +94,7 @@ Backend API: http://localhost:8000 | Frontend: http://localhost:8080/login.html
 
 ## Stack
 Python 3.9, FastAPI, SQLAlchemy 2.0, pgvector (HNSW m=16 ef=64), ezdxf, CLIP (transformers)
-PostgreSQL 16 | Docker (sadece DB) | PM2 + Nginx
+PostgreSQL 16 (service) | PM2 + Nginx
 
 ## Route Kuralı
 Named route'lar wildcard'dan önce tanımlanmalı:

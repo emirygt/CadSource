@@ -1,6 +1,13 @@
 #!/bin/bash
 set -e
 
+if [ "${ALLOW_DOCKER:-0}" != "1" ]; then
+    echo "Bu script legacy Docker deploy icindir ve varsayilan olarak kapali."
+    echo "Proje politikasi: NO_DOCKER (Docker kurma/calistirma yok)."
+    echo "Docker'siz deploy akislarini kullanin."
+    exit 1
+fi
+
 echo "========================================"
 echo "  CAD-Search VPS Deploy Script"
 echo "========================================"
