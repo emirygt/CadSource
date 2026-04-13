@@ -34,7 +34,7 @@ if [ "$OS" = "ubuntu" ] || [ "$OS" = "debian" ]; then
     fi
 elif [ "$OS" = "amzn" ]; then
     sudo dnf update -y
-    sudo dnf install -y git curl docker
+    sudo dnf install -y git docker
     sudo systemctl enable docker
     sudo systemctl start docker
     if ! docker compose version &> /dev/null; then
