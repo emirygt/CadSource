@@ -178,6 +178,12 @@
     .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
     .btn-secondary { padding: 8px 18px; background: transparent; color: var(--text2); border: 0.5px solid var(--border2); border-radius: var(--radius); font-size: 13px; cursor: pointer; }
     .btn-secondary:hover { border-color: var(--text3); }
+    .db-upload-status { margin-top: 10px; display: none; align-items: center; gap: 8px; font-size: 12px; padding: 8px 10px; border-radius: 8px; border: 0.5px solid var(--border2); background: var(--bg3); color: var(--text2); }
+    .db-upload-status.loading { border-color: rgba(59,130,246,0.35); color: #93c5fd; }
+    .db-upload-status.success { border-color: rgba(34,197,94,0.35); color: #86efac; }
+    .db-upload-status.warn { border-color: rgba(245,158,11,0.4); color: #fcd34d; }
+    .db-upload-status.error { border-color: rgba(239,68,68,0.4); color: #fca5a5; }
+    .db-mini-spinner { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.25); border-top-color: currentColor; border-radius: 50%; animation: spin 0.8s linear infinite; flex-shrink: 0; }
 
     /* Dosya listesi tablosu */
     .db-files-card { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
@@ -609,6 +615,7 @@
         <button class="btn-primary" id="dbUploadBtn" onclick="startDbUpload()" disabled>Yükle ve İndeksle</button>
         <button class="btn-secondary" id="dbClearBtn" onclick="clearDbSelection()" style="display:none">Temizle</button>
       </div>
+      <div id="dbUploadStatus" class="db-upload-status"></div>
     </div>
 
     <!-- Dosya listesi -->
@@ -1130,7 +1137,7 @@ function drawPreview(canvas, result) {
 // ══════════════════════════════════════════════════════════════════════════════
 //  DB SAYFASI
 // ══════════════════════════════════════════════════════════════════════════════
-const dbState = { files: [], isZip: false, page: 1, perPage: 20, total: 0, search: '', searchTimer: null };
+const dbState = { files: [], isZip: false, page: 1, perPage: 20, total: 0, search: '', searchTimer: null, uploading: false };
 
 // Drag & drop
 function dbDragOver(e) { e.preventDefault(); document.getElementById('dbDrop').classList.add('drag'); }
@@ -1177,6 +1184,7 @@ function dbFilesSelected(e) {
   document.getElementById('dbOkCount').textContent = '0';
   document.getElementById('dbFailCount').textContent = '0';
   document.getElementById('dbErrorList').innerHTML = '';
+  setDbUploadStatus();
 }
 
 function clearDbSelection() {
@@ -1187,14 +1195,46 @@ function clearDbSelection() {
   document.getElementById('dbClearBtn').style.display = 'none';
   document.getElementById('dbProgress').style.display = 'none';
   document.getElementById('dbFileInput').value = '';
+  setDbUploadStatus();
+}
+
+function setDbUploadStatus(type = '', message = '') {
+  const el = document.getElementById('dbUploadStatus');
+  if (!el) return;
+  if (!type || !message) {
+    el.style.display = 'none';
+    el.className = 'db-upload-status';
+    el.textContent = '';
+    return;
+  }
+  el.className = `db-upload-status ${type}`;
+  el.style.display = 'flex';
+  el.innerHTML = '';
+  if (type === 'loading') {
+    const spinner = document.createElement('span');
+    spinner.className = 'db-mini-spinner';
+    el.appendChild(spinner);
+  }
+  const text = document.createElement('span');
+  text.textContent = message;
+  el.appendChild(text);
 }
 
 async function startDbUpload() {
-  if (!dbState.files.length) return;
+  if (!dbState.files.length || dbState.uploading) return;
+  dbState.uploading = true;
   const btn = document.getElementById('dbUploadBtn');
+  const clearBtn = document.getElementById('dbClearBtn');
+  const input = document.getElementById('dbFileInput');
+  const drop = document.getElementById('dbDrop');
   btn.disabled = true;
+  clearBtn.disabled = true;
+  input.disabled = true;
+  drop.style.pointerEvents = 'none';
+  drop.style.opacity = '0.7';
   document.getElementById('dbProgress').style.display = '';
   document.getElementById('dbErrorList').innerHTML = '';
+  setDbUploadStatus('loading', 'Dosyalar yükleniyor ve indeksleniyor...');
 
   const catId = document.getElementById('dbCategorySelect').value;
   const skipClip = document.getElementById('dbSkipClip').checked;
@@ -1204,71 +1244,88 @@ async function startDbUpload() {
   const catParam = '?' + qp.toString();
   let ok = 0, fail = 0;
 
-  if (dbState.isZip) {
-    // ZIP modu: her ZIP'i ayrı ayrı gönder
-    const total = dbState.files.length;
-    for (let i = 0; i < total; i++) {
-      const f = dbState.files[i];
-      document.getElementById('dbProgressLabel').textContent = `ZIP işleniyor: ${f.name} (${i+1}/${total})`;
-      document.getElementById('dbProgressBar').style.width = Math.round((i / total) * 100) + '%';
-      const fd = new FormData();
-      fd.append('file', f);
-      try {
-        const r = await fetch(`${API}/index/bulk-zip${catParam}`, { method: 'POST', headers: authH(), body: fd });
-        if (r.status === 401) { logout(); return; }
-        const d = await r.json();
-        ok += d.success || 0;
-        fail += d.failed || 0;
-        (d.errors || []).forEach(err => {
-          const el = document.createElement('div');
-          el.className = 'db-error-item';
-          el.textContent = `${err.filename}: ${err.reason}`;
-          document.getElementById('dbErrorList').appendChild(el);
-        });
-      } catch {
-        fail++;
+  try {
+    if (dbState.isZip) {
+      // ZIP modu: her ZIP'i ayrı ayrı gönder
+      const total = dbState.files.length;
+      for (let i = 0; i < total; i++) {
+        const f = dbState.files[i];
+        document.getElementById('dbProgressLabel').textContent = `ZIP işleniyor: ${f.name} (${i+1}/${total})`;
+        document.getElementById('dbProgressBar').style.width = Math.round((i / total) * 100) + '%';
+        const fd = new FormData();
+        fd.append('file', f);
+        try {
+          const r = await fetch(`${API}/index/bulk-zip${catParam}`, { method: 'POST', headers: authH(), body: fd });
+          if (r.status === 401) { logout(); return; }
+          const d = await r.json();
+          ok += d.success || 0;
+          fail += d.failed || 0;
+          (d.errors || []).forEach(err => {
+            const el = document.createElement('div');
+            el.className = 'db-error-item';
+            el.textContent = `${err.filename}: ${err.reason}`;
+            document.getElementById('dbErrorList').appendChild(el);
+          });
+        } catch {
+          fail++;
+        }
+        document.getElementById('dbOkCount').textContent = ok;
+        document.getElementById('dbFailCount').textContent = fail;
       }
-      document.getElementById('dbOkCount').textContent = ok;
-      document.getElementById('dbFailCount').textContent = fail;
-    }
-    document.getElementById('dbProgressBar').style.width = '100%';
-  } else {
-    // Normal mod: 10'lu batch
-    const BATCH = 10;
-    const total = dbState.files.length;
-    let done = 0;
-    for (let i = 0; i < total; i += BATCH) {
-      const batch = dbState.files.slice(i, i + BATCH);
-      const fd = new FormData();
-      batch.forEach(f => fd.append('files', f));
-      try {
-        const r = await fetch(`${API}/index/bulk${catParam}`, { method: 'POST', headers: authH(), body: fd });
-        if (r.status === 401) { logout(); return; }
-        const d = await r.json();
-        ok += d.success || 0;
-        fail += d.failed || 0;
-        done += batch.length;
-        (d.errors || []).forEach(err => {
-          const el = document.createElement('div');
-          el.className = 'db-error-item';
-          el.textContent = `${err.filename}: ${err.reason}`;
-          document.getElementById('dbErrorList').appendChild(el);
-        });
-      } catch {
-        fail += batch.length; done += batch.length;
+      document.getElementById('dbProgressBar').style.width = '100%';
+    } else {
+      // Normal mod: 10'lu batch
+      const BATCH = 10;
+      const total = dbState.files.length;
+      let done = 0;
+      for (let i = 0; i < total; i += BATCH) {
+        const batch = dbState.files.slice(i, i + BATCH);
+        const fd = new FormData();
+        batch.forEach(f => fd.append('files', f));
+        try {
+          const r = await fetch(`${API}/index/bulk${catParam}`, { method: 'POST', headers: authH(), body: fd });
+          if (r.status === 401) { logout(); return; }
+          const d = await r.json();
+          ok += d.success || 0;
+          fail += d.failed || 0;
+          done += batch.length;
+          (d.errors || []).forEach(err => {
+            const el = document.createElement('div');
+            el.className = 'db-error-item';
+            el.textContent = `${err.filename}: ${err.reason}`;
+            document.getElementById('dbErrorList').appendChild(el);
+          });
+        } catch {
+          fail += batch.length; done += batch.length;
+        }
+        const pct = Math.round(done / total * 100);
+        document.getElementById('dbProgressBar').style.width = pct + '%';
+        document.getElementById('dbProgressLabel').textContent = `${done} / ${total} dosya işlendi`;
+        document.getElementById('dbOkCount').textContent = ok;
+        document.getElementById('dbFailCount').textContent = fail;
       }
-      const pct = Math.round(done / total * 100);
-      document.getElementById('dbProgressBar').style.width = pct + '%';
-      document.getElementById('dbProgressLabel').textContent = `${done} / ${total} dosya işlendi`;
-      document.getElementById('dbOkCount').textContent = ok;
-      document.getElementById('dbFailCount').textContent = fail;
     }
-  }
 
-  document.getElementById('dbProgressLabel').textContent = `Tamamlandı — ${ok} başarılı, ${fail} hatalı`;
-  btn.disabled = false;
-  loadStats();
-  loadDbFiles();
+    document.getElementById('dbProgressLabel').textContent = `Tamamlandı — ${ok} başarılı, ${fail} hatalı`;
+    if (fail === 0) {
+      setDbUploadStatus('success', `Yükleme tamamlandı. ${ok} dosya başarıyla indekslendi.`);
+    } else if (ok > 0) {
+      setDbUploadStatus('warn', `Yükleme tamamlandı. ${ok} başarılı, ${fail} hatalı.`);
+    } else {
+      setDbUploadStatus('error', 'Yükleme tamamlanamadı. Dosyalar işlenemedi.');
+    }
+    loadStats();
+    loadDbFiles();
+  } catch {
+    setDbUploadStatus('error', 'Yükleme sırasında beklenmeyen bir hata oluştu.');
+  } finally {
+    dbState.uploading = false;
+    btn.disabled = dbState.files.length === 0;
+    clearBtn.disabled = false;
+    input.disabled = false;
+    drop.style.pointerEvents = '';
+    drop.style.opacity = '';
+  }
 }
 
 // Dosya listesi
