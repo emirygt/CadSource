@@ -346,6 +346,127 @@ def _simplify_closed(points: np.ndarray, epsilon: float) -> np.ndarray:
     return simplified
 
 
+def _ring_perimeter(points_closed: np.ndarray) -> float:
+    if points_closed.shape[0] < 2:
+        return 0.0
+    diffs = np.diff(points_closed, axis=0)
+    return float(np.sum(np.hypot(diffs[:, 0], diffs[:, 1])))
+
+
+def _prune_collinear_closed(
+    points_closed: np.ndarray,
+    dist_tol: float,
+    curvature_tol_deg: float = 9.0,
+    max_passes: int = 3,
+) -> np.ndarray:
+    """Kapali poligondaki neredeyse dogrusal ara noktalarni temizle.
+    Keskin koseleri korurken 'nokta nokta' etkisini azaltir."""
+    if points_closed.shape[0] < 6:
+        return points_closed
+
+    ring = points_closed[:-1]
+    if ring.shape[0] < 4:
+        return points_closed
+
+    for _ in range(max_passes):
+        n = ring.shape[0]
+        keep = np.ones(n, dtype=bool)
+        removed = 0
+
+        for i in range(n):
+            a = ring[(i - 1) % n]
+            b = ring[i]
+            c = ring[(i + 1) % n]
+
+            d = _point_line_distance(b, a, c)
+            v1 = a - b
+            v2 = c - b
+            n1 = float(np.hypot(v1[0], v1[1]))
+            n2 = float(np.hypot(v2[0], v2[1]))
+            if n1 <= 1e-9 or n2 <= 1e-9:
+                keep[i] = False
+                removed += 1
+                continue
+
+            cosang = float(np.dot(v1, v2) / (n1 * n2))
+            cosang = max(-1.0, min(1.0, cosang))
+            ang = math.degrees(math.acos(cosang))  # 180'e yakin ise dogrusal
+            curvature = abs(180.0 - ang)
+
+            if d <= dist_tol and curvature <= curvature_tol_deg:
+                keep[i] = False
+                removed += 1
+
+        remain = int(np.sum(keep))
+        if removed == 0 or remain < 3:
+            break
+        ring = ring[keep]
+
+    if ring.shape[0] < 3:
+        return points_closed
+    return np.vstack([ring, ring[0:1]])
+
+
+def _adaptive_simplify_closed(points_closed: np.ndarray, base_eps: float, target_points: int) -> np.ndarray:
+    if points_closed.shape[0] < 6:
+        return points_closed
+    if (points_closed.shape[0] - 1) <= target_points:
+        return points_closed
+
+    low = max(base_eps, 0.01)
+    high = max(low * 8.0, low + 8.0)
+    best = None
+
+    for _ in range(14):
+        mid = (low + high) * 0.5
+        cand = _simplify_closed(points_closed, mid)
+        cnt = max(0, cand.shape[0] - 1)
+        if 12 <= cnt <= target_points:
+            best = cand
+            high = mid
+        else:
+            low = mid
+
+    if best is not None:
+        return best
+    return _simplify_closed(points_closed, high)
+
+
+def _optimize_net_ring(points_closed: np.ndarray, simplify_px: float) -> np.ndarray:
+    """Net DXF icin agresif ama kontrollu kontur optimizasyonu."""
+    if points_closed.shape[0] < 6:
+        return points_closed
+
+    base = max(float(simplify_px), 2.2)
+    out = _simplify_closed(points_closed, base)
+    out = _prune_collinear_closed(
+        out,
+        dist_tol=max(0.8, base * 0.38),
+        curvature_tol_deg=8.0,
+        max_passes=3,
+    )
+
+    perim = _ring_perimeter(out)
+    target_points = int(max(56, min(1600, perim / max(base * 1.55, 1.4))))
+    out = _adaptive_simplify_closed(out, base_eps=max(1.2, base * 0.92), target_points=target_points)
+    out = _prune_collinear_closed(
+        out,
+        dist_tol=max(1.0, base * 0.5),
+        curvature_tol_deg=10.0,
+        max_passes=2,
+    )
+
+    # Son emniyet: ekstrem yogun konturlari yumusak alt-ornekle.
+    if out.shape[0] > 2200:
+        step = int(math.ceil(out.shape[0] / 2200))
+        out = out[::step]
+        if out.shape[0] >= 2 and not np.allclose(out[0], out[-1]):
+            out = np.vstack([out, out[0:1]])
+    if out.shape[0] < 4:
+        return points_closed
+    return out
+
+
 def _extract_contours(
     mask: np.ndarray,
     min_area_px: int,
@@ -863,14 +984,46 @@ def _build_dxf_bytes(
     calib_ref_line_px: Optional[Tuple[Tuple[float, float], Tuple[float, float]]] = None,
     detect_arcs: bool = False,
     arc_tolerance: float = 0.06,
+    force_continuous_linetype: bool = False,
 ) -> bytes:
     doc = ezdxf.new("R2010")
     doc.header["$INSUNITS"] = UNIT_CODES[unit]
+    doc.header["$LTSCALE"] = 1.0
     _create_layers(doc)
     msp = doc.modelspace()
     isotropic_scale = abs(scale_x - scale_y) <= (max(abs(scale_x), abs(scale_y), 1e-9) * 1e-6)
 
+    def _entity_attrs(layer: str) -> Dict[str, object]:
+        attrs: Dict[str, object] = {"layer": layer}
+        if force_continuous_linetype:
+            attrs["linetype"] = "CONTINUOUS"
+        return attrs
+
+    # İçi siyah boyalı (Solid Hatch) alanı oluşturalım
+    try:
+        hatch = msp.add_hatch(color=250)
+        hatch.dxf.hatch_style = 0  # 0: Normal island detection (dışlar dolu, delikler boş)
+    except Exception:
+        hatch = None
+
     for shape in shapes:
+        # Hatch için shape polygonunu ekleyelim (is_circle/is_ellipse olsa bile polyline olarak hatch'e veriyoruz)
+        ring_for_hatch = shape.points[:-1] if np.allclose(shape.points[0], shape.points[-1]) else shape.points
+        if ring_for_hatch.shape[0] >= 3 and hatch is not None:
+            hatch_poly = [
+                _to_cad_xy(
+                    x=float(px), y=float(py),
+                    image_w=image_w, image_h=image_h,
+                    scale_x=scale_x, scale_y=scale_y,
+                    origin_mode=origin_mode, flip_x=flip_x, flip_y=flip_y,
+                )
+                for px, py in ring_for_hatch
+            ]
+            try:
+                hatch.paths.add_polyline_path(hatch_poly, is_closed=True)
+            except Exception:
+                pass
+
         if shape.is_circle and shape.circle_center_px and shape.circle_radius_px and isotropic_scale:
             cx, cy = _to_cad_xy(
                 x=shape.circle_center_px[0],
@@ -885,7 +1038,7 @@ def _build_dxf_bytes(
             )
             radius = abs(float(shape.circle_radius_px) * scale_x)
             if radius > 0:
-                msp.add_circle((cx, cy), radius, dxfattribs={"layer": shape.layer})
+                msp.add_circle((cx, cy), radius, dxfattribs=_entity_attrs(shape.layer))
             continue
 
         if (
@@ -921,7 +1074,7 @@ def _build_dxf_bytes(
                     (cx, cy, 0.0),
                     major_axis=major_axis,
                     ratio=min(ratio, 1.0),
-                    dxfattribs={"layer": shape.layer},
+                    dxfattribs=_entity_attrs(shape.layer),
                 )
             continue
 
@@ -944,7 +1097,7 @@ def _build_dxf_bytes(
                 )
                 for px, py in ring
             ]
-            msp.add_lwpolyline(poly, format="xy", close=True, dxfattribs={"layer": shape.layer})
+            msp.add_lwpolyline(poly, format="xy", close=True, dxfattribs=_entity_attrs(shape.layer))
         else:
             # Arc ve polyline segmentlerini karisik yaz.
             arc_indices = set()
@@ -964,10 +1117,10 @@ def _build_dxf_bytes(
                     ))
                 else:
                     if len(poly_buf) >= 2:
-                        msp.add_lwpolyline(poly_buf, format="xy", dxfattribs={"layer": shape.layer})
+                        msp.add_lwpolyline(poly_buf, format="xy", dxfattribs=_entity_attrs(shape.layer))
                     poly_buf = []
             if len(poly_buf) >= 2:
-                msp.add_lwpolyline(poly_buf, format="xy", dxfattribs={"layer": shape.layer})
+                msp.add_lwpolyline(poly_buf, format="xy", dxfattribs=_entity_attrs(shape.layer))
 
             # Arc'lari yaz
             scale_avg = abs(scale_x)
@@ -997,7 +1150,7 @@ def _build_dxf_bytes(
                         (cad_cx, cad_cy), r,
                         start_angle=sa % 360.0,
                         end_angle=ea % 360.0,
-                        dxfattribs={"layer": shape.layer},
+                        dxfattribs=_entity_attrs(shape.layer),
                     )
 
     if calib_ref_line_px is not None:
@@ -1241,11 +1394,11 @@ def _build_preview_overlay(
         canvas = image.convert("RGB").copy()
 
     draw = ImageDraw.Draw(canvas, mode="RGBA")
-    line_w = max(2, int(round(2 * max(scale, 0.5))))
+    line_w = max(6, int(round(6 * max(scale, 0.5))))
     layer_colors = {
-        "OUTER": (34, 197, 94, 225),
-        "INNER": (239, 68, 68, 220),
-        "HOLES": (6, 182, 212, 230),
+        "OUTER": (34, 197, 94, 255),
+        "INNER": (239, 68, 68, 255),
+        "HOLES": (6, 182, 212, 255),
     }
 
     for shape in shapes:
@@ -1381,12 +1534,12 @@ def _build_dimension_overlay(
     canvas = Image.new("RGB", (nw + pad * 2, nh + pad * 2), color=(5, 8, 16))
     canvas.paste(base, (pad, pad))
     draw = ImageDraw.Draw(canvas, mode="RGBA")
-    line_w = max(2, int(round(2 * max(scale, 0.55))))
+    line_w = max(6, int(round(6 * max(scale, 0.55))))
 
     layer_colors = {
-        "OUTER": (34, 197, 94, 210),
-        "INNER": (239, 68, 68, 210),
-        "HOLES": (6, 182, 212, 220),
+        "OUTER": (34, 197, 94, 255),
+        "INNER": (239, 68, 68, 255),
+        "HOLES": (6, 182, 212, 255),
     }
 
     for shape in shapes:
@@ -1551,13 +1704,13 @@ async def vectorize_to_dxf(
 
     rgba = image.convert("RGBA")
 
-    def _cpu_bound_processing() -> Tuple[List[ContourShape], np.ndarray, np.ndarray]:
+    def _cpu_bound_processing() -> Tuple[List[ContourShape], List[ContourShape], np.ndarray, np.ndarray]:
         gray = np.array(rgba.convert("L"), dtype=np.uint8)
         alpha_ch = np.array(rgba.getchannel("A"), dtype=np.uint8)
         m = _pick_foreground_mask(gray, alpha_ch, blur_sigma=float(blur_sigma))
         m = _clean_mask(m)
         if not np.any(m):
-            return [], gray, alpha_ch
+            return [], [], gray, alpha_ch
         cpts = _extract_contours(
             m, int(min_area_px), float(simplify_px), min_area_pct=float(min_area_pct),
         )
@@ -1566,10 +1719,35 @@ async def vectorize_to_dxf(
         ]
         _assign_hierarchy_and_layers(sh)
         _classify_circles(sh, detect_circles=bool(detect_circles), circle_tolerance=float(circle_tolerance))
-        return sh, gray, alpha_ch
+
+        m_net = m.copy()
+        try:
+            # Ultra netlestirme: once yumusak blur, sonra mode filter ile capak temizligi.
+            pil_net = Image.fromarray(m_net.astype(np.uint8) * 255, mode="L")
+            pil_net = pil_net.filter(ImageFilter.GaussianBlur(radius=1.1))
+            pil_net = pil_net.filter(ImageFilter.ModeFilter(size=13))
+            m_net = np.array(pil_net, dtype=np.uint8) > 127
+        except Exception:
+            pass
+
+        # Net DXF tarafında "nokta nokta" görünümü azaltmak için,
+        # net kontur sadeleştirmeyi daha agresif bir tabanla uygula.
+        net_simplify_px = max(float(simplify_px), 3.0)
+        cpts_net = _extract_contours(
+            m_net, int(min_area_px), net_simplify_px, min_area_pct=float(min_area_pct),
+        )
+        cpts_net = [_optimize_net_ring(pts, net_simplify_px) for pts in cpts_net]
+        cpts_net = [pts for pts in cpts_net if pts.shape[0] >= 4]
+        sh_net: List[ContourShape] = [
+            ContourShape(points=pts, signed_area_px=_polygon_area_signed(pts)) for pts in cpts_net
+        ]
+        _assign_hierarchy_and_layers(sh_net)
+        _classify_circles(sh_net, detect_circles=True, circle_tolerance=max(float(circle_tolerance), 0.15))
+
+        return sh, sh_net, gray, alpha_ch
 
     loop = asyncio.get_event_loop()
-    shapes, gray, alpha = await loop.run_in_executor(None, _cpu_bound_processing)
+    shapes, shapes_net, gray, alpha = await loop.run_in_executor(None, _cpu_bound_processing)
 
     if not shapes:
         raise HTTPException(status_code=422, detail="Kontur cikarilacak foreground bulunamadi veya kontur cikarilamadi")
@@ -1667,7 +1845,7 @@ async def vectorize_to_dxf(
             "effective_scale": round((scale_x + scale_y) * 0.5, 12),
         }
 
-    def _cpu_bound_output() -> Tuple[str, Tuple[str, Optional[Dict[str, float]]], bytes, Optional[str]]:
+    def _cpu_bound_output() -> Tuple[str, Tuple[str, Optional[Dict[str, float]]], bytes, Optional[str], str, bytes]:
         po = _build_preview_overlay(rgba, shapes, calib_points_px=calib_line_px)
         pd = _build_dimension_overlay(
             rgba, shapes,
@@ -1684,6 +1862,19 @@ async def vectorize_to_dxf(
             detect_arcs=bool(detect_arcs),
             arc_tolerance=float(arc_tolerance),
         )
+        po_net = _build_preview_overlay(rgba, shapes_net, calib_points_px=calib_line_px)
+        db_net = _build_dxf_bytes(
+            shapes=shapes_net,
+            image_w=rgba.width, image_h=rgba.height,
+            scale_x=scale_x, scale_y=scale_y, unit=unit,
+            origin_mode=origin_mode,
+            flip_x=bool(flip_x), flip_y=bool(flip_y),
+            calib_ref_line_px=calib_line_px,
+            # Net DXF'te tek parça/sürekli çizgi davranışı için arc segmentasyonunu kapat.
+            detect_arcs=False,
+            arc_tolerance=float(arc_tolerance),
+            force_continuous_linetype=True,
+        )
         svg = None
         if bool(export_svg):
             svg = _build_svg_string(
@@ -1693,9 +1884,9 @@ async def vectorize_to_dxf(
                 origin_mode=origin_mode,
                 flip_x=bool(flip_x), flip_y=bool(flip_y),
             )
-        return po, pd, db, svg
+        return po, pd, db, svg, po_net, db_net
 
-    preview_overlay, (preview_dimension, dimension_summary), dxf_bytes, svg_string = await loop.run_in_executor(
+    preview_overlay, (preview_dimension, dimension_summary), dxf_bytes, svg_string, preview_net, dxf_net_bytes = await loop.run_in_executor(
         None, _cpu_bound_output,
     )
 
@@ -1728,9 +1919,11 @@ async def vectorize_to_dxf(
         "source_filename": file.filename or "upload",
         "dxf_filename": dxf_filename,
         "dxf_base64": base64.b64encode(dxf_bytes).decode("ascii"),
+        "dxf_net_base64": base64.b64encode(dxf_net_bytes).decode("ascii"),
         "svg_base64": base64.b64encode(svg_string.encode("utf-8")).decode("ascii") if svg_string else None,
         "preview_contour": preview_overlay,
         "preview_dimension": preview_dimension,
+        "preview_net": preview_net,
         "calibration": calibration_info,
         "quality": quality,
         "dimensions": {
