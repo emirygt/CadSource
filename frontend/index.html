@@ -628,7 +628,7 @@
     .contour-stat .val { font-size: 13px; font-weight: 600; margin-top: 2px; }
     .contour-preview-wrap { flex: 1; border: 1px solid var(--border); border-radius: var(--radius); background: #f1f5f9; display: flex; align-items: center; justify-content: center; overflow: auto; min-height: 280px; position: relative; }
     .contour-preview-wrap img { max-width: 100%; height: auto; display: block; }
-    .contour-preview-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .contour-preview-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
     .contour-preview-col { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
     .contour-source-wrap { border: 1px solid var(--border); border-radius: var(--radius); background: #f1f5f9; min-height: 240px; display: flex; align-items: center; justify-content: center; overflow: auto; }
     .contour-source-canvas { display: block; max-width: 100%; height: auto; cursor: crosshair; }
@@ -1292,7 +1292,8 @@
 
           <div class="contour-actions">
             <button class="contour-btn primary" id="contourRunBtn" onclick="runContourVectorize()" disabled>Kontur Çıkar</button>
-            <button class="contour-btn" id="contourDownloadBtn" onclick="downloadContourDxf()" disabled>DXF İndir</button>
+            <button class="contour-btn" id="contourDownloadBtn" onclick="downloadContourDxf('raw')" disabled>Konturlu DXF İndir</button>
+            <button class="contour-btn" id="contourDownloadNetBtn" onclick="downloadContourDxf('net')" disabled>Net DXF İndir</button>
             <button class="contour-btn" id="contourDownloadSvgBtn" onclick="downloadContourSvg()" disabled style="display:none">SVG İndir</button>
             <button class="contour-btn" onclick="clearContourState()">Temizle</button>
           </div>
@@ -1328,6 +1329,12 @@
             <div class="contour-preview-col">
               <div class="contour-mini-note">Ölçülü Görsel</div>
               <div class="contour-preview-wrap" id="contourPreviewDimWrap">
+                <div class="contour-empty">Henüz görsel yüklenmedi</div>
+              </div>
+            </div>
+            <div class="contour-preview-col">
+              <div class="contour-mini-note">Net Görsel</div>
+              <div class="contour-preview-wrap" id="contourPreviewNetWrap">
                 <div class="contour-empty">Henüz görsel yüklenmedi</div>
               </div>
             </div>
@@ -2641,10 +2648,12 @@ function setContourFile(file) {
   document.getElementById('contourDrop').classList.add('loaded');
   document.getElementById('contourRunBtn').disabled = false;
   document.getElementById('contourDownloadBtn').disabled = true;
+  document.getElementById('contourDownloadNetBtn').disabled = true;
   document.getElementById('contourStats').style.display = 'none';
   document.getElementById('contourQualityBox').style.display = 'none';
   document.getElementById('contourPreviewWrap').innerHTML = '<div class="contour-empty">İşlem için "Kontur Çıkar" butonuna basın</div>';
   document.getElementById('contourPreviewDimWrap').innerHTML = '<div class="contour-empty">Ölçülü preview işlem sonrası oluşur</div>';
+  document.getElementById('contourPreviewNetWrap').innerHTML = '<div class="contour-empty">Net preview işlem sonrası oluşur</div>';
   contourSetMsg('Dosya hazır. Teknik ayarları kontrol edip kontur çıkarabilirsiniz.', 'info');
 
   const reader = new FileReader();
@@ -2670,10 +2679,12 @@ function clearContourState() {
   document.getElementById('contourDrop').classList.remove('loaded');
   document.getElementById('contourRunBtn').disabled = true;
   document.getElementById('contourDownloadBtn').disabled = true;
+  document.getElementById('contourDownloadNetBtn').disabled = true;
   document.getElementById('contourStats').style.display = 'none';
   document.getElementById('contourQualityBox').style.display = 'none';
   document.getElementById('contourPreviewWrap').innerHTML = '<div class="contour-empty">Henüz görsel yüklenmedi</div>';
   document.getElementById('contourPreviewDimWrap').innerHTML = '<div class="contour-empty">Henüz görsel yüklenmedi</div>';
+  document.getElementById('contourPreviewNetWrap').innerHTML = '<div class="contour-empty">Henüz görsel yüklenmedi</div>';
   drawContourSourceCanvas();
   updateContourCalibInfo();
   contourSetMsg('', 'info');
@@ -2687,11 +2698,14 @@ async function runContourVectorize() {
 
   const runBtn = document.getElementById('contourRunBtn');
   const dlBtn = document.getElementById('contourDownloadBtn');
+  const dlNetBtn = document.getElementById('contourDownloadNetBtn');
   runBtn.disabled = true;
   dlBtn.disabled = true;
+  dlNetBtn.disabled = true;
   contourSetMsg('Teknik kontur analizi yapılıyor ve DXF hazırlanıyor...', 'info');
   document.getElementById('contourPreviewWrap').innerHTML = '<div class="loading"><div class="spinner"></div><div>İşleniyor...</div></div>';
   document.getElementById('contourPreviewDimWrap').innerHTML = '<div class="loading"><div class="spinner"></div><div>Ölçüler hazırlanıyor...</div></div>';
+  document.getElementById('contourPreviewNetWrap').innerHTML = '<div class="loading"><div class="spinner"></div><div>Net görsel hazırlanıyor...</div></div>';
 
   const calibrationMode = document.getElementById('contourCalibrationMode').value || 'auto_scan';
   const scaleFactor = Number(document.getElementById('contourScaleInput').value || 1);
@@ -2772,6 +2786,7 @@ async function runContourVectorize() {
     contourState.result = d;
     renderContourResult(d);
     dlBtn.disabled = false;
+    document.getElementById('contourDownloadNetBtn').disabled = false;
     const svgBtn = document.getElementById('contourDownloadSvgBtn');
     if (d.svg_base64) {
       svgBtn.style.display = '';
@@ -2786,6 +2801,7 @@ async function runContourVectorize() {
   } catch (err) {
     document.getElementById('contourPreviewWrap').innerHTML = '<div class="contour-empty" style="color:var(--red)">İşlem başarısız</div>';
     document.getElementById('contourPreviewDimWrap').innerHTML = '<div class="contour-empty" style="color:var(--red)">İşlem başarısız</div>';
+    document.getElementById('contourPreviewNetWrap').innerHTML = '<div class="contour-empty" style="color:var(--red)">İşlem başarısız</div>';
     contourSetMsg(err.message || 'İşlem başarısız', 'error');
   } finally {
     runBtn.disabled = false;
@@ -2795,17 +2811,28 @@ async function runContourVectorize() {
 function renderContourResult(data) {
   const contourPreview = data.preview_contour || data.preview_overlay;
   const dimPreview = data.preview_dimension || null;
+  const netPreview = data.preview_net || null;
   const st = data.stats || {};
-  if (contourPreview) {
-    document.getElementById('contourPreviewWrap').innerHTML = `<img src="${contourPreview}" alt="Konturlu preview">`;
-  } else {
-    document.getElementById('contourPreviewWrap').innerHTML = '<div class="contour-empty">Preview üretilemedi</div>';
-  }
-  if (dimPreview) {
-    document.getElementById('contourPreviewDimWrap').innerHTML = `<img src="${dimPreview}" alt="Ölçülü preview">`;
-  } else {
-    document.getElementById('contourPreviewDimWrap').innerHTML = '<div class="contour-empty">Ölçülü preview üretilemedi</div>';
-  }
+
+  const meta = {
+    'Kontur': (st.contour_count||0).toLocaleString('tr'),
+    'Nokta': (st.total_points||0).toLocaleString('tr'),
+    'Görsel': `${Number(st.image_width||0)} × ${Number(st.image_height||0)}`
+  };
+
+  const bindPreview = (wrapperId, imgSrc, title) => {
+    const wrap = document.getElementById(wrapperId);
+    if (imgSrc) {
+      wrap.innerHTML = `<img src="${imgSrc}" alt="${title}" style="cursor:pointer; transition: opacity 0.2s;" onmouseover="this.style.opacity=0.8" onmouseout="this.style.opacity=1">`;
+      wrap.querySelector('img').onclick = () => openPreviewModal(title, `<img src="${imgSrc}" style="width:100%;height:auto;display:block">`, meta);
+    } else {
+      wrap.innerHTML = '<div class="contour-empty">Preview üretilemedi</div>';
+    }
+  };
+
+  bindPreview('contourPreviewWrap', contourPreview, 'Konturlu Görsel');
+  bindPreview('contourPreviewDimWrap', dimPreview, 'Ölçülü Görsel');
+  bindPreview('contourPreviewNetWrap', netPreview, 'Net Görsel');
 
   document.getElementById('contourStatCount').textContent = Number(st.contour_count || 0).toLocaleString('tr');
   document.getElementById('contourStatPoints').textContent = Number(st.total_points || 0).toLocaleString('tr');
@@ -2859,17 +2886,19 @@ function b64ToBlob(base64, mime = 'application/octet-stream') {
   return new Blob([bytes], { type: mime });
 }
 
-function downloadContourDxf() {
+function downloadContourDxf(mode='raw') {
   const res = contourState.result;
-  if (!res || !res.dxf_base64) {
+  const b64 = mode === 'net' ? res.dxf_net_base64 : res.dxf_base64;
+  if (!res || !b64) {
     contourSetMsg('Önce kontur üretin.', 'error');
     return;
   }
-  const blob = b64ToBlob(res.dxf_base64, 'application/dxf');
+  const blob = b64ToBlob(b64, 'application/dxf');
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = res.dxf_filename || 'contour_output.dxf';
+  const stem = res.dxf_filename ? res.dxf_filename.replace('.dxf', '') : 'contour_output';
+  a.download = mode === 'net' ? `${stem}_net.dxf` : `${stem}.dxf`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
