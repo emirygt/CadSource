@@ -55,8 +55,8 @@
 | 2.10 | Favoriler | ⬜ | `favorites` tablosu + UI |
 | 2.11 | İki çizimi yan yana karşılaştırma | ✅ | Sonuç kartına "Karşılaştır" butonu, yan yana modal, SVG lazy load |
 | 2.12 | Dosya detay modalı | ✅ | DB tablosunda satıra tıkla → SVG + tüm metadata popup |
-| 2.13 | DB toplu onay akışı | ✅ | DB tablosunda checkbox + "Seçilenleri Onayla/Onayı Kaldır" |
-| 2.14 | Onaylı Ürünler sekmesi | ✅ | Sadece onaylı kayıtlar, toplu seçimle onay kaldırma |
+| 2.13 | DB toplu durum akışı | ✅ | DB tablosunda checkbox + status seçimi (`draft/onaylı`) |
+| 2.14 | Ürün Durumları sekmesi | ✅ | Tek sayfa, filtreyle draft/onaylı listeleme + toplu durum atama |
 
 **Sıradaki görev:** Faza 3 başladı — 3.1 CLIP embeddings
 

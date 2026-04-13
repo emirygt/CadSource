@@ -42,6 +42,7 @@ class CadFile(Base):
     # --- İş akışı ---
     approved      = Column(Boolean, default=False)
     approved_at   = Column(DateTime, nullable=True)
+    approval_status = Column(String, default="draft")
 
     # --- Özellik vektörleri (pgvector) ---
     # 128 boyutlu birleşik özellik vektörü
@@ -104,6 +105,16 @@ def init_db():
                 ALTER TABLE cad_files ADD COLUMN IF NOT EXISTS approved_at TIMESTAMP;
             EXCEPTION WHEN others THEN NULL; END $$;
         """))
+        conn.execute(text("""
+            DO $$ BEGIN
+                ALTER TABLE cad_files ADD COLUMN IF NOT EXISTS approval_status VARCHAR(20) DEFAULT 'draft';
+            EXCEPTION WHEN others THEN NULL; END $$;
+        """))
+        conn.execute(text("""
+            UPDATE cad_files
+            SET approval_status = CASE WHEN approved THEN 'approved' ELSE 'draft' END
+            WHERE approval_status IS NULL OR approval_status = '';
+        """))
         conn.commit()
     # Mevcut tenant schema'larına search_history tablosunu ekle
     with engine.connect() as conn:
@@ -148,6 +159,16 @@ def init_db():
                 DO $$ BEGIN
                     ALTER TABLE {schema}.cad_files ADD COLUMN IF NOT EXISTS approved_at TIMESTAMP;
                 EXCEPTION WHEN others THEN NULL; END $$;
+            """))
+            conn.execute(text(f"""
+                DO $$ BEGIN
+                    ALTER TABLE {schema}.cad_files ADD COLUMN IF NOT EXISTS approval_status VARCHAR(20) DEFAULT 'draft';
+                EXCEPTION WHEN others THEN NULL; END $$;
+            """))
+            conn.execute(text(f"""
+                UPDATE {schema}.cad_files
+                SET approval_status = CASE WHEN approved THEN 'approved' ELSE 'draft' END
+                WHERE approval_status IS NULL OR approval_status = '';
             """))
             conn.execute(text(f"""
                 CREATE INDEX IF NOT EXISTS {schema}_clip_vector_idx

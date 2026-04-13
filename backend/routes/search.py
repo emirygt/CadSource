@@ -33,7 +33,21 @@ router = APIRouter(tags=["search"])
 
 class BulkApprovePayload(BaseModel):
     file_ids: List[int]
-    approved: bool = True
+    approved: Optional[bool] = None
+    status: Optional[str] = None
+
+
+def _normalize_status(status: Optional[str], approved: Optional[bool] = None) -> str:
+    if status is not None:
+        s = str(status).strip().lower()
+        if s in ("approved", "onayli", "onaylı"):
+            return "approved"
+        if s in ("draft", "taslak"):
+            return "draft"
+        raise HTTPException(status_code=400, detail="Geçersiz status. 'draft' veya 'approved' olmalı.")
+    if approved is not None:
+        return "approved" if approved else "draft"
+    return "approved"
 
 
 def _parse_error_detail(filename: str, is_dwg: bool) -> str:
@@ -801,6 +815,7 @@ def list_files(
     per_page: int = Query(default=20, ge=1, le=100),
     search: Optional[str] = Query(default=None),
     approved: Optional[bool] = Query(default=None),
+    status: Optional[str] = Query(default=None),
     tenant: dict = Depends(get_current_tenant),
     db: Session = Depends(get_db),
 ):
@@ -820,6 +835,11 @@ def list_files(
         params["approved"] = approved
         count_clauses.append("approved = :approved")
         list_clauses.append("f.approved = :approved")
+    if status is not None:
+        status_norm = _normalize_status(status)
+        params["status"] = status_norm
+        count_clauses.append("approval_status = :status")
+        list_clauses.append("f.approval_status = :status")
 
     if count_clauses:
         count_q += " WHERE " + " AND ".join(count_clauses)
@@ -830,7 +850,7 @@ def list_files(
         SELECT f.id, f.filename, f.filepath, f.file_format,
                f.entity_count, f.layer_count, f.bbox_width, f.bbox_height,
                f.indexed_at, f.svg_preview, f.jpg_preview,
-               f.approved, f.approved_at,
+               f.approved, f.approved_at, f.approval_status,
                (f.file_data IS NOT NULL) AS has_file_data,
                f.category_id,
                c.name AS category_name, c.color AS category_color
@@ -864,6 +884,7 @@ def list_files(
                 "jpg_preview": f.jpg_preview,
                 "approved": bool(f.approved),
                 "approved_at": f.approved_at.isoformat() if f.approved_at else None,
+                "approval_status": f.approval_status or ("approved" if f.approved else "draft"),
                 "has_file_data": f.has_file_data,
                 "category_id": f.category_id,
                 "category_name": f.category_name,
@@ -886,24 +907,33 @@ def bulk_approve_files(
     if not ids:
         raise HTTPException(status_code=400, detail="file_ids boş olamaz")
 
+    status_norm = _normalize_status(payload.status, payload.approved)
+    approved_bool = status_norm == "approved"
+
     stmt = text("""
         UPDATE cad_files
         SET
+            approval_status = :approval_status,
             approved = :approved,
             approved_at = CASE WHEN :approved THEN NOW() ELSE NULL END
         WHERE id IN :ids
     """).bindparams(bindparam("ids", expanding=True))
 
     try:
-        result = db.execute(stmt, {"approved": payload.approved, "ids": ids})
+        result = db.execute(stmt, {
+            "approval_status": status_norm,
+            "approved": approved_bool,
+            "ids": ids,
+        })
         db.commit()
     except Exception:
         db.rollback()
-        raise HTTPException(status_code=500, detail="Toplu onaylama başarısız")
+        raise HTTPException(status_code=500, detail="Toplu durum atama başarısız")
 
     return {
         "status": "ok",
-        "approved": payload.approved,
+        "approved": approved_bool,
+        "approval_status": status_norm,
         "updated_count": int(result.rowcount or 0),
     }
 
@@ -923,7 +953,7 @@ def get_file(
                 f.id, f.filename, f.filepath, f.file_format, f.indexed_at,
                 f.entity_count, f.layer_count, f.layers, f.entity_types,
                 f.bbox_width, f.bbox_height, f.bbox_area,
-                f.approved, f.approved_at,
+                f.approved, f.approved_at, f.approval_status,
                 f.svg_preview, f.jpg_preview, f.category_id,
                 c.name AS category_name, c.color AS category_color,
                 (f.file_data IS NOT NULL) AS has_file_data,
@@ -954,6 +984,7 @@ def get_file(
         "bbox_area": m["bbox_area"],
         "approved": bool(m["approved"]),
         "approved_at": m["approved_at"].isoformat() if m["approved_at"] else None,
+        "approval_status": m["approval_status"] or ("approved" if m["approved"] else "draft"),
         "svg_preview": m["svg_preview"],
         "jpg_preview": m["jpg_preview"],
         "category_id": m["category_id"],

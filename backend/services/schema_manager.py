@@ -48,7 +48,8 @@ CREATE TABLE IF NOT EXISTS {schema}.cad_files (
     file_data       BYTEA,
     category_id     INTEGER REFERENCES {schema}.categories(id) ON DELETE SET NULL,
     approved        BOOLEAN DEFAULT FALSE,
-    approved_at     TIMESTAMP
+    approved_at     TIMESTAMP,
+    approval_status VARCHAR(20) DEFAULT 'draft'
 );
 
 CREATE INDEX IF NOT EXISTS {schema}_vector_idx

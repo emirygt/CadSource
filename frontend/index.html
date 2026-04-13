@@ -482,7 +482,7 @@
 <div class="tabbar">
   <div class="tab active" id="tab-search" onclick="switchTab('search')">Ara</div>
   <div class="tab" id="tab-db" onclick="switchTab('db')">DB</div>
-  <div class="tab" id="tab-approved" onclick="switchTab('approved')">Onaylı Ürünler</div>
+  <div class="tab" id="tab-approved" onclick="switchTab('approved')">Ürün Durumları</div>
   <div class="tab" id="tab-contour" onclick="switchTab('contour')">Kontur DXF</div>
   <div class="tab" id="tab-cat" onclick="switchTab('cat')">Kategoriler</div>
   <div class="tab" id="tab-analytics" onclick="switchTab('analytics')">📊 Analitik</div>
@@ -644,8 +644,11 @@
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
           <input class="db-search-box" id="dbSearchBox" placeholder="Dosya ara..." oninput="dbSearchDebounce()" />
           <span id="dbSelectedApproveInfo" style="font-size:11px;color:var(--text3);white-space:nowrap">0 seçili</span>
-          <button class="pg-btn" id="dbApproveBtn" onclick="approveSelectedFromDb(true)" disabled>Seçilenleri Onayla</button>
-          <button class="pg-btn" id="dbUnapproveBtn" onclick="approveSelectedFromDb(false)" disabled>Onayı Kaldır</button>
+          <select id="dbBulkStatusSelect" style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:6px;color:var(--text);padding:6px 8px;font-size:12px;outline:none">
+            <option value="draft">Draft</option>
+            <option value="approved">Onaylı</option>
+          </select>
+          <button class="pg-btn" id="dbApplyStatusBtn" onclick="applyStatusToDbSelection()" disabled>Seçilenlere Durum Uygula</button>
           <a href="db-filters.html" style="background:var(--bg3);border:0.5px solid var(--border2);color:var(--text2);padding:6px 10px;border-radius:6px;font-size:12px;text-decoration:none;white-space:nowrap">Gelişmiş Filtre</a>
         </div>
       </div>
@@ -661,7 +664,7 @@
               <th>Entity</th>
               <th>Katman</th>
               <th>Boyut</th>
-              <th>Onay</th>
+              <th>Durum</th>
               <th>Eklenme</th>
               <th>İşlem</th>
             </tr>
@@ -683,16 +686,24 @@
   </div>
 </div>
 
-<!-- ═══════════════ ONAYLI ÜRÜNLER SAYFASI ═══════════════ -->
+<!-- ═══════════════ ÜRÜN DURUMLARI SAYFASI ═══════════════ -->
 <div class="page" id="page-approved">
   <div class="db-layout">
     <div class="db-files-card">
       <div class="db-files-header">
-        <h2>Onaylı Ürünler <span id="approvedTotalBadge" style="font-size:12px;color:var(--text3);font-weight:400"></span></h2>
+        <h2>Ürün Durumları <span id="approvedTotalBadge" style="font-size:12px;color:var(--text3);font-weight:400"></span></h2>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-          <input class="db-search-box" id="approvedSearchBox" placeholder="Onaylı dosya ara..." oninput="approvedSearchDebounce()" />
+          <select id="approvedStatusFilter" onchange="approvedStatusFilterChanged()" style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:6px;color:var(--text);padding:6px 8px;font-size:12px;outline:none">
+            <option value="approved">Onaylı</option>
+            <option value="draft">Draft</option>
+          </select>
+          <input class="db-search-box" id="approvedSearchBox" placeholder="Duruma göre dosya ara..." oninput="approvedSearchDebounce()" />
           <span id="approvedSelectedInfo" style="font-size:11px;color:var(--text3);white-space:nowrap">0 seçili</span>
-          <button class="pg-btn" id="approvedUnapproveBtn" onclick="unapproveSelectedFromApproved()" disabled>Seçilen Onayı Kaldır</button>
+          <select id="approvedBulkStatusSelect" style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:6px;color:var(--text);padding:6px 8px;font-size:12px;outline:none">
+            <option value="draft">Draft</option>
+            <option value="approved">Onaylı</option>
+          </select>
+          <button class="pg-btn" id="approvedApplyStatusBtn" onclick="applyStatusFromStatusPage()" disabled>Seçilenlere Durum Uygula</button>
         </div>
       </div>
       <div class="db-table-wrap">
@@ -707,12 +718,13 @@
               <th>Entity</th>
               <th>Katman</th>
               <th>Boyut</th>
-              <th>Onay Tarihi</th>
+              <th>Durum</th>
+              <th>Durum Tarihi</th>
               <th>İşlem</th>
             </tr>
           </thead>
           <tbody id="approvedTableBody">
-            <tr><td colspan="10" class="db-empty">Yükleniyor...</td></tr>
+            <tr><td colspan="11" class="db-empty">Yükleniyor...</td></tr>
           </tbody>
         </table>
       </div>
@@ -1228,6 +1240,7 @@ const approvedState = {
   page: 1,
   perPage: 20,
   total: 0,
+  status: 'approved',
   search: '',
   searchTimer: null,
   selectedIds: new Set(),
@@ -1237,11 +1250,9 @@ const approvedState = {
 function updateDbApprovalSelectionUi() {
   const selected = dbState.selectedIds.size;
   const info = document.getElementById('dbSelectedApproveInfo');
-  const approveBtn = document.getElementById('dbApproveBtn');
-  const unapproveBtn = document.getElementById('dbUnapproveBtn');
+  const applyBtn = document.getElementById('dbApplyStatusBtn');
   if (info) info.textContent = `${selected} seçili`;
-  if (approveBtn) approveBtn.disabled = selected === 0;
-  if (unapproveBtn) unapproveBtn.disabled = selected === 0;
+  if (applyBtn) applyBtn.disabled = selected === 0;
 
   const allBox = document.getElementById('dbSelectAll');
   if (!allBox) return;
@@ -1624,10 +1635,8 @@ function renderDbTable(files) {
     const size = (f.bbox_width && f.bbox_height)
       ? `${f.bbox_width.toFixed(0)}×${f.bbox_height.toFixed(0)}`
       : '—';
-    const approved = !!f.approved;
-    const approvedBadge = approved
-      ? '<span style="background:rgba(34,197,94,0.16);color:#4ade80;border:0.5px solid rgba(74,222,128,0.35);font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;white-space:nowrap">Onaylı</span>'
-      : '<span style="background:rgba(148,163,184,0.12);color:var(--text3);border:0.5px solid var(--border2);font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px;white-space:nowrap">Bekliyor</span>';
+    const status = (f.approval_status || (f.approved ? 'approved' : 'draft')).toLowerCase();
+    const approvedBadge = statusBadge(status);
     const checked = dbState.selectedIds.has(Number(f.id)) ? 'checked' : '';
     const catBadge = f.category_name
       ? `<span style="background:${f.category_color||'#6366f1'}22;color:${f.category_color||'#6366f1'};border:0.5px solid ${f.category_color||'#6366f1'}55;font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;white-space:nowrap">${f.category_name}</span>`
@@ -1672,10 +1681,21 @@ function dbChangePage(dir) {
   loadDbFiles();
 }
 
-async function setFilesApproval(fileIds, approved) {
+function statusLabel(status) {
+  return (status || '').toLowerCase() === 'approved' ? 'Onaylı' : 'Draft';
+}
+
+function statusBadge(status) {
+  if ((status || '').toLowerCase() === 'approved') {
+    return '<span style="background:rgba(34,197,94,0.16);color:#4ade80;border:0.5px solid rgba(74,222,128,0.35);font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;white-space:nowrap">Onaylı</span>';
+  }
+  return '<span style="background:rgba(148,163,184,0.12);color:var(--text3);border:0.5px solid var(--border2);font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px;white-space:nowrap">Draft</span>';
+}
+
+async function setFilesStatus(fileIds, status) {
   const payload = {
     file_ids: fileIds.map(x => Number(x)).filter(x => Number.isInteger(x) && x > 0),
-    approved: !!approved,
+    status,
   };
   if (!payload.file_ids.length) return { updated_count: 0 };
   const r = await fetch(`${API}/files/approve/bulk`, {
@@ -1685,22 +1705,23 @@ async function setFilesApproval(fileIds, approved) {
   });
   if (r.status === 401) { logout(); throw new Error('Oturum sona erdi'); }
   const d = await r.json().catch(() => ({}));
-  if (!r.ok) throw new Error(d.detail || 'Toplu onay işlemi başarısız');
+  if (!r.ok) throw new Error(d.detail || 'Toplu durum işlemi başarısız');
   return d;
 }
 
-async function approveSelectedFromDb(approved) {
+async function applyStatusToDbSelection() {
   const ids = Array.from(dbState.selectedIds);
   if (!ids.length) return;
+  const status = document.getElementById('dbBulkStatusSelect')?.value || 'draft';
   try {
-    await setFilesApproval(ids, approved);
+    await setFilesStatus(ids, status);
     dbState.selectedIds.clear();
     approvedState.selectedIds.clear();
     updateDbApprovalSelectionUi();
     updateApprovedSelectionUi();
     await Promise.all([loadDbFiles(), loadApprovedFiles()]);
   } catch (err) {
-    alert(err.message || 'Toplu onay işlemi başarısız.');
+    alert(err.message || 'Toplu durum işlemi başarısız.');
   }
 }
 
@@ -1713,12 +1734,20 @@ function approvedSearchDebounce() {
   }, 400);
 }
 
+function approvedStatusFilterChanged() {
+  approvedState.status = document.getElementById('approvedStatusFilter')?.value || 'approved';
+  approvedState.page = 1;
+  approvedState.selectedIds.clear();
+  updateApprovedSelectionUi();
+  loadApprovedFiles();
+}
+
 function updateApprovedSelectionUi() {
   const selected = approvedState.selectedIds.size;
   const info = document.getElementById('approvedSelectedInfo');
-  const unapproveBtn = document.getElementById('approvedUnapproveBtn');
+  const applyBtn = document.getElementById('approvedApplyStatusBtn');
   if (info) info.textContent = `${selected} seçili`;
-  if (unapproveBtn) unapproveBtn.disabled = selected === 0;
+  if (applyBtn) applyBtn.disabled = selected === 0;
 
   const allBox = document.getElementById('approvedSelectAll');
   if (!allBox) return;
@@ -1754,8 +1783,8 @@ function toggleApprovedSelectAll(checked) {
 }
 
 async function loadApprovedFiles() {
-  const { page, perPage, search } = approvedState;
-  const url = `${API}/files?page=${page}&per_page=${perPage}&approved=true${search ? '&search='+encodeURIComponent(search) : ''}`;
+  const { page, perPage, search, status } = approvedState;
+  const url = `${API}/files?page=${page}&per_page=${perPage}&status=${encodeURIComponent(status)}${search ? '&search='+encodeURIComponent(search) : ''}`;
   try {
     const r = await fetch(url, { headers: authH() });
     if (r.status === 401) { logout(); return; }
@@ -1767,7 +1796,7 @@ async function loadApprovedFiles() {
   } catch {
     approvedState.pageIds = [];
     updateApprovedSelectionUi();
-    document.getElementById('approvedTableBody').innerHTML = '<tr><td colspan="10" class="db-empty">Onaylı ürünler yüklenemedi.</td></tr>';
+    document.getElementById('approvedTableBody').innerHTML = '<tr><td colspan="11" class="db-empty">Durum listesi yüklenemedi.</td></tr>';
   }
 }
 
@@ -1775,7 +1804,7 @@ function renderApprovedTable(files) {
   const tbody = document.getElementById('approvedTableBody');
   approvedState.pageIds = files.map(f => Number(f.id)).filter(Boolean);
   if (!files.length) {
-    tbody.innerHTML = '<tr><td colspan="10" class="db-empty">Henüz onaylı ürün yok.</td></tr>';
+    tbody.innerHTML = `<tr><td colspan="11" class="db-empty">Bu durumda (${statusLabel(approvedState.status)}) kayıt yok.</td></tr>`;
     updateApprovedSelectionUi();
     return;
   }
@@ -1785,7 +1814,8 @@ function renderApprovedTable(files) {
     const size = (f.bbox_width && f.bbox_height)
       ? `${f.bbox_width.toFixed(0)}×${f.bbox_height.toFixed(0)}`
       : '—';
-    const approvedAt = f.approved_at
+    const status = (f.approval_status || (f.approved ? 'approved' : 'draft')).toLowerCase();
+    const statusAt = f.approved_at
       ? new Date(f.approved_at).toLocaleString('tr-TR')
       : '—';
     const checked = approvedState.selectedIds.has(Number(f.id)) ? 'checked' : '';
@@ -1804,10 +1834,10 @@ function renderApprovedTable(files) {
       <td>${(f.entity_count||0).toLocaleString('tr')}</td>
       <td>${f.layer_count||0}</td>
       <td>${size}</td>
-      <td class="td-date">${approvedAt}</td>
+      <td>${statusBadge(status)}</td>
+      <td class="td-date">${statusAt}</td>
       <td style="display:flex;gap:6px;align-items:center" onclick="event.stopPropagation()">
         <button class="del-btn" style="background:rgba(59,130,246,0.12);color:var(--blue);border-color:rgba(59,130,246,0.3)" onclick="downloadFile(${f.id},'${f.filename.replace(/'/g,"\\'")}')">↓</button>
-        <button class="del-btn" style="background:rgba(239,68,68,0.12);color:var(--red);border-color:rgba(239,68,68,0.3)" onclick="setSingleApprove(${f.id},false)">Kaldır</button>
       </td>
     </tr>`;
   }).join('');
@@ -1830,31 +1860,19 @@ function approvedChangePage(dir) {
   loadApprovedFiles();
 }
 
-async function unapproveSelectedFromApproved() {
+async function applyStatusFromStatusPage() {
   const ids = Array.from(approvedState.selectedIds);
   if (!ids.length) return;
+  const status = document.getElementById('approvedBulkStatusSelect')?.value || 'draft';
   try {
-    await setFilesApproval(ids, false);
+    await setFilesStatus(ids, status);
     ids.forEach(id => approvedState.selectedIds.delete(id));
     ids.forEach(id => dbState.selectedIds.delete(id));
     updateApprovedSelectionUi();
     updateDbApprovalSelectionUi();
     await Promise.all([loadApprovedFiles(), loadDbFiles()]);
   } catch (err) {
-    alert(err.message || 'Onay kaldırma işlemi başarısız.');
-  }
-}
-
-async function setSingleApprove(fileId, approved) {
-  try {
-    await setFilesApproval([fileId], approved);
-    approvedState.selectedIds.delete(Number(fileId));
-    dbState.selectedIds.delete(Number(fileId));
-    updateApprovedSelectionUi();
-    updateDbApprovalSelectionUi();
-    await Promise.all([loadApprovedFiles(), loadDbFiles()]);
-  } catch (err) {
-    alert(err.message || 'İşlem başarısız.');
+    alert(err.message || 'Toplu durum işlemi başarısız.');
   }
 }
 
