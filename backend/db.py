@@ -66,6 +66,18 @@ def init_db():
                 created_at   TIMESTAMP DEFAULT NOW()
             )
         """))
+        # Fallback: search_path public'e düşerse activity endpoint'leri patlamasın.
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS public.activity_log (
+                id          SERIAL PRIMARY KEY,
+                action      VARCHAR(50) NOT NULL,
+                filename    VARCHAR,
+                file_id     INTEGER,
+                user_email  VARCHAR,
+                details     VARCHAR,
+                created_at  TIMESTAMP DEFAULT NOW()
+            )
+        """))
         conn.commit()
     Base.metadata.create_all(bind=engine)
     # Yeni kolonları mevcut tenant schema'larına ekle

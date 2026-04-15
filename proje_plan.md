@@ -126,6 +126,7 @@
 - Sonuç ekranında "Aranan Dosya" görsel kartı (`query_preview`)
 - Search skorunda görsel karşılaştırma + geometri guard ile daha güvenli sıralama
 - NO_DOCKER operasyon politikası dökümana işlendi (AI ajanlar Docker önermez/kurmaz)
+- Docker'sız local DWG upload için `scripts/setup-dwg2dxf.sh` eklendi
 
 ---
 

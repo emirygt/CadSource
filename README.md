@@ -126,6 +126,9 @@ PostgreSQL'de `pgvector` ile **cosine benzerliği** (HNSW indeksi) kullanılır.
 DWG, Autodesk'in kapalı formatıdır. Açmak için:
 
 ```bash
+# Docker'sız hızlı kurulum (önerilen):
+./scripts/setup-dwg2dxf.sh
+
 # ODA File Converter (ücretsiz):
 # https://www.opendesign.com/guestfiles/oda_file_converter
 

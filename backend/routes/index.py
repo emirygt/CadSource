@@ -43,8 +43,8 @@ def _parse_error_detail(filename: str, ext: str) -> str:
     if ext == "dwg":
         if DWG2DXF_BIN is None:
             return (
-                f"'{filename}' okunamadı. Sunucuda DWG dönüştürücü (dwg2dxf) kurulu değil. "
-                "VPS/backend imajına LibreDWG kurup `dwg2dxf` komutunu erişilebilir yapın."
+                f"'{filename}' okunamadı. DWG dönüştürücü (dwg2dxf) kurulu değil. "
+                "Docker kullanmadan `scripts/setup-dwg2dxf.sh` çalıştırın ve backend'i yeniden başlatın."
             )
         return (
             f"'{filename}' okunamadı. DWG dosyası bozuk olabilir veya sürümü desteklenmiyor "
@@ -57,7 +57,7 @@ def _parse_error_detail(filename: str, ext: str) -> str:
 
 def _parse_error_status(ext: str) -> int:
     if ext == "dwg" and DWG2DXF_BIN is None:
-        return 500
+        return 400
     return 400
 
 
@@ -76,12 +76,17 @@ def _upsert_file(db, stored_path, filename, ext, data, category_id, skip_clip: b
 
     clip_vec_str = None
     if not skip_clip:
-        clip_vec = (
-            extract_clip_vector_from_bytes(raw_bytes, filename, data)
-            if raw_bytes is not None
-            else extract_clip_vector(data)
-        )
-        clip_vec_str = str(clip_vec.tolist()) if clip_vec is not None else None
+        try:
+            clip_vec = (
+                extract_clip_vector_from_bytes(raw_bytes, filename, data)
+                if raw_bytes is not None
+                else extract_clip_vector(data)
+            )
+            clip_vec_str = str(clip_vec.tolist()) if clip_vec is not None else None
+        except Exception as e:
+            # CLIP başarısız olursa indexleme durmamalı.
+            print(f"[CLIP] '{filename}' için vektör üretilemedi: {e}")
+            clip_vec_str = None
 
     params = {
         **stats,

@@ -11,6 +11,29 @@ from middleware.tenant import get_current_tenant, apply_tenant_schema
 router = APIRouter(tags=["history"])
 
 
+def _ensure_history_tables(db: Session) -> None:
+    """Aktif schema'da history ve categories tablolarını garanti eder."""
+    db.execute(text("""
+        CREATE TABLE IF NOT EXISTS categories (
+            id         SERIAL PRIMARY KEY,
+            name       VARCHAR NOT NULL,
+            color      VARCHAR DEFAULT '#6366f1',
+            created_at TIMESTAMP DEFAULT NOW()
+        )
+    """))
+    db.execute(text("""
+        CREATE TABLE IF NOT EXISTS search_history (
+            id             SERIAL PRIMARY KEY,
+            query_filename VARCHAR NOT NULL,
+            top_k          INTEGER DEFAULT 10,
+            min_similarity FLOAT DEFAULT 0.5,
+            category_id    INTEGER,
+            result_count   INTEGER DEFAULT 0,
+            searched_at    TIMESTAMP DEFAULT NOW()
+        )
+    """))
+
+
 @router.get("/history")
 def get_history(
     limit: int = Query(default=20, ge=1, le=100),
@@ -19,6 +42,10 @@ def get_history(
 ):
     """Son arama geçmişini döner (en yeni önce)."""
     apply_tenant_schema(tenant, db)
+    try:
+        _ensure_history_tables(db)
+    except Exception:
+        return []
 
     rows = db.execute(
         text("""
@@ -57,6 +84,7 @@ def delete_history_item(
 ):
     """Tek bir geçmiş kaydını sil."""
     apply_tenant_schema(tenant, db)
+    _ensure_history_tables(db)
     db.execute(
         text("DELETE FROM search_history WHERE id = :id"),
         {"id": history_id},
@@ -72,6 +100,7 @@ def clear_history(
 ):
     """Tüm arama geçmişini temizle."""
     apply_tenant_schema(tenant, db)
+    _ensure_history_tables(db)
     db.execute(text("DELETE FROM search_history"))
     db.commit()
     return {"status": "cleared"}

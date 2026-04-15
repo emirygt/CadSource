@@ -28,6 +28,15 @@ venv/bin/python3 -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 python3 -m http.server 3000 --directory frontend
 ```
 
+### DWG desteği (Docker'sız)
+DWG yükleme için sistemde `dwg2dxf` komutu gerekir.
+
+```bash
+./scripts/setup-dwg2dxf.sh
+# sonra backend'i yeniden başlat:
+# cd backend && venv/bin/python3 -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+```
+
 ### .env (backend/.env) — mevcut değerler
 ```
 DATABASE_URL=postgresql://postgres:password@127.0.0.1:5433/cad_search

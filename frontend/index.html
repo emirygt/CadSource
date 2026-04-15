@@ -339,10 +339,10 @@
     .vbtn { padding: 5px 10px; background: transparent; border: none; color: var(--text3); cursor: pointer; font-size: 12px; }
     .vbtn.active { background: var(--bg3); color: var(--text); }
     .query-bar { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 16px; display: flex; gap: 24px; flex-wrap: wrap; }
-    .query-summary { display: grid; grid-template-columns: minmax(220px, 320px) 1fr; gap: 12px; align-items: stretch; }
-    .query-preview-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; }
-    .query-preview-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; padding: 8px 10px; border-bottom: 1px solid var(--border); }
-    .query-preview-media { flex: 1; min-height: 148px; background: #f1f5f9; display: flex; align-items: center; justify-content: center; }
+    .query-summary { display: grid; grid-template-columns: 220px 1fr; gap: 12px; align-items: start; }
+    .query-preview-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; width: 220px; }
+    .query-preview-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; padding: 6px 10px; border-bottom: 1px solid var(--border); }
+    .query-preview-media { height: 130px; background: #f1f5f9; display: flex; align-items: center; justify-content: center; }
     .query-preview-media img { width: 100%; height: 100%; object-fit: contain; display: block; }
     .query-preview-fallback { color: #7a808d; font-size: 12px; }
     .qstat { display: flex; flex-direction: column; gap: 2px; }
@@ -354,12 +354,12 @@
     .result-card:hover { border-color: var(--border2); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
     .result-card.selected { border-color: var(--blue); }
     .card-preview { background: var(--bg3); height: 130px; display: flex; align-items: center; justify-content: center; position: relative; border-bottom: 1px solid var(--border); overflow: hidden; }
-    .card-badge { position: absolute; top: 8px; right: 8px; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 20px; }
+    .card-badge { position: absolute; top: 8px; right: 8px; font-size: 13px; font-weight: 700; padding: 4px 11px; border-radius: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.12); }
     .badge-high { background: rgba(34,197,94,0.15); color: var(--green); }
     .badge-med { background: rgba(245,158,11,0.15); color: var(--amber); }
     .badge-low { background: rgba(239,68,68,0.15); color: var(--red); }
     .card-body { padding: 10px 12px; }
-    .card-name { font-size: 12px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; }
+    .card-name { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; }
     .card-path { font-size: 10px; color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 8px; }
     .card-stats { display: flex; gap: 10px; flex-wrap: wrap; }
     .cstat { font-size: 10px; color: var(--text3); }
@@ -1472,10 +1472,66 @@
 </div>
 
 <script>
-const API = window.API_URL || localStorage.getItem('api_base') || '/api';
+let API = window.API_URL || localStorage.getItem('api_base') || '/api';
+const API_CANDIDATES = (() => {
+  const list = [];
+  if (window.API_URL) list.push(window.API_URL);
+  const saved = localStorage.getItem('api_base');
+  if (saved) list.push(saved);
+  list.push('/api');
+  if (['localhost', '127.0.0.1'].includes(window.location.hostname)) {
+    list.push('http://localhost:8000');
+  } else {
+    list.push(`${window.location.protocol}//${window.location.hostname}:8000`);
+  }
+  return [...new Set(list)];
+})();
+let API_READY = false;
+
 const token = localStorage.getItem('token');
 if (!token) window.location.href = 'login.html';
-const authH = () => ({ 'Authorization': `Bearer ${token}` });
+const authH = () => ({ 'Authorization': `Bearer ${localStorage.getItem('token') || ''}` });
+
+async function ensureApiBase(force = false) {
+  if (!force && API_READY) return API;
+
+  const prioritized = [API, ...API_CANDIDATES.filter(b => b !== API)];
+  for (const base of prioritized) {
+    try {
+      const res = await fetch(`${base}/health`, { cache: 'no-store' });
+      const body = (await res.text()).trim();
+      if (res.ok && body.startsWith('{')) {
+        API = base;
+        localStorage.setItem('api_base', API);
+        API_READY = true;
+        return API;
+      }
+    } catch (_) {}
+  }
+  API = API_CANDIDATES[0] || '/api';
+  API_READY = true;
+  return API;
+}
+
+async function parseApiJsonResponse(res, failPrefix) {
+  const raw = await res.text();
+  let data = {};
+  if (raw) {
+    try {
+      data = JSON.parse(raw);
+    } catch (_) {
+      if (raw.trim().startsWith('<')) {
+        throw new Error(`${failPrefix}: API yerine HTML döndü (API adresi yanlış veya backend kapalı).`);
+      }
+      throw new Error(`${failPrefix}: API JSON dönmedi (HTTP ${res.status}).`);
+    }
+  }
+  if (!res.ok) {
+    const detail = data && data.detail ? data.detail : `${failPrefix} (HTTP ${res.status})`;
+    throw new Error(typeof detail === 'string' ? detail : JSON.stringify(detail));
+  }
+  return data;
+}
 
 // ── Tab yönetimi ──────────────────────────────────────────────────────────────
 function setActiveNav(el) {
@@ -1544,6 +1600,7 @@ function switchTab(name) {
 // ── Stats (topbar) ────────────────────────────────────────────────────────────
 async function loadStats() {
   try {
+    await ensureApiBase(true);
     const r = await fetch(`${API}/stats`, { headers: authH() });
     if (r.status === 401) { logout(); return; }
     const d = await r.json();
@@ -1552,6 +1609,8 @@ async function loadStats() {
     document.getElementById('statusDot').style.background = '#22c55e';
     document.getElementById('statusText').textContent = 'Connected';
   } catch {
+    // Backend sonradan ayağa kalktıysa base'i tekrar keşfet.
+    await ensureApiBase(true);
     document.getElementById('statusDot').style.background = '#ef4444';
     document.getElementById('statusText').textContent = 'No connection';
   }
@@ -2036,8 +2095,10 @@ async function startDbUpload() {
   qp.set('skip_clip', skipClip);
   const catParam = '?' + qp.toString();
   let ok = 0, fail = 0;
+  let firstErr = '';
 
   try {
+    await ensureApiBase(true);
     if (dbState.isZip) {
       // ZIP modu: her ZIP'i ayrı ayrı gönder
       const total = dbState.files.length;
@@ -2050,17 +2111,23 @@ async function startDbUpload() {
         try {
           const r = await fetch(`${API}/index/bulk-zip${catParam}`, { method: 'POST', headers: authH(), body: fd });
           if (r.status === 401) { logout(); return; }
-          const d = await r.json();
+          const d = await parseApiJsonResponse(r, `${f.name} yüklenemedi`);
           ok += d.success || 0;
           fail += d.failed || 0;
           (d.errors || []).forEach(err => {
+            if (!firstErr && err?.reason) firstErr = err.reason;
             const el = document.createElement('div');
             el.className = 'db-error-item';
             el.textContent = `${err.filename}: ${err.reason}`;
             document.getElementById('dbErrorList').appendChild(el);
           });
-        } catch {
+        } catch (err) {
           fail++;
+          if (!firstErr) firstErr = err?.message || 'İşlenemedi';
+          const el = document.createElement('div');
+          el.className = 'db-error-item';
+          el.textContent = `${f.name}: ${err?.message || 'İşlenemedi'}`;
+          document.getElementById('dbErrorList').appendChild(el);
         }
         document.getElementById('dbOkCount').textContent = ok;
         document.getElementById('dbFailCount').textContent = fail;
@@ -2078,18 +2145,26 @@ async function startDbUpload() {
         try {
           const r = await fetch(`${API}/index/bulk${catParam}`, { method: 'POST', headers: authH(), body: fd });
           if (r.status === 401) { logout(); return; }
-          const d = await r.json();
+          const d = await parseApiJsonResponse(r, 'Toplu yükleme hatası');
           ok += d.success || 0;
           fail += d.failed || 0;
           done += batch.length;
           (d.errors || []).forEach(err => {
+            if (!firstErr && err?.reason) firstErr = err.reason;
             const el = document.createElement('div');
             el.className = 'db-error-item';
             el.textContent = `${err.filename}: ${err.reason}`;
             document.getElementById('dbErrorList').appendChild(el);
           });
-        } catch {
+        } catch (err) {
           fail += batch.length; done += batch.length;
+          if (!firstErr) firstErr = err?.message || 'İşlenemedi';
+          batch.forEach(file => {
+            const el = document.createElement('div');
+            el.className = 'db-error-item';
+            el.textContent = `${file.name}: ${err?.message || 'İşlenemedi'}`;
+            document.getElementById('dbErrorList').appendChild(el);
+          });
         }
         const pct = Math.round(done / total * 100);
         document.getElementById('dbProgressBar').style.width = pct + '%';
@@ -2105,12 +2180,15 @@ async function startDbUpload() {
     } else if (ok > 0) {
       setDbUploadStatus('warn', `Yükleme tamamlandı. ${ok} başarılı, ${fail} hatalı.`);
     } else {
-      setDbUploadStatus('error', 'Yükleme tamamlanamadı. Dosyalar işlenemedi.');
+      const msg = firstErr
+        ? `Yükleme tamamlanamadı. ${firstErr}`
+        : 'Yükleme tamamlanamadı. Dosyalar işlenemedi.';
+      setDbUploadStatus('error', msg);
     }
     loadStats();
     loadDbFiles();
-  } catch {
-    setDbUploadStatus('error', 'Yükleme sırasında beklenmeyen bir hata oluştu.');
+  } catch (e) {
+    setDbUploadStatus('error', e?.message || 'Yükleme sırasında beklenmeyen bir hata oluştu.');
   } finally {
     dbState.uploading = false;
     btn.disabled = dbState.files.length === 0;
@@ -4197,14 +4275,17 @@ function fmtDay(iso) {
 }
 
 // Init
-window.addEventListener('load', () => {
+window.addEventListener('load', async () => {
+  await ensureApiBase();
   loadStats();
   loadCategoriesIntoSelect();
   loadHistory();
   updateDbApprovalSelectionUi();
   updateApprovedSelectionUi();
 });
-setInterval(loadStats, 30000);
+setInterval(() => {
+  if (API_READY) loadStats();
+}, 30000);
 
 // ── Activity Log ──────────────────────────────────────────────────────────────
 let activityPage = 0;

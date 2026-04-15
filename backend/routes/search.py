@@ -690,21 +690,24 @@ async def search_similar(
         cat_clause = "AND category_id = :cat_id"
         params["cat_id"] = category_id
 
-    # Hibrit skor: clip varsa 0.4*geo + 0.6*clip, yoksa sadece geo
+    # Hibrit skor:
+    # - Sorgu CLIP vektörü varsa ve adayda da clip_vector varsa: 0.4*geo + 0.6*clip
+    # - Adayda clip_vector yoksa: sadece geo (aday dışlanmaz)
     if clip_vec_str is not None:
         geo_sim_expr = "1 - (f.feature_vector <=> CAST(:vec AS vector))"
-        clip_sim_expr = "1 - (f.clip_vector <=> CAST(:clip_vec AS vector))"
-        base_score_expr = f"(0.4 * ({geo_sim_expr}) + 0.6 * ({clip_sim_expr}))"
+        clip_sim_expr = "CASE WHEN f.clip_vector IS NOT NULL THEN 1 - (f.clip_vector <=> CAST(:clip_vec AS vector)) ELSE NULL END"
+        base_score_expr = f"CASE WHEN f.clip_vector IS NOT NULL THEN (0.4 * ({geo_sim_expr}) + 0.6 * ({clip_sim_expr})) ELSE ({geo_sim_expr}) END"
         # Görsel benzerlik düşükse (render uyumsuzluğu) final skoru aşağı çek.
         similarity_expr = f"""
             CASE
+                WHEN f.clip_vector IS NULL THEN ({geo_sim_expr})
                 WHEN ({clip_sim_expr}) < 0.25 THEN ({base_score_expr}) * 0.65
                 WHEN ({clip_sim_expr}) < 0.40 THEN ({base_score_expr}) * 0.85
                 ELSE ({base_score_expr})
             END
         """
         clip_similarity_select = f"({clip_sim_expr}) AS clip_similarity,"
-        where_clip = "AND f.clip_vector IS NOT NULL"
+        where_clip = ""
     else:
         similarity_expr = "1 - (f.feature_vector <=> CAST(:vec AS vector))"
         clip_similarity_select = "NULL::float AS clip_similarity,"
