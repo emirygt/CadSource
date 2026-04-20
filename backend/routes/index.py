@@ -9,11 +9,14 @@ import json
 import zipfile
 import io
 import os
+import tempfile
+import shutil
 
 try:
     import rarfile
     RARFILE_AVAILABLE = True
 except ImportError:
+    rarfile = None
     RARFILE_AVAILABLE = False
 
 from db import get_db
@@ -37,6 +40,44 @@ MAX_SINGLE_FILE_MB = 50
 MAX_ZIP_FILE_MB = 500
 MAX_SINGLE_BYTES = MAX_SINGLE_FILE_MB * 1024 * 1024
 MAX_ZIP_BYTES = MAX_ZIP_FILE_MB * 1024 * 1024
+
+
+def _configure_rar_tooling() -> bool:
+    """
+    rarfile'in extractor seçimini unrar'a sabitle.
+    bsdtar bazı RAR'larda eksik/bozuk çıktı üretebildiği için devre dışı bırakılır.
+    """
+    if not RARFILE_AVAILABLE:
+        return False
+
+    candidates = [
+        "/tmp/rarmacos_cli/rar/unrar",
+        "/opt/homebrew/bin/unrar",
+        "/usr/local/bin/unrar",
+        "unrar",
+    ]
+
+    chosen = None
+    for candidate in candidates:
+        if os.path.isabs(candidate):
+            if os.path.isfile(candidate):
+                chosen = candidate
+                break
+        else:
+            resolved = shutil.which(candidate)
+            if resolved:
+                chosen = resolved
+                break
+
+    if not chosen:
+        return False
+
+    rarfile.UNRAR_TOOL = chosen
+    rarfile.UNAR_TOOL = "__disabled_unar__"
+    rarfile.BSDTAR_TOOL = "__disabled_bsdtar__"
+    rarfile.SEVENZIP_TOOL = "__disabled_7z__"
+    rarfile.CURRENT_SETUP = None
+    return True
 
 
 def _parse_error_detail(filename: str, ext: str) -> str:
@@ -238,6 +279,11 @@ def _iter_archive(content: bytes, filename: str):
     ext = filename.lower().rsplit(".", 1)[-1]
     CAD_EXTS = {"dwg", "dxf", "pdf", "jpg", "jpeg", "png"}
 
+    def _entry_basename(path: str) -> str:
+        # Bazı arşivler Windows ayıracı (\) ile gelir; normalize edip sadece dosya adını al.
+        normalized = path.replace("\\", "/").strip("/")
+        return normalized.split("/")[-1] if normalized else ""
+
     if ext == "zip":
         if not zipfile.is_zipfile(io.BytesIO(content)):
             raise ValueError("Geçerli bir ZIP dosyası değil.")
@@ -246,19 +292,141 @@ def _iter_archive(content: bytes, filename: str):
                 if name.endswith("/"):
                     continue
                 if name.lower().rsplit(".", 1)[-1] in CAD_EXTS:
-                    yield name.split("/")[-1], zf.read(name)
+                    base_name = _entry_basename(name)
+                    if base_name:
+                        yield base_name, zf.read(name)
 
     elif ext == "rar":
-        if not RARFILE_AVAILABLE:
-            raise ValueError("RAR desteği sunucuda kurulu değil.")
-        with rarfile.RarFile(io.BytesIO(content)) as rf:
-            for info in rf.infolist():
-                if info.is_dir():
-                    continue
-                if info.filename.lower().rsplit(".", 1)[-1] in CAD_EXTS:
-                    yield info.filename.split("/")[-1], rf.read(info)
+        if not _configure_rar_tooling():
+            raise ValueError("RAR desteği sunucuda kurulu değil (unrar gerekli).")
+        tmp_rar_path = None
+        try:
+            # rarfile bazı RAR sürümlerinde file-like stream ile sorun yaşayabiliyor.
+            # Bu yüzden içeriği geçici dosyaya yazıp dosya yolu üzerinden açıyoruz.
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".rar") as tmp:
+                tmp.write(content)
+                tmp_rar_path = tmp.name
+
+            with rarfile.RarFile(tmp_rar_path) as rf:
+                for info in rf.infolist():
+                    if info.is_dir():
+                        continue
+                    if info.filename.lower().rsplit(".", 1)[-1] in CAD_EXTS:
+                        base_name = _entry_basename(info.filename)
+                        if base_name:
+                            yield base_name, rf.read(info)
+        except rarfile.Error as e:
+            raise ValueError(f"RAR arşivi okunamadı: {e}")
+        finally:
+            if tmp_rar_path and os.path.exists(tmp_rar_path):
+                try:
+                    os.remove(tmp_rar_path)
+                except OSError:
+                    pass
     else:
         raise ValueError(f"Desteklenmeyen arşiv formatı: .{ext} (ZIP veya RAR bekleniyor)")
+
+
+def _list_archive_entries(content: bytes, filename: str):
+    """
+    ZIP veya RAR arşivinden CAD dosya listesini çıkar.
+    Yalnızca metadata döner (dosya adları + boyut), içerik okumaz.
+    """
+    ext = filename.lower().rsplit(".", 1)[-1]
+    CAD_EXTS = {"dwg", "dxf", "pdf", "jpg", "jpeg", "png"}
+
+    def _entry_basename(path: str) -> str:
+        normalized = path.replace("\\", "/").strip("/")
+        return normalized.split("/")[-1] if normalized else ""
+
+    entries = []
+
+    if ext == "zip":
+        if not zipfile.is_zipfile(io.BytesIO(content)):
+            raise ValueError("Geçerli bir ZIP dosyası değil.")
+        with zipfile.ZipFile(io.BytesIO(content)) as zf:
+            for info in zf.infolist():
+                if info.is_dir():
+                    continue
+                raw_name = info.filename
+                file_ext = raw_name.lower().rsplit(".", 1)[-1] if "." in raw_name else ""
+                if file_ext not in CAD_EXTS:
+                    continue
+                base_name = _entry_basename(raw_name)
+                if not base_name:
+                    continue
+                entries.append({
+                    "name": base_name,
+                    "ext": file_ext,
+                    "size": int(info.file_size or 0),
+                })
+    elif ext == "rar":
+        if not _configure_rar_tooling():
+            raise ValueError("RAR desteği sunucuda kurulu değil (unrar gerekli).")
+        tmp_rar_path = None
+        try:
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".rar") as tmp:
+                tmp.write(content)
+                tmp_rar_path = tmp.name
+
+            with rarfile.RarFile(tmp_rar_path) as rf:
+                for info in rf.infolist():
+                    if info.is_dir():
+                        continue
+                    raw_name = info.filename
+                    file_ext = raw_name.lower().rsplit(".", 1)[-1] if "." in raw_name else ""
+                    if file_ext not in CAD_EXTS:
+                        continue
+                    base_name = _entry_basename(raw_name)
+                    if not base_name:
+                        continue
+                    entries.append({
+                        "name": base_name,
+                        "ext": file_ext,
+                        "size": int(info.file_size or 0),
+                    })
+        except rarfile.Error as e:
+            raise ValueError(f"RAR arşivi okunamadı: {e}")
+        finally:
+            if tmp_rar_path and os.path.exists(tmp_rar_path):
+                try:
+                    os.remove(tmp_rar_path)
+                except OSError:
+                    pass
+    else:
+        raise ValueError(f"Desteklenmeyen arşiv formatı: .{ext} (ZIP veya RAR bekleniyor)")
+
+    return entries
+
+
+@router.post("/index/archive/preview")
+async def preview_archive(
+    file: UploadFile = File(...),
+    tenant: dict = Depends(get_current_tenant),
+    db: Session = Depends(get_db),
+):
+    """
+    ZIP/RAR içindeki desteklenen CAD dosyalarını indexleme yapmadan listeler.
+    Frontend yükleme önizlemesi için kullanılır.
+    """
+    apply_tenant_schema(tenant, db)
+    content = await file.read()
+    upload_filename = file.filename or "archive.zip"
+
+    if len(content) > MAX_ZIP_BYTES:
+        raise HTTPException(status_code=413,
+            detail=f"Arşiv çok büyük. Maksimum {MAX_ZIP_FILE_MB} MB.")
+
+    try:
+        entries = _list_archive_entries(content, upload_filename)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    return {
+        "archive": upload_filename,
+        "total": len(entries),
+        "entries": entries,
+    }
 
 
 @router.post("/index/bulk-zip")

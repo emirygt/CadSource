@@ -14,6 +14,7 @@ from routes.history import router as history_router
 from routes.analytics import router as analytics_router
 from routes.contour import router as contour_router
 from routes.activity import router as activity_router
+from routes.scan import router as scan_router
 
 app = FastAPI(
     title="CAD Arama Motoru",
@@ -49,3 +50,4 @@ app.include_router(history_router)     # /history
 app.include_router(analytics_router)   # /analytics
 app.include_router(contour_router)     # /contour/vectorize
 app.include_router(activity_router)    # /activity
+app.include_router(scan_router)        # /scan/convert, /scan/export-dxf

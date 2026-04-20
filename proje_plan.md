@@ -1,9 +1,9 @@
 # CAD-Search — Proje Planı
-> Son güncelleme: 2026-04-14
+> Son güncelleme: 2026-04-19
 
 ---
 
-## Genel Durum: Faza 1 ✅, Faza 2 ✅, Faza 3.1-3.5 ✅ — MVP hazır, arama kalitesi iyileştirildi
+## Genel Durum: Faza 1 ✅, Faza 2 ✅, Faza 3.1-3.5 ✅, Faza 2.15 + Scan SVG ✅ — MVP hazır, arama kalitesi iyileştirildi, görsel diff + teknik çizim editörü eklendi
 
 ---
 
@@ -71,6 +71,10 @@
 | 3.3 | DWG/DXF gerçekçi JPEG preview pipeline | ✅ | `generate_jpg_preview_from_bytes` + DWG→DXF render + siluet dolgu |
 | 3.4 | Hibrit skor sonrası kalite re-rank | ✅ | `visual_similarity` + `geometry_guard` ile false-positive azaltma |
 | 3.5 | Aranan dosyanın görselini sonuç üstünde gösterme | ✅ | `/search` → `query_preview`, frontend "Aranan Dosya" kartı |
+| 3.5e | **Neden benzer? — metinsel gerekçe** | ✅ | `buildMatchReasons(qs, r)` frontend: CLIP/siluet/oran/ölçek/katman/entity-tipi rozetleri · Grid kartta 3 rozet + "+N neden daha", List kartta 2 mini, Compare modal tam liste, `reasonModal` popup · backend dokunulmadı |
+| 3.5b | Görsel fark (diff overlay) — yeşil/kırmızı/mavi piksel haritası | ✅ | Sonuç kartına "◐ Fark" butonu + `diffModal` + canvas piksel-bazlı diff (frontend, backend dokunulmadı) |
+| 3.5c | Scan-CAD: SVG teknik çizim görünümü + düzenleyici | ✅ | `scanRenderSVG`, `toggleScanView`, arc-3-point + move tool + SVG export (frontend; mevcut canvas mode korundu) |
+| 3.5d | **CAD Pro — Full AutoCAD klon editör** | ✅ | `#acadOverlay`: Çiz (Line/Circle/Arc/Rect/Polyline/Polygon/Ellipse/Point/Text/XLine/Ray/Leader), Değiştir (Move/Copy/Rotate/Erase/Trim/Extend/Offset/Mirror/Scale/Fillet/Chamfer/Break/Join/Explode/Lengthen/Array/Divide/Measure/Smooth/Matchprop), Ölçü (Linear/Aligned/Radius/Diameter/Angular), Inquiry (Dist/Id/Area/List/Properties), Özel (Regen/Purge), Katmanlar, Komut satırı (L/C/A/REC/PL/POL/EL/PO/T/XL/RAY/LE/M/CO/RO/E/TR/EX/OFF/MI/SC/F/CHA/BR/J/X/LEN/AR/DIV/ME/SM/MA/DLI/DAL/DRA/DDI/DAN/DI/ID/AA/LI/PR/REGEN/PURGE), Snap (endpoint/midpoint/center/intersection/grid), OSNAP/ORTHO/GSNAP, F3/F8/F9 + Ctrl+Z/Y kısayollar, Undo/Redo, koyu tema, DXF/SVG export (yeni tipler backend'e line/text olarak düzleştirilir) — **frontend-only, backend dokunulmadı** |
 | 3.6 | Autodesk Vault / SharePoint entegrasyonu | ⬜ |
 | 3.7 | API key desteği (dışarıdan sorgu) | ⬜ |
 | 3.8 | Redis query cache | ⬜ |

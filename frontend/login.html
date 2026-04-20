@@ -108,8 +108,10 @@ const API_CANDIDATES = (() => {
   const saved = localStorage.getItem('api_base');
   if (saved) list.push(saved);
   list.push('/api');
-  if (['localhost', '127.0.0.1'].includes(window.location.hostname)) {
+  if (['localhost', '127.0.0.1', '::1', '[::1]'].includes(window.location.hostname)) {
+    list.push('http://127.0.0.1:8000');
     list.push('http://localhost:8000');
+    list.push('http://[::1]:8000');
   } else {
     list.push(`${window.location.protocol}//${window.location.hostname}:8000`);
   }
