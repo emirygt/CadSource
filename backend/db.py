@@ -220,7 +220,7 @@ def init_db():
             WITH (m = 16, ef_construction = 64)
         """))
         conn.commit()
-    print("✅ Veritabanı hazır.")
+    print("Veritabani hazir.")
 
 
 def get_db():

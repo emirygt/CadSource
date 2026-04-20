@@ -1,28 +1,25 @@
 #!/bin/bash
-# CAD-Search yerel ortamı durdurur.
+# CAD-Search yerel ortamini durdurur.
 
-echo "🛑 CAD-Search durduruluyor..."
+TMP_BASE="${TMPDIR:-/tmp}"
+BACKEND_PID="$TMP_BASE/cad_backend.pid"
+FRONTEND_PID="$TMP_BASE/cad_frontend.pid"
 
-# Backend
-if [ -f /tmp/cad_backend.pid ]; then
-  kill $(cat /tmp/cad_backend.pid) 2>/dev/null && echo "✅ Backend durduruldu"
-  rm /tmp/cad_backend.pid
+echo "CAD-Search durduruluyor..."
+
+if [ -f "$BACKEND_PID" ]; then
+  kill "$(cat "$BACKEND_PID")" 2>/dev/null && echo "Backend durduruldu"
+  rm -f "$BACKEND_PID"
 else
-  lsof -ti:8000 | xargs kill -9 2>/dev/null && echo "✅ Backend durduruldu (PID dosyası yoktu)"
+  lsof -ti:8000 | xargs kill -9 2>/dev/null && echo "Backend durduruldu (PID dosyasi yoktu)"
 fi
 
-# Frontend
-if [ -f /tmp/cad_frontend.pid ]; then
-  kill $(cat /tmp/cad_frontend.pid) 2>/dev/null && echo "✅ Frontend durduruldu"
-  rm /tmp/cad_frontend.pid
+if [ -f "$FRONTEND_PID" ]; then
+  kill "$(cat "$FRONTEND_PID")" 2>/dev/null && echo "Frontend durduruldu"
+  rm -f "$FRONTEND_PID"
 else
-  lsof -ti:8080 | xargs kill -9 2>/dev/null && echo "✅ Frontend durduruldu (PID dosyası yoktu)"
+  lsof -ti:8080 | xargs kill -9 2>/dev/null && echo "Frontend durduruldu (PID dosyasi yoktu)"
 fi
 
-# PostgreSQL (isteğe bağlı)
-read -p "PostgreSQL container'ı da durdurulsun mu? [y/N] " yn
-if [[ "$yn" =~ ^[Yy]$ ]]; then
-  docker stop cad_postgres && echo "✅ PostgreSQL durduruldu"
-fi
-
+echo "PostgreSQL servisi otomatik durdurulmaz; gerekirse servis yoneticisinden kapatin."
 echo "Bitti."

@@ -1,18 +1,18 @@
 :root {
   /* ── New Design System (Clean Light Theme) ── */
-  --bg-base: #0D1B2A;
-  --bg-surface: #112236;
-  --bg-active: #1a73e8;
-  --bg-icon-badge: #1A3A5C;
-  --text-primary: #FFFFFF;
-  --text-secondary: #8BA4C0;
-  --text-muted: #4A6580;
-  --accent-blue: #1a73e8;
+  --bg-base: #0f172a;
+  --bg-surface: #162238;
+  --bg-active: #26a9eb;
+  --bg-icon-badge: #1b3556;
+  --text-primary: #ffffff;
+  --text-secondary: #8ea6c0;
+  --text-muted: #617694;
+  --accent-blue: #26a9eb;
   --border: #e2e8f0;
 
   /* Typography */
   --font-display: 'Plus Jakarta Sans', sans-serif;
-  --font-body: 'DM Sans', sans-serif;
+  --font-body: 'Plus Jakarta Sans', sans-serif;
   --font-mono: 'JetBrains Mono', 'Courier New', monospace;
 
   /* Font sizes */

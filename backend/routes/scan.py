@@ -13,6 +13,7 @@ import os
 import json
 import math
 import subprocess
+import shutil
 from typing import Optional, List
 
 from fastapi import APIRouter, UploadFile, File, HTTPException
@@ -105,7 +106,7 @@ def _to_image(content: bytes, filename: str):
 # Görsel → entity listesi (vectorize)
 # ─────────────────────────────────────────────
 
-POTRACE_BIN = subprocess.run(["which", "potrace"], capture_output=True, text=True).stdout.strip() or None
+POTRACE_BIN = shutil.which("potrace")
 
 
 def _smooth_binarize(img: np.ndarray) -> np.ndarray:

@@ -1,10 +1,12 @@
-## Local Geliştirme Ortamını Çalıştırma
+## Local Gelistirme Ortamini Calistirma
 
-### Tek komutla başlat
+### Tek komutla baslat
 ```bash
-./start-dev.sh    # Docker daemon'ı da otomatik açar
-./stop-dev.sh     # Durdurur (PostgreSQL isteğe bağlı)
+./start-dev.sh
+./stop-dev.sh
 ```
+
+`start-dev.sh` PostgreSQL servisi ayakta oldugunda backend ve frontend sureclerini baslatir.
 
 ### Adresler
 | Servis | URL |
@@ -13,55 +15,52 @@
 | Frontend (ana) | http://localhost:8080/index.html |
 | Backend API | http://localhost:8000 |
 | API Docs (Swagger) | http://localhost:8000/docs |
-| PostgreSQL | localhost:5432 (sadece container içi) |
+| PostgreSQL | localhost:5432 |
 
-### Manuel başlatma
+### Manuel baslatma
 ```bash
 # 1. PostgreSQL
-docker start cad_postgres          # ilk sefer: docker compose up -d
+sudo systemctl enable --now postgresql
 
 # 2. Backend
 cd backend
 venv/bin/python3 -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 
 # 3. Frontend
-python3 -m http.server 3000 --directory frontend
+python3 -m http.server 8080 --directory frontend
 ```
 
-### DWG desteği (Docker'sız)
-DWG yükleme için sistemde `dwg2dxf` komutu gerekir.
+### DWG destegi
+DWG yukleme icin sistemde `dwg2dxf` komutu gerekir.
 
 ```bash
 ./scripts/setup-dwg2dxf.sh
-# sonra backend'i yeniden başlat:
-# cd backend && venv/bin/python3 -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-### .env (backend/.env) — mevcut değerler
-```
-DATABASE_URL=postgresql://postgres:password@127.0.0.1:5433/cad_search
+### .env (backend/.env) ornek
+```env
+DATABASE_URL=postgresql://postgres:password@127.0.0.1:5432/cad_search
 JWT_SECRET=local-dev-secret-change-in-production
 ENVIRONMENT=development
 ```
-- Port **5433** — eski container 5432 yerine 5433'e map edilmiş
-- Şifre **password** — eski container'ın şifresi (changeme değil)
-- Şema ilk backend başlangıcında `init_db()` ile otomatik oluşur
 
-### Test Kullanıcıları (local)
-| Email | Şifre | Şirket |
+- Port `5432` PostgreSQL servis portudur.
+- Sema ilk backend baslangicinda `init_db()` ile otomatik olusur.
+
+### Test kullanicisi
+| Email | Sifre | Sirket |
 |-------|-------|--------|
 | admin@example.com | admin123 | Test Firma |
 
-Yeni kullanıcı oluşturmak için:
+Yeni kullanici olusturmak icin:
 ```bash
 curl -X POST http://localhost:8000/auth/register \
   -H "Content-Type: application/json" \
   -d '{"email":"sen@firmam.com","password":"sifre123","company_name":"Firmam"}'
 ```
-> Not: Pydantic EmailStr `.local` TLD'yi reddediyor, gerçek TLD kullan (`.com`, `.net` vb.)
 
 ### Loglar
-```
+```text
 /tmp/cad_backend.log
 /tmp/cad_frontend.log
 ```
