@@ -1002,6 +1002,20 @@
     .fl-filter-btn { display:inline-flex; align-items:center; gap:6px; padding:7px 12px; border:1px solid #e2e8f0; border-radius:8px; background:#fff; font-size:13px; font-weight:500; color:#475569; text-decoration:none; cursor:pointer; white-space:nowrap; transition:all 0.15s; }
     .fl-filter-btn:hover { background:#f8fafc; border-color:#cbd5e1; }
     .fl-filter-btn svg { width:14px; height:14px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+    /* Grid card view */
+    .fl-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:16px; padding:4px 2px; }
+    .fl-card { background:#fff; border:1.5px solid #e2e8f0; border-radius:12px; padding:16px; cursor:pointer; transition:border-color 0.15s,box-shadow 0.15s; position:relative; display:flex; flex-direction:column; gap:10px; }
+    .fl-card:hover { border-color:#0ea5e9; box-shadow:0 4px 16px rgba(14,165,233,0.12); }
+    .fl-card-badge { display:inline-flex; align-items:center; justify-content:center; padding:3px 8px; border-radius:6px; font-size:11px; font-weight:700; letter-spacing:0.04em; width:fit-content; }
+    .fl-card-icon { display:flex; align-items:center; justify-content:center; height:72px; }
+    .fl-card-icon svg { width:52px; height:52px; }
+    .fl-card-name { font-size:13px; font-weight:500; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .fl-card-meta { font-size:11px; color:#94a3b8; }
+    .fl-card-tags { display:flex; flex-wrap:wrap; gap:4px; min-height:20px; }
+    .fl-card-tag { font-size:11px; font-weight:500; padding:2px 8px; border-radius:20px; white-space:nowrap; }
+    .fl-card-menu { position:absolute; top:10px; right:10px; opacity:0; transition:opacity 0.15s; }
+    .fl-card:hover .fl-card-menu { opacity:1; }
+    .fl-card-menu button { background:#f1f5f9; border:none; border-radius:6px; padding:4px 6px; cursor:pointer; color:#475569; font-size:16px; line-height:1; }
     .fl-upload-panel { background:#fff; border-bottom:1px solid #e2e8f0; overflow:hidden; }
     .fl-upload-inner { padding:20px 32px 24px; max-width:900px; }
   </style>
@@ -1420,8 +1434,8 @@
           </select>
           <button class="pg-btn" id="dbApplyStatusBtn" onclick="applyStatusToDbSelection()" disabled>Apply Status</button>
           <div class="fl-view-toggle">
-            <button class="fl-view-btn active" id="flViewList">List</button>
-            <button class="fl-view-btn" id="flViewGrid">Grid</button>
+            <button class="fl-view-btn" id="flViewGrid" onclick="setDbViewMode('grid')">Grid</button>
+            <button class="fl-view-btn active" id="flViewList" onclick="setDbViewMode('list')">List</button>
           </div>
         </div>
       </div>
@@ -1432,7 +1446,7 @@
           <div class="db-files-header">
             <h2 id="flFolderTitle">All Files <span id="dbTotalBadge" style="font-size:12px;color:var(--text3);font-weight:400"></span></h2>
           </div>
-          <div class="db-table-wrap">
+          <div id="dbListView" class="db-table-wrap">
             <table>
               <thead>
                 <tr>
@@ -1454,6 +1468,7 @@
               </tbody>
             </table>
           </div>
+          <div id="dbGridView" class="fl-grid" style="display:none"></div>
           <div class="db-pagination" id="dbPagination" style="display:none">
             <span id="dbPageInfo"></span>
             <div class="db-pagination-btns">
@@ -3642,11 +3657,61 @@ async function loadDbFiles() {
   }
 }
 
+let dbViewMode = 'list';
+let dbLastFiles = [];
+
+function setDbViewMode(mode) {
+  dbViewMode = mode;
+  document.getElementById('flViewGrid').classList.toggle('active', mode === 'grid');
+  document.getElementById('flViewList').classList.toggle('active', mode === 'list');
+  document.getElementById('dbListView').style.display = mode === 'list' ? '' : 'none';
+  document.getElementById('dbGridView').style.display = mode === 'grid' ? '' : 'none';
+  renderDbTable(dbLastFiles);
+}
+
+const fmtBadgeStyle = {
+  dxf: 'background:#e0f2fe;color:#0369a1',
+  dwg: 'background:#ede9fe;color:#6d28d9',
+  pdf: 'background:#fee2e2;color:#b91c1c',
+  jpg: 'background:#fef9c3;color:#a16207',
+  jpeg:'background:#fef9c3;color:#a16207',
+  png: 'background:#f0fdf4;color:#166534',
+};
+
 function renderDbTable(files) {
+  dbLastFiles = files;
   const tbody = document.getElementById('dbTableBody');
   dbState.pageIds = files.map(f => Number(f.id)).filter(Boolean);
   if (!files.length) {
     tbody.innerHTML = `<tr><td colspan="11" class="db-empty">Henüz kalıp yok. Yükle sekmesinden ekleyin.</td></tr>`;
+    document.getElementById('dbGridView').innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:48px;color:#94a3b8;font-size:14px">No files found.</div>`;
+    updateDbApprovalSelectionUi();
+    return;
+  }
+  if (dbViewMode === 'grid') {
+    const docIcon = `<svg viewBox="0 0 48 56" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="1" y="1" width="46" height="54" rx="6" fill="#f1f5f9" stroke="#e2e8f0" stroke-width="1.5"/><rect x="8" y="18" width="32" height="3" rx="1.5" fill="#cbd5e1"/><rect x="8" y="26" width="24" height="3" rx="1.5" fill="#cbd5e1"/><rect x="8" y="34" width="28" height="3" rx="1.5" fill="#cbd5e1"/><rect x="8" y="42" width="18" height="3" rx="1.5" fill="#e2e8f0"/></svg>`;
+    document.getElementById('dbGridView').innerHTML = files.map(f => {
+      const fmt = (f.file_format || '').toLowerCase();
+      const badgeStyle = fmtBadgeStyle[fmt] || 'background:#f1f5f9;color:#475569';
+      const date = f.indexed_at ? new Date(f.indexed_at).toLocaleDateString('tr-TR') : '—';
+      const sizeParts = (f.bbox_width && f.bbox_height) ? `${f.bbox_width.toFixed(0)}×${f.bbox_height.toFixed(0)}` : '';
+      const meta = [sizeParts, date].filter(Boolean).join(' • ');
+      const catTag = f.category_name
+        ? `<span class="fl-card-tag" style="background:${f.category_color||'#6366f1'}18;color:${f.category_color||'#6366f1'}">${f.category_name}</span>` : '';
+      const thumb = f.jpg_preview
+        ? `<img src="${f.jpg_preview}" style="max-width:100%;max-height:72px;object-fit:contain;border-radius:6px">`
+        : docIcon;
+      return `<div class="fl-card" onclick="showDetailModal(${f.id})">
+        <span class="fl-card-badge" style="${badgeStyle}">${fmt.toUpperCase()}</span>
+        <div class="fl-card-menu" onclick="event.stopPropagation()">
+          <button title="Download" onclick="downloadFile(${f.id},'${f.filename.replace(/'/g,"\\'")}')">↓</button>
+        </div>
+        <div class="fl-card-icon">${thumb}</div>
+        <div class="fl-card-name" title="${f.filepath}">${f.filename}</div>
+        <div class="fl-card-meta">${meta}</div>
+        <div class="fl-card-tags">${catTag}</div>
+      </div>`;
+    }).join('');
     updateDbApprovalSelectionUi();
     return;
   }
