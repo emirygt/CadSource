@@ -1107,7 +1107,7 @@
     <span class="nav-ic"><svg viewBox="0 0 24 24"><circle cx="8" cy="8" r="4"></circle><circle cx="16" cy="16" r="4"></circle><path d="M11 8H16M8 11V16"></path></svg></span>
     <span>Search & Compare</span>
   </div>
-  <div class="tab" onclick="navGo('db', document.getElementById('nav-library')); setTimeout(()=>document.getElementById('dbFileInput').click(),100)">
+  <div class="tab" onclick="navGo('db', document.getElementById('nav-library')); setTimeout(()=>{ const p=document.getElementById('dbUploadPanel'); if(p&&p.style.display==='none') toggleDbUploadPanel(); },100)">
     <span class="nav-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></span>
     <span>Upload Files</span>
   </div>
@@ -1373,7 +1373,7 @@
     <div class="fl-sidebar">
       <!-- Upload butonu sidebar'da -->
       <div style="padding:12px 8px 4px">
-        <button onclick="document.getElementById('dbFileInput').click()" style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 12px;background:#0ea5e9;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:background 0.15s;font-family:var(--font-body)" onmouseover="this.style.background='#0284c7'" onmouseout="this.style.background='#0ea5e9'">
+        <button onclick="toggleDbUploadPanel()" style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 12px;background:#0ea5e9;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:background 0.15s;font-family:var(--font-body)" onmouseover="this.style.background='#0284c7'" onmouseout="this.style.background='#0ea5e9'">
           <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
           Upload Files
         </button>
@@ -1491,7 +1491,7 @@
       <p class="ph-sub" id="approvedPageSub">Review and approve pending CAD files</p>
     </div>
     <div class="ph-actions">
-      <button class="analytics-primary-btn" onclick="document.getElementById('dbFileInput').click()">
+      <button class="analytics-primary-btn" onclick="navGo('db', document.getElementById('nav-library')); setTimeout(()=>{ const p=document.getElementById('dbUploadPanel'); if(p&&p.style.display==='none') toggleDbUploadPanel(); },100)">
         <span class="btn-ic"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></span>
         Upload Files
       </button>
@@ -1512,7 +1512,7 @@
     <!-- Left sidebar (same structure, folder active state set by JS) -->
     <div class="fl-sidebar">
       <div style="padding:12px 8px 4px">
-        <button onclick="document.getElementById('dbFileInput').click()" style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 12px;background:#0ea5e9;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:background 0.15s;font-family:var(--font-body)" onmouseover="this.style.background='#0284c7'" onmouseout="this.style.background='#0ea5e9'">
+        <button onclick="navGo('db', document.getElementById('nav-library')); setTimeout(()=>{ const p=document.getElementById('dbUploadPanel'); if(p&&p.style.display==='none') toggleDbUploadPanel(); },100)" style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 12px;background:#0ea5e9;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:background 0.15s;font-family:var(--font-body)" onmouseover="this.style.background='#0284c7'" onmouseout="this.style.background='#0ea5e9'">
           <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
           Upload Files
         </button>
