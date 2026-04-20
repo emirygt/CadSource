@@ -296,6 +296,23 @@
       padding: 28px 24px 36px;
     }
     .page.active > * { width: min(1360px, 100%); margin: 0 auto; }
+    #page-db.active, #page-approved.active {
+      overflow: hidden !important;
+      padding: 0 !important;
+      align-items: stretch !important;
+      flex-direction: column !important;
+      align-self: stretch !important;
+    }
+    #page-db.active > *, #page-approved.active > * { width: 100% !important; max-width: none !important; margin: 0 !important; flex-shrink: 0; }
+    #page-db.active > .fl-layout, #page-approved.active > .fl-layout {
+      flex: 1 1 0 !important;
+      min-height: 0 !important;
+      overflow: hidden !important;
+      width: 100% !important;
+      max-width: none !important;
+      margin: 0 !important;
+      flex-shrink: 1 !important;
+    }
 
     /* ══════════════════════════════════════════
        ARA SAYFASI
@@ -959,6 +976,34 @@
     .ph-title { font-size: 24px; font-weight: 700; color: #0f172a; margin-bottom: 4px; margin-top: 0; }
     .ph-sub { font-size: 13px; color: #64748b; margin: 0; }
     .ph-actions { display: flex; gap: 12px; align-items: center; }
+
+    /* ── File Library Figma Layout ── */
+    .fl-layout { display:flex; flex:1; overflow:hidden; min-height:0; }
+    .fl-sidebar { width:232px; background:#fff; border-right:1px solid #e2e8f0; display:flex; flex-direction:column; overflow-y:auto; flex-shrink:0; }
+    .fl-section-label { font-size:11px; font-weight:700; color:#64748b; letter-spacing:0.06em; padding:16px 16px 8px; text-transform:uppercase; }
+    .fl-folder-btn { display:flex; align-items:center; gap:8px; width:calc(100% - 8px); margin:0 4px; padding:8px 10px; border:none; background:transparent; cursor:pointer; border-radius:8px; text-align:left; font-size:13px; color:#334155; transition:all 0.15s; font-family:var(--font-body); }
+    .fl-folder-btn:hover { background:#f1f5f9; }
+    .fl-folder-btn.active { background:rgba(14,165,233,0.1); color:#0ea5e9; font-weight:500; }
+    .fl-folder-btn svg { width:15px; height:15px; flex-shrink:0; stroke:currentColor; fill:none; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; }
+    .fl-folder-count { margin-left:auto; font-size:11px; font-family:monospace; color:inherit; opacity:0.8; }
+    .fl-storage { padding:14px 16px 16px; border-top:1px solid #e2e8f0; margin-top:auto; }
+    .fl-storage-bar-wrap { height:6px; background:#e2e8f0; border-radius:99px; overflow:hidden; margin-top:8px; }
+    .fl-storage-bar { height:100%; background:#0ea5e9; border-radius:99px; width:0%; transition:width 0.3s; }
+    .fl-main { flex:1; display:flex; flex-direction:column; overflow:hidden; background:#f8fafc; min-width:0; }
+    .fl-toolbar { background:#fff; border-bottom:1px solid #e2e8f0; padding:10px 20px; display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; flex-shrink:0; }
+    .fl-toolbar-search { position:relative; }
+    .fl-toolbar-search svg { position:absolute; left:10px; top:50%; transform:translateY(-50%); width:15px; height:15px; stroke:#94a3b8; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; pointer-events:none; }
+    .fl-toolbar-search input { padding:7px 12px 7px 32px; border:1px solid #e2e8f0; border-radius:8px; background:#f8fafc; font-size:13px; color:#334155; outline:none; width:260px; }
+    .fl-toolbar-search input:focus { border-color:#0ea5e9; background:#fff; box-shadow:0 0 0 3px rgba(14,165,233,0.1); }
+    .fl-view-toggle { display:flex; background:#f1f5f9; border-radius:8px; padding:3px; gap:2px; }
+    .fl-view-btn { padding:4px 12px; border:none; background:transparent; border-radius:6px; font-size:12px; font-weight:500; color:#64748b; cursor:pointer; transition:all 0.15s; }
+    .fl-view-btn.active { background:#fff; color:#0ea5e9; box-shadow:0 1px 3px rgba(0,0,0,0.1); }
+    .fl-content { flex:1; overflow:auto; padding:20px; }
+    .fl-filter-btn { display:inline-flex; align-items:center; gap:6px; padding:7px 12px; border:1px solid #e2e8f0; border-radius:8px; background:#fff; font-size:13px; font-weight:500; color:#475569; text-decoration:none; cursor:pointer; white-space:nowrap; transition:all 0.15s; }
+    .fl-filter-btn:hover { background:#f8fafc; border-color:#cbd5e1; }
+    .fl-filter-btn svg { width:14px; height:14px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+    .fl-upload-panel { background:#fff; border-bottom:1px solid #e2e8f0; overflow:hidden; }
+    .fl-upload-inner { padding:20px 32px 24px; max-width:900px; }
   </style>
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
@@ -1048,6 +1093,12 @@
     <span class="nav-ic"><svg viewBox="0 0 24 24"><circle cx="8" cy="8" r="4"></circle><circle cx="16" cy="16" r="4"></circle><path d="M11 8H16M8 11V16"></path></svg></span>
     <span>Search & Compare</span>
   </div>
+  <div style="padding:6px 12px 2px">
+    <button onclick="navGo('db', document.getElementById('nav-library')); setTimeout(()=>document.getElementById('dbFileInput').click(),100)" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 14px;background:#0ea5e9;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-body);transition:background 0.15s" onmouseover="this.style.background='#0284c7'" onmouseout="this.style.background='#0ea5e9'">
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      Upload Files
+    </button>
+  </div>
   <div class="tab" id="nav-upload" onclick="navGo('db', this)" style="display:none">
     <span class="nav-ic"><svg viewBox="0 0 24 24"><path d="M12 16V4"></path><path d="m7 9 5-5 5 5"></path><path d="M20 16.5v2.5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2.5"></path></svg></span>
     <span>Upload</span>
@@ -1078,8 +1129,8 @@
     <span>Image to Contour</span>
   </div>
   <div class="tab" id="nav-cat" onclick="navGo('cat', this)">
-    <span class="nav-ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></span>
-    <span>Settings</span>
+    <span class="nav-ic"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg></span>
+    <span>Categories</span>
   </div>
   <div class="tab" id="nav-scan" onclick="navGo('scan', this)" style="display:none">
     <span class="nav-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/><circle cx="15" cy="15" r="2"/><path d="M12 15h.01"/></svg></span>
@@ -1202,16 +1253,16 @@
 </div>
 
 <!-- ═══════════════ DB SAYFASI ═══════════════ -->
-<div class="page" id="page-db" style="padding:0; background:#f8fafc; align-items: stretch; flex-direction: column;">
+<div class="page" id="page-db" style="background:#f8fafc;">
   <div class="page-header">
     <div>
       <h1 class="ph-title">File Library</h1>
-      <p class="ph-sub">Browse all your CAD files</p>
+      <p class="ph-sub">Manage and organize your CAD files and technical drawings</p>
     </div>
     <div class="ph-actions">
-      <button class="analytics-primary-btn" onclick="navGo('search', document.getElementById('nav-search'))">
-        <span class="btn-ic"><svg viewBox="0 0 24 24"><path d="M5 12h14M12 5v14"></path></svg></span>
-        New Comparison
+      <button class="analytics-primary-btn" onclick="toggleDbUploadPanel()">
+        <span class="btn-ic"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></span>
+        Upload Files
       </button>
       <label class="analytics-searchbox">
         <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
@@ -1225,12 +1276,17 @@
       </button>
     </div>
   </div>
-  <div class="db-layout" style="padding:32px; max-width:1400px; width:100%; margin:0 auto;">
 
-    <!-- Upload kartı -->
-    <div class="db-upload-card">
-      <h2>Kalıp Yükle</h2>
-      <p>DWG, DXF veya PDF dosyalarınızı sürükleyin. Toplu yükleme desteklenir.</p>
+  <!-- Upload Panel (collapsible) -->
+  <div id="dbUploadPanel" class="fl-upload-panel" style="display:none">
+    <div class="fl-upload-inner">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div>
+          <h3 style="font-size:15px;font-weight:600;color:#0f172a;margin:0">Upload Files</h3>
+          <p style="font-size:12px;color:#64748b;margin:4px 0 0">DWG, DXF, PDF or image files. Bulk upload supported.</p>
+        </div>
+        <button onclick="toggleDbUploadPanel()" style="background:transparent;border:none;color:#64748b;cursor:pointer;padding:4px 8px;font-size:20px;line-height:1;border-radius:6px" title="Close">×</button>
+      </div>
       <div class="db-drop" id="dbDrop"
         ondragover="dbDragOver(event)" ondragleave="dbDragLeave()"
         ondrop="dbDropped(event)" onclick="document.getElementById('dbFileInput').click()">
@@ -1252,9 +1308,6 @@
           <div class="db-drop-preview-name" id="dbDropPreviewName"></div>
         </div>
       </div>
-      <input type="file" id="dbFileInput" accept=".dxf,.dwg,.pdf,.jpg,.jpeg,.png,.zip,.rar" multiple style="display:none" onchange="dbFilesSelected(event)">
-
-      <!-- Kategori + CLIP seçimi -->
       <div style="margin-top:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
         <label style="font-size:12px;color:var(--text3);white-space:nowrap">Kategori:</label>
         <select id="dbCategorySelect" style="background:var(--bg3);border:1px solid var(--border2);border-radius:6px;color:var(--text);padding:6px 10px;font-size:12px;outline:none;min-width:160px">
@@ -1267,8 +1320,6 @@
           Hızlı mod (AI görsel analiz atla) — <span style="color:var(--text3)">büyük yüklemeler için önerilir</span>
         </label>
       </div>
-
-      <!-- Seçili dosyalar -->
       <div class="db-selected-files" id="dbSelectedFiles">
         <h4 id="dbSelectedCount"></h4>
         <div class="db-file-chips" id="dbFileChips"></div>
@@ -1284,8 +1335,6 @@
           <div class="db-image-preview-grid" id="dbImagePreviewGrid"></div>
         </div>
       </div>
-
-      <!-- Progress -->
       <div class="db-progress" id="dbProgress">
         <div class="db-progress-label" id="dbProgressLabel">Yükleniyor...</div>
         <div class="db-progress-bar-wrap"><div class="db-progress-bar" id="dbProgressBar"></div></div>
@@ -1296,57 +1345,124 @@
         <div class="db-upload-queue" id="dbUploadQueue"></div>
         <div class="db-error-list" id="dbErrorList"></div>
       </div>
-
       <div class="db-actions">
         <button class="btn-primary" id="dbUploadBtn" onclick="startDbUpload()" disabled>Yükle ve İndeksle</button>
         <button class="btn-secondary" id="dbClearBtn" onclick="clearDbSelection()" style="display:none">Temizle</button>
       </div>
       <div id="dbUploadStatus" class="db-upload-status"></div>
     </div>
+  </div>
 
-    <!-- Dosya listesi -->
-    <div class="db-files-card">
-      <div class="db-files-header">
-        <h2>All Products <span id="dbTotalBadge" style="font-size:12px;color:var(--text3);font-weight:400"></span></h2>
+  <input type="file" id="dbFileInput" accept=".dxf,.dwg,.pdf,.jpg,.jpeg,.png,.zip,.rar" multiple style="display:none" onchange="dbFilesSelected(event)">
+  <!-- Figma-style layout: left sidebar + main -->
+  <div class="fl-layout">
+
+    <!-- Left sidebar: folders + storage -->
+    <div class="fl-sidebar">
+      <!-- Upload butonu sidebar'da -->
+      <div style="padding:12px 8px 4px">
+        <button onclick="document.getElementById('dbFileInput').click()" style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 12px;background:#0ea5e9;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:background 0.15s;font-family:var(--font-body)" onmouseover="this.style.background='#0284c7'" onmouseout="this.style.background='#0ea5e9'">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Upload Files
+        </button>
+      </div>
+      <div class="fl-section-label">FOLDERS</div>
+      <div style="padding:0 8px 8px">
+        <button class="fl-folder-btn active" id="flFolderAll" onclick="flSetFolder('all',this)">
+          <svg viewBox="0 0 24 24"><path d="M2 8Q2 6 4 6H9L11 8.5H20Q22 8.5 22 10.5V19Q22 21 20 21H4Q2 21 2 19Z"></path></svg>
+          <span>All Files</span>
+          <span class="fl-folder-count" id="flCountAll">—</span>
+        </button>
+        <button class="fl-folder-btn" id="flFolderNew" onclick="flSetFolder('uploaded',this)">
+          <svg viewBox="0 0 24 24"><path d="M2 8Q2 6 4 6H9L11 8.5H20Q22 8.5 22 10.5V19Q22 21 20 21H4Q2 21 2 19Z"></path></svg>
+          <span>New</span>
+          <span class="fl-folder-count" id="flCountNew">—</span>
+        </button>
+        <button class="fl-folder-btn" id="flFolderDraft" onclick="navLibrary('draft',document.getElementById('nav-library-draft'))">
+          <svg viewBox="0 0 24 24"><path d="M2 8Q2 6 4 6H9L11 8.5H20Q22 8.5 22 10.5V19Q22 21 20 21H4Q2 21 2 19Z"></path></svg>
+          <span>Review Queue</span>
+          <span class="fl-folder-count" id="flCountDraft">—</span>
+        </button>
+        <button class="fl-folder-btn" id="flFolderApproved" onclick="navLibrary('approved',document.getElementById('nav-library-approved'))">
+          <svg viewBox="0 0 24 24"><path d="M2 8Q2 6 4 6H9L11 8.5H20Q22 8.5 22 10.5V19Q22 21 20 21H4Q2 21 2 19Z"></path></svg>
+          <span>Approved Catalog</span>
+          <span class="fl-folder-count" id="flCountApproved">—</span>
+        </button>
+      </div>
+      <div class="fl-storage">
+        <div style="font-size:11px;font-weight:700;color:#64748b;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:10px">STORAGE</div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px">
+          <span style="color:#475569">Total files</span>
+          <span style="font-family:monospace;font-weight:600;color:#0f172a" id="flStorageFiles">—</span>
+        </div>
+        <div class="fl-storage-bar-wrap"><div class="fl-storage-bar" id="flStorageBar"></div></div>
+      </div>
+    </div>
+
+    <!-- Main content -->
+    <div class="fl-main">
+      <!-- Toolbar -->
+      <div class="fl-toolbar">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="fl-toolbar-search">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input id="dbSearchBox" placeholder="Search files..." oninput="dbSearchDebounce()">
+          </div>
+          <a href="db-filters.html" class="fl-filter-btn">
+            <svg viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+            Filter
+          </a>
+        </div>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-          <input class="db-search-box" id="dbSearchBox" placeholder="Search files..." oninput="dbSearchDebounce()" />
-          <span id="dbSelectedApproveInfo" style="font-size:11px;color:var(--text3);white-space:nowrap">0 selected</span>
-          <select id="dbBulkStatusSelect" style="background:var(--bg3);border:1px solid var(--border2);border-radius:6px;color:var(--text);padding:6px 8px;font-size:12px;outline:none">
+          <span id="dbSelectedApproveInfo" style="font-size:11px;color:#64748b;white-space:nowrap">0 selected</span>
+          <select id="dbBulkStatusSelect" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;color:#334155;padding:6px 10px;font-size:12px;outline:none">
             <option value="uploaded">New</option>
             <option value="draft">Review Queue</option>
             <option value="approved">Approved Catalog</option>
           </select>
           <button class="pg-btn" id="dbApplyStatusBtn" onclick="applyStatusToDbSelection()" disabled>Apply Status</button>
-          <a href="db-filters.html" style="background:var(--bg3);border:1px solid var(--border2);color:var(--text2);padding:6px 10px;border-radius:6px;font-size:12px;text-decoration:none;white-space:nowrap">Gelişmiş Filtre</a>
+          <div class="fl-view-toggle">
+            <button class="fl-view-btn active" id="flViewList">List</button>
+            <button class="fl-view-btn" id="flViewGrid">Grid</button>
+          </div>
         </div>
       </div>
-      <div class="db-table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th style="width:30px;text-align:center"><input id="dbSelectAll" type="checkbox" onchange="toggleDbSelectAll(this.checked)" style="accent-color:var(--blue);cursor:pointer"></th>
-              <th style="width:48px"></th>
-              <th>Dosya Adı</th>
-              <th>Format</th>
-              <th>Kategori</th>
-              <th>Entity</th>
-              <th>Katman</th>
-              <th>Boyut</th>
-              <th>Durum</th>
-              <th>Eklenme</th>
-              <th>İşlem</th>
-            </tr>
-          </thead>
-          <tbody id="dbTableBody">
-            <tr><td colspan="11" class="db-empty">Yükleniyor...</td></tr>
-          </tbody>
-        </table>
-      </div>
-      <div class="db-pagination" id="dbPagination" style="display:none">
-        <span id="dbPageInfo"></span>
-        <div class="db-pagination-btns">
-          <button class="pg-btn" id="dbPrevBtn" onclick="dbChangePage(-1)">‹ Önceki</button>
-          <button class="pg-btn" id="dbNextBtn" onclick="dbChangePage(1)">Sonraki ›</button>
+
+      <!-- File list -->
+      <div class="fl-content">
+        <div class="db-files-card">
+          <div class="db-files-header">
+            <h2 id="flFolderTitle">All Files <span id="dbTotalBadge" style="font-size:12px;color:var(--text3);font-weight:400"></span></h2>
+          </div>
+          <div class="db-table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:30px;text-align:center"><input id="dbSelectAll" type="checkbox" onchange="toggleDbSelectAll(this.checked)" style="accent-color:var(--blue);cursor:pointer"></th>
+                  <th style="width:48px"></th>
+                  <th>Dosya Adı</th>
+                  <th>Format</th>
+                  <th>Kategori</th>
+                  <th>Entity</th>
+                  <th>Katman</th>
+                  <th>Boyut</th>
+                  <th>Durum</th>
+                  <th>Eklenme</th>
+                  <th>İşlem</th>
+                </tr>
+              </thead>
+              <tbody id="dbTableBody">
+                <tr><td colspan="11" class="db-empty">Yükleniyor...</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="db-pagination" id="dbPagination" style="display:none">
+            <span id="dbPageInfo"></span>
+            <div class="db-pagination-btns">
+              <button class="pg-btn" id="dbPrevBtn" onclick="dbChangePage(-1)">‹ Önceki</button>
+              <button class="pg-btn" id="dbNextBtn" onclick="dbChangePage(1)">Sonraki ›</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -1355,16 +1471,16 @@
 </div>
 
 <!-- ═══════════════ ÜRÜNLER SAYFASI ═══════════════ -->
-<div class="page" id="page-approved" style="padding:0; background:#f8fafc; align-items: stretch; flex-direction: column;">
+<div class="page" id="page-approved" style="background:#f8fafc;">
   <div class="page-header">
     <div>
-      <h1 class="ph-title">Review Queue</h1>
-      <p class="ph-sub">Review pending file vectors</p>
+      <h1 class="ph-title" id="approvedPageTitle">Review Queue</h1>
+      <p class="ph-sub" id="approvedPageSub">Review and approve pending CAD files</p>
     </div>
     <div class="ph-actions">
-      <button class="analytics-primary-btn" onclick="navGo('search', document.getElementById('nav-search'))">
-        <span class="btn-ic"><svg viewBox="0 0 24 24"><path d="M5 12h14M12 5v14"></path></svg></span>
-        New Comparison
+      <button class="analytics-primary-btn" onclick="document.getElementById('dbFileInput').click()">
+        <span class="btn-ic"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></span>
+        Upload Files
       </button>
       <label class="analytics-searchbox">
         <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
@@ -1378,82 +1494,135 @@
       </button>
     </div>
   </div>
-  <div class="db-layout" style="grid-template-columns:1fr;display:block; padding:32px; max-width:1400px; width:100%; margin:0 auto;">
-    <div class="db-products-grid mode-split" id="productsSplitLayout">
-      <div class="db-files-card" id="draftProductsCard">
-        <div class="db-files-header">
-          <h2>Review Queue <span id="draftTotalBadge" style="font-size:12px;color:var(--text3);font-weight:400"></span></h2>
-          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-            <input class="db-search-box" id="draftSearchBox" placeholder="Search review items..." oninput="productSearchDebounce('draft')" />
-            <span id="draftSelectedInfo" style="font-size:11px;color:var(--text3);white-space:nowrap">0 selected</span>
-            <button class="pg-btn" id="draftToApprovedBtn" onclick="moveProductSelection('draft')" disabled>Move to Approved</button>
+
+  <div class="fl-layout">
+    <!-- Left sidebar (same structure, folder active state set by JS) -->
+    <div class="fl-sidebar">
+      <div style="padding:12px 8px 4px">
+        <button onclick="document.getElementById('dbFileInput').click()" style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 12px;background:#0ea5e9;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:background 0.15s;font-family:var(--font-body)" onmouseover="this.style.background='#0284c7'" onmouseout="this.style.background='#0ea5e9'">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Upload Files
+        </button>
+      </div>
+      <div class="fl-section-label">FOLDERS</div>
+      <div style="padding:0 8px 8px">
+        <button class="fl-folder-btn" onclick="navLibrary('db',document.getElementById('nav-library-db'))">
+          <svg viewBox="0 0 24 24"><path d="M2 8Q2 6 4 6H9L11 8.5H20Q22 8.5 22 10.5V19Q22 21 20 21H4Q2 21 2 19Z"></path></svg>
+          <span>All Files</span>
+        </button>
+        <button class="fl-folder-btn" onclick="navLibrary('db',document.getElementById('nav-library-db'));setTimeout(()=>flSetFolder('uploaded',null),100)">
+          <svg viewBox="0 0 24 24"><path d="M2 8Q2 6 4 6H9L11 8.5H20Q22 8.5 22 10.5V19Q22 21 20 21H4Q2 21 2 19Z"></path></svg>
+          <span>New</span>
+        </button>
+        <button class="fl-folder-btn active" id="apFolderDraft" onclick="apSetFolder('draft',this)">
+          <svg viewBox="0 0 24 24"><path d="M2 8Q2 6 4 6H9L11 8.5H20Q22 8.5 22 10.5V19Q22 21 20 21H4Q2 21 2 19Z"></path></svg>
+          <span>Review Queue</span>
+          <span class="fl-folder-count" id="apCountDraft">—</span>
+        </button>
+        <button class="fl-folder-btn" id="apFolderApproved" onclick="apSetFolder('approved',this)">
+          <svg viewBox="0 0 24 24"><path d="M2 8Q2 6 4 6H9L11 8.5H20Q22 8.5 22 10.5V19Q22 21 20 21H4Q2 21 2 19Z"></path></svg>
+          <span>Approved Catalog</span>
+          <span class="fl-folder-count" id="apCountApproved">—</span>
+        </button>
+      </div>
+      <div class="fl-storage">
+        <div style="font-size:11px;font-weight:700;color:#64748b;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:10px">STORAGE</div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px">
+          <span style="color:#475569">Total files</span>
+          <span style="font-family:monospace;font-weight:600;color:#0f172a" id="apStorageFiles">—</span>
+        </div>
+        <div class="fl-storage-bar-wrap"><div class="fl-storage-bar" id="apStorageBar"></div></div>
+      </div>
+    </div>
+
+    <!-- Main content: shows active folder's table -->
+    <div class="fl-main">
+      <!-- Review Queue panel -->
+      <div id="apPanelDraft" style="display:flex;flex-direction:column;flex:1;overflow:hidden">
+        <div class="fl-toolbar">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="fl-toolbar-search">
+              <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              <input id="draftSearchBox" placeholder="Search review items..." oninput="productSearchDebounce('draft')">
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span id="draftSelectedInfo" style="font-size:11px;color:#64748b;white-space:nowrap">0 selected</span>
+            <button class="analytics-primary-btn" id="draftToApprovedBtn" onclick="moveProductSelection('draft')" disabled style="height:34px;font-size:12px">
+              Move to Approved →
+            </button>
           </div>
         </div>
-        <div class="db-table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th style="width:30px;text-align:center"><input id="draftSelectAll" type="checkbox" onchange="toggleProductSelectAll('draft', this.checked)" style="accent-color:var(--blue);cursor:pointer"></th>
-                <th style="width:48px"></th>
-                <th>Dosya Adı</th>
-                <th>Format</th>
-                <th>Kategori</th>
-                <th>Entity</th>
-                <th>Katman</th>
-                <th>Boyut</th>
-                <th>Tarih</th>
-                <th>İşlem</th>
-              </tr>
-            </thead>
-            <tbody id="draftTableBody">
-              <tr><td colspan="10" class="db-empty">Yükleniyor...</td></tr>
-            </tbody>
-          </table>
-        </div>
-        <div class="db-pagination" id="draftPagination" style="display:none">
-          <span id="draftPageInfo"></span>
-          <div class="db-pagination-btns">
-            <button class="pg-btn" id="draftPrevBtn" onclick="productChangePage('draft', -1)">‹ Önceki</button>
-            <button class="pg-btn" id="draftNextBtn" onclick="productChangePage('draft', 1)">Sonraki ›</button>
+        <div class="fl-content">
+          <div class="db-files-card" id="draftProductsCard">
+            <div class="db-files-header">
+              <h2>Review Queue <span id="draftTotalBadge" style="font-size:12px;color:var(--text3);font-weight:400"></span></h2>
+            </div>
+            <div class="db-table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width:30px;text-align:center"><input id="draftSelectAll" type="checkbox" onchange="toggleProductSelectAll('draft', this.checked)" style="accent-color:var(--blue);cursor:pointer"></th>
+                    <th style="width:48px"></th>
+                    <th>Dosya Adı</th><th>Format</th><th>Kategori</th><th>Entity</th><th>Katman</th><th>Boyut</th><th>Tarih</th><th>İşlem</th>
+                  </tr>
+                </thead>
+                <tbody id="draftTableBody">
+                  <tr><td colspan="10" class="db-empty">Yükleniyor...</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="db-pagination" id="draftPagination" style="display:none">
+              <span id="draftPageInfo"></span>
+              <div class="db-pagination-btns">
+                <button class="pg-btn" id="draftPrevBtn" onclick="productChangePage('draft', -1)">‹ Önceki</button>
+                <button class="pg-btn" id="draftNextBtn" onclick="productChangePage('draft', 1)">Sonraki ›</button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="db-files-card" id="approvedProductsCard">
-        <div class="db-files-header">
-          <h2>Approved Catalog <span id="approvedTotalBadge" style="font-size:12px;color:var(--text3);font-weight:400"></span></h2>
-          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-            <input class="db-search-box" id="approvedSearchBox" placeholder="Search approved items..." oninput="productSearchDebounce('approved')" />
-            <span id="approvedSelectedInfo" style="font-size:11px;color:var(--text3);white-space:nowrap">0 selected</span>
-            <button class="pg-btn" id="approvedToDraftBtn" onclick="moveProductSelection('approved')" disabled>Move to Review</button>
+      <!-- Approved Catalog panel -->
+      <div id="apPanelApproved" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+        <div class="fl-toolbar">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="fl-toolbar-search">
+              <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              <input id="approvedSearchBox" placeholder="Search approved items..." oninput="productSearchDebounce('approved')">
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span id="approvedSelectedInfo" style="font-size:11px;color:#64748b;white-space:nowrap">0 selected</span>
+            <button class="pg-btn" id="approvedToDraftBtn" onclick="moveProductSelection('approved')" disabled>← Move to Review</button>
           </div>
         </div>
-        <div class="db-table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th style="width:30px;text-align:center"><input id="approvedSelectAll" type="checkbox" onchange="toggleProductSelectAll('approved', this.checked)" style="accent-color:var(--blue);cursor:pointer"></th>
-                <th style="width:48px"></th>
-                <th>Dosya Adı</th>
-                <th>Format</th>
-                <th>Kategori</th>
-                <th>Entity</th>
-                <th>Katman</th>
-                <th>Boyut</th>
-                <th>Tarih</th>
-                <th>İşlem</th>
-              </tr>
-            </thead>
-            <tbody id="approvedTableBody">
-              <tr><td colspan="10" class="db-empty">Yükleniyor...</td></tr>
-            </tbody>
-          </table>
-        </div>
-        <div class="db-pagination" id="approvedPagination" style="display:none">
-          <span id="approvedPageInfo"></span>
-          <div class="db-pagination-btns">
-            <button class="pg-btn" id="approvedPrevBtn" onclick="productChangePage('approved', -1)">‹ Önceki</button>
-            <button class="pg-btn" id="approvedNextBtn" onclick="productChangePage('approved', 1)">Sonraki ›</button>
+        <div class="fl-content">
+          <div class="db-files-card" id="approvedProductsCard">
+            <div class="db-files-header">
+              <h2>Approved Catalog <span id="approvedTotalBadge" style="font-size:12px;color:var(--text3);font-weight:400"></span></h2>
+            </div>
+            <div class="db-table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width:30px;text-align:center"><input id="approvedSelectAll" type="checkbox" onchange="toggleProductSelectAll('approved', this.checked)" style="accent-color:var(--blue);cursor:pointer"></th>
+                    <th style="width:48px"></th>
+                    <th>Dosya Adı</th><th>Format</th><th>Kategori</th><th>Entity</th><th>Katman</th><th>Boyut</th><th>Tarih</th><th>İşlem</th>
+                  </tr>
+                </thead>
+                <tbody id="approvedTableBody">
+                  <tr><td colspan="10" class="db-empty">Yükleniyor...</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="db-pagination" id="approvedPagination" style="display:none">
+              <span id="approvedPageInfo"></span>
+              <div class="db-pagination-btns">
+                <button class="pg-btn" id="approvedPrevBtn" onclick="productChangePage('approved', -1)">‹ Önceki</button>
+                <button class="pg-btn" id="approvedNextBtn" onclick="productChangePage('approved', 1)">Sonraki ›</button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1672,8 +1841,8 @@
 <div class="page" id="page-cat" style="padding:0; background:#f8fafc; align-items: stretch; flex-direction: column;">
   <div class="page-header">
     <div>
-      <h1 class="ph-title">Settings</h1>
-      <p class="ph-sub">Configure Categories</p>
+      <h1 class="ph-title">Categories</h1>
+      <p class="ph-sub">Manage file categories</p>
     </div>
     <div class="ph-actions">
       <button class="analytics-primary-btn" onclick="navGo('search', document.getElementById('nav-search'))">
@@ -2243,12 +2412,29 @@ function toggleLibraryMenu(forceOpen = null) {
   parent.classList.toggle('expanded', next);
 }
 
+function apSetFolder(kind, el) {
+  document.querySelectorAll('#page-approved .fl-folder-btn').forEach(b => b.classList.remove('active'));
+  if (el) el.classList.add('active');
+  const draftPanel = document.getElementById('apPanelDraft');
+  const approvedPanel = document.getElementById('apPanelApproved');
+  const titleEl = document.getElementById('approvedPageTitle');
+  const subEl = document.getElementById('approvedPageSub');
+  if (kind === 'approved') {
+    if (draftPanel) draftPanel.style.display = 'none';
+    if (approvedPanel) { approvedPanel.style.display = 'flex'; }
+    if (titleEl) titleEl.textContent = 'Approved Catalog';
+    if (subEl) subEl.textContent = 'Browse all approved CAD files';
+  } else {
+    if (draftPanel) draftPanel.style.display = 'flex';
+    if (approvedPanel) approvedPanel.style.display = 'none';
+    if (titleEl) titleEl.textContent = 'Review Queue';
+    if (subEl) subEl.textContent = 'Review and approve pending CAD files';
+  }
+}
+
 function setProductsViewMode(mode) {
-  const grid = document.getElementById('productsSplitLayout');
-  if (!grid) return;
-  const normalized = ['split', 'draft', 'approved'].includes(mode) ? mode : 'split';
-  grid.classList.remove('mode-split', 'mode-draft', 'mode-approved');
-  grid.classList.add(`mode-${normalized}`);
+  if (mode === 'approved') { apSetFolder('approved', document.getElementById('apFolderApproved')); return; }
+  if (mode === 'draft' || mode === 'split') { apSetFolder('draft', document.getElementById('apFolderDraft')); }
 }
 
 function navGo(target, el) {
@@ -2257,15 +2443,7 @@ function navGo(target, el) {
 }
 
 function focusProductsColumn(kind) {
-  const draftCard = document.getElementById('draftProductsCard');
-  const approvedCard = document.getElementById('approvedProductsCard');
-  if (draftCard) draftCard.classList.remove('product-focus');
-  if (approvedCard) approvedCard.classList.remove('product-focus');
-  const target = kind === 'approved' ? approvedCard : draftCard;
-  if (target) {
-    target.classList.add('product-focus');
-    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
+  apSetFolder(kind, document.getElementById(kind === 'approved' ? 'apFolderApproved' : 'apFolderDraft'));
 }
 
 function navLibrary(kind, el) {
@@ -3423,9 +3601,28 @@ function dbSearchDebounce() {
   }, 400);
 }
 
+let dbStatusFilter = '';
+
+function toggleDbUploadPanel() {
+  const panel = document.getElementById('dbUploadPanel');
+  panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+}
+
+const flFolderNames = { all: 'All Files', uploaded: 'New', draft: 'Review Queue', approved: 'Approved Catalog' };
+function flSetFolder(status, el) {
+  dbStatusFilter = status === 'all' ? '' : status;
+  document.querySelectorAll('.fl-folder-btn').forEach(b => b.classList.remove('active'));
+  if (el) el.classList.add('active');
+  const title = document.getElementById('flFolderTitle');
+  if (title) title.firstChild.textContent = flFolderNames[status] + ' ';
+  dbState.page = 1;
+  loadDbFiles();
+}
+
 async function loadDbFiles() {
   const { page, perPage, search } = dbState;
-  const url = `${API}/files?page=${page}&per_page=${perPage}${search ? '&search='+encodeURIComponent(search) : ''}`;
+  const statusParam = dbStatusFilter ? '&status=' + dbStatusFilter : '';
+  const url = `${API}/files?page=${page}&per_page=${perPage}${search ? '&search='+encodeURIComponent(search) : ''}${statusParam}`;
   try {
     const r = await fetch(url, { headers: authH() });
     if (r.status === 401) { logout(); return; }
@@ -3434,6 +3631,12 @@ async function loadDbFiles() {
     renderDbTable(d.files);
     renderDbPagination(d.total, d.page, d.per_page);
     document.getElementById('dbTotalBadge').textContent = `(${d.total.toLocaleString('tr')} kayıt)`;
+    const countEl = document.getElementById('flCountAll');
+    if (countEl && !dbStatusFilter) countEl.textContent = d.total;
+    const storageEl = document.getElementById('flStorageFiles');
+    if (storageEl && !dbStatusFilter) { storageEl.textContent = d.total; }
+    const bar = document.getElementById('flStorageBar');
+    if (bar) bar.style.width = Math.min(100, (d.total / 2000) * 100) + '%';
   } catch {
     dbState.pageIds = [];
     updateDbApprovalSelectionUi();
