@@ -2,12 +2,12 @@
   /* ── New Design System (Clean Light Theme) ── */
   --bg-base: #0f172a;
   --bg-surface: #162238;
-  --bg-active: #26a9eb;
-  --bg-icon-badge: #1b3556;
+  --bg-active: #0ea5e9;
+  --bg-icon-badge: #0284c7;
   --text-primary: #ffffff;
   --text-secondary: #8ea6c0;
   --text-muted: #617694;
-  --accent-blue: #26a9eb;
+  --accent-blue: #0ea5e9;
   --border: #e2e8f0;
 
   /* Typography */
