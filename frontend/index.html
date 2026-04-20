@@ -9681,6 +9681,13 @@ function pointToSegmentDist(px, py, ax, ay, bx, by) {
   t = Math.max(0, Math.min(1, t));
   return Math.hypot(px - (ax + t*dx), py - (ay + t*dy));
 }
+
+// ── Initialization ──
+(function init() {
+  switchTab('analytics');
+  setActiveNav(document.getElementById('nav-dashboard'));
+  loadStats();
+})();
 </script>
 </body>
 </html>
