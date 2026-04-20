@@ -1891,6 +1891,24 @@
       <div id="catAddMsg" style="margin-top:8px;font-size:12px;display:none"></div>
     </div>
 
+    <!-- Excel import -->
+    <div class="cat-add-card">
+      <h2>Excel ile Toplu İçe Aktar</h2>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <button class="btn-secondary" onclick="downloadCategoryTemplate()">
+          <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;margin-right:5px;vertical-align:-2px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          Template İndir
+        </button>
+        <label class="btn-primary" style="cursor:pointer;margin:0">
+          <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;margin-right:5px;vertical-align:-2px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+          Excel Yükle
+          <input type="file" accept=".xlsx,.xls" style="display:none" onchange="importCategoryExcel(this)">
+        </label>
+        <span id="catImportStatus" style="font-size:12px;color:var(--text3)"></span>
+      </div>
+      <div id="catImportResult" style="display:none;margin-top:12px;font-size:12px;background:#f1f5f9;border-radius:8px;padding:12px 14px"></div>
+    </div>
+
     <!-- Kategori listesi -->
     <div class="cat-list-card">
       <div class="cat-list-header">
@@ -4588,6 +4606,53 @@ function showCatMsg(text, type) {
   el.style.color = type === 'ok' ? 'var(--green)' : 'var(--red)';
   el.style.display = '';
   setTimeout(() => { el.style.display = 'none'; }, 3000);
+}
+
+function downloadCategoryTemplate() {
+  const a = document.createElement('a');
+  a.href = `${API}/categories/template`;
+  a.download = 'kategori_template.xlsx';
+  // Auth header'ı fetch ile, sonra blob URL ile indir
+  fetch(`${API}/categories/template`, { headers: authH() })
+    .then(r => r.blob())
+    .then(blob => {
+      const url = URL.createObjectURL(blob);
+      a.href = url;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    })
+    .catch(() => alert('Template indirilemedi.'));
+}
+
+async function importCategoryExcel(input) {
+  const file = input.files[0];
+  if (!file) return;
+  input.value = '';
+  const status = document.getElementById('catImportStatus');
+  const result = document.getElementById('catImportResult');
+  status.textContent = 'Yükleniyor...';
+  result.style.display = 'none';
+  const fd = new FormData();
+  fd.append('file', file);
+  try {
+    const r = await fetch(`${API}/categories/import`, { method: 'POST', headers: authH(), body: fd });
+    const d = await r.json();
+    if (!r.ok) { status.textContent = d.detail || 'Hata'; return; }
+    status.textContent = '';
+    let html = `<b style="color:#16a34a">✓ ${d.success_count}/${d.total_rows} satır içe aktarıldı</b>`;
+    if (d.error_count > 0) {
+      html += `<b style="color:#dc2626;margin-left:12px">✗ ${d.error_count} hata</b>`;
+      html += '<ul style="margin:6px 0 0;padding-left:18px">'
+        + d.errors.map(e => `<li>Satır ${e.row}: ${e.message}</li>`).join('')
+        + '</ul>';
+    }
+    result.innerHTML = html;
+    result.style.display = '';
+    await loadCategories();
+    loadCategoriesIntoSelect();
+  } catch { status.textContent = 'İçe aktarma başarısız.'; }
 }
 
 // DB sekmesindeki kategori dropdown'ını doldur

@@ -199,6 +199,11 @@ def init_db():
                 WITH (m = 16, ef_construction = 64);
             """))
             conn.execute(text(f"""
+                DO $$ BEGIN
+                    ALTER TABLE {schema}.categories ADD COLUMN IF NOT EXISTS parent_id INTEGER REFERENCES {schema}.categories(id) ON DELETE SET NULL;
+                EXCEPTION WHEN others THEN NULL; END $$;
+            """))
+            conn.execute(text(f"""
                 CREATE TABLE IF NOT EXISTS {schema}.activity_log (
                     id          SERIAL PRIMARY KEY,
                     action      VARCHAR(50) NOT NULL,

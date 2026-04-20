@@ -14,6 +14,7 @@ TENANT_SCHEMA_SQL = """
 CREATE TABLE IF NOT EXISTS {schema}.categories (
     id         SERIAL PRIMARY KEY,
     name       VARCHAR NOT NULL,
+    parent_id  INTEGER REFERENCES {schema}.categories(id) ON DELETE SET NULL,
     color      VARCHAR DEFAULT '#6366f1',
     created_at TIMESTAMP DEFAULT NOW()
 );
