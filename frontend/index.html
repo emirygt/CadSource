@@ -1021,6 +1021,8 @@
   </style>
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <!-- i18n -->
+  <script src="i18n.js"></script>
 </head>
 <body>
 
@@ -1091,7 +1093,7 @@
     <div class="topbar-meta">
       <div class="status-row">
         <div class="dot" id="statusDot" style="background:var(--nav-muted)"></div>
-        <span class="status-text" id="statusText">Connecting...</span>
+        <span class="status-text" id="statusText" data-i18n="common.connecting">Connecting...</span>
       </div>
     </div>
   </div>
@@ -1101,56 +1103,56 @@
   <div class="tabbar">
   <div class="tab active" id="nav-dashboard" onclick="navGo('analytics', this)">
     <span class="nav-ic"><svg viewBox="0 0 24 24"><path d="M3 11L12 3L21 11"></path><rect x="3" y="11" width="18" height="11" rx="1"></rect><rect x="9" y="15" width="6" height="7" rx="0.5"></rect></svg></span>
-    <span>Dashboard</span>
+    <span data-i18n="nav.dashboard">Dashboard</span>
   </div>
   <div class="tab active" id="nav-search" onclick="navGo('search', this)">
     <span class="nav-ic"><svg viewBox="0 0 24 24"><circle cx="8" cy="8" r="4"></circle><circle cx="16" cy="16" r="4"></circle><path d="M11 8H16M8 11V16"></path></svg></span>
-    <span>Search & Compare</span>
+    <span data-i18n="nav.search">Search & Compare</span>
   </div>
   <div class="tab" onclick="navGo('db', document.getElementById('nav-library')); setTimeout(()=>{ const p=document.getElementById('dbUploadPanel'); if(p&&p.style.display==='none') toggleDbUploadPanel(); },100)">
     <span class="nav-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></span>
-    <span>Upload Files</span>
+    <span data-i18n="nav.upload_files">Upload Files</span>
   </div>
   <div class="tab" id="nav-upload" onclick="navGo('db', this)" style="display:none">
     <span class="nav-ic"><svg viewBox="0 0 24 24"><path d="M12 16V4"></path><path d="m7 9 5-5 5 5"></path><path d="M20 16.5v2.5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2.5"></path></svg></span>
-    <span>Upload</span>
+    <span data-i18n="nav.upload">Upload</span>
   </div>
   <div class="tab-group">
     <div class="tab tab-parent" id="nav-library" onclick="toggleLibraryMenu()">
       <span class="nav-ic"><svg viewBox="0 0 24 24"><path d="M2 8Q2 6 4 6H9L11 8.5H20Q22 8.5 22 10.5V19Q22 21 20 21H4Q2 21 2 19Z"></path></svg></span>
-      <span>File Library</span>
+      <span data-i18n="nav.file_library">File Library</span>
       <span class="chevron">▾</span>
     </div>
     <div class="tab-submenu" id="libraryMenu">
       <div class="tab tab-sub" id="nav-library-db" onclick="navLibrary('db', this)">
         <span class="nav-ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="2"></circle></svg></span>
-        <span>All Products</span>
+        <span data-i18n="nav.all_products">All Products</span>
       </div>
       <div class="tab tab-sub" id="nav-library-draft" onclick="navLibrary('draft', this)">
         <span class="nav-ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="2"></circle></svg></span>
-        <span>Review Queue</span>
+        <span data-i18n="nav.review_queue">Review Queue</span>
       </div>
       <div class="tab tab-sub" id="nav-library-approved" onclick="navLibrary('approved', this)">
         <span class="nav-ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="2"></circle></svg></span>
-        <span>Approved Catalog</span>
+        <span data-i18n="nav.approved_catalog">Approved Catalog</span>
       </div>
     </div>
   </div>
   <div class="tab" id="nav-contour" onclick="navGo('contour', this)">
     <span class="nav-ic"><svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"></rect><circle cx="8" cy="9" r="2"></circle><path d="M2 17L7 12L11 15L15 10L22 17"></path></svg></span>
-    <span>Image to Contour</span>
+    <span data-i18n="nav.image_to_contour">Image to Contour</span>
   </div>
   <div class="tab" id="nav-cat" onclick="navGo('cat', this)">
     <span class="nav-ic"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg></span>
-    <span>Categories</span>
+    <span data-i18n="nav.categories">Categories</span>
   </div>
   <div class="tab" id="nav-scan" onclick="navGo('scan', this)">
     <span class="nav-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/><circle cx="15" cy="15" r="2"/><path d="M12 15h.01"/></svg></span>
-    <span>Scan → CAD</span>
+    <span data-i18n="nav.scan_cad">Scan → CAD</span>
   </div>
   <div class="tab" id="nav-activity" onclick="navGo('activity', this)">
     <span class="nav-ic"><svg viewBox="0 0 24 24"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg></span>
-    <span>Job History</span>
+    <span data-i18n="nav.job_history">Job History</span>
   </div>
   <div style="flex:1"></div>
   <!-- User profile footer -->
@@ -1158,9 +1160,10 @@
     <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#0ea5e9,#6366f1);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0">JD</div>
     <div style="min-width:0">
       <div style="font-size:13px;font-weight:600;color:var(--nav-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="sidebarUserEmail">John Doe</div>
-      <div style="font-size:11px;color:var(--nav-muted)">Engineering Team</div>
+      <div style="font-size:11px;color:var(--nav-muted)" data-i18n="nav.engineering_team">Engineering Team</div>
     </div>
-    <button onclick="logout()" title="Sign Out" style="margin-left:auto;background:transparent;border:none;color:var(--nav-muted);cursor:pointer;padding:4px;border-radius:6px;display:flex;align-items:center">
+    <button id="langToggleBtn" onclick="toggleLang()" title="Switch language" style="margin-left:auto;background:transparent;border:1px solid var(--nav-muted);color:var(--nav-muted);cursor:pointer;padding:2px 6px;border-radius:5px;font-size:10px;font-weight:700;letter-spacing:0.05em">EN</button>
+    <button onclick="logout()" data-i18n-title="common.sign_out" title="Sign Out" style="background:transparent;border:none;color:var(--nav-muted);cursor:pointer;padding:4px;border-radius:6px;display:flex;align-items:center">
       <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
     </button>
   </div>
@@ -1170,17 +1173,17 @@
 <div class="page" id="page-search" style="padding:0; background:#f8fafc; align-items: stretch; flex-direction: column;">
   <div class="page-header">
     <div>
-      <h1 class="ph-title">CAD Comparison</h1>
-      <p class="ph-sub">Compare two or more CAD files</p>
+      <h1 class="ph-title" data-i18n="search.title">CAD Comparison</h1>
+      <p class="ph-sub" data-i18n="search.sub">Compare two or more CAD files</p>
     </div>
     <div class="ph-actions">
       <button class="analytics-primary-btn" onclick="navGo('search', document.getElementById('nav-search'))">
         <span class="btn-ic"><svg viewBox="0 0 24 24"><path d="M5 12h14M12 5v14"></path></svg></span>
-        New Comparison
+        <span data-i18n="common.new_comparison">New Comparison</span>
       </button>
       <label class="analytics-searchbox">
         <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-        <input type="text" placeholder="Search...">
+        <input type="text" data-i18n-placeholder="common.search_placeholder" placeholder="Search...">
       </label>
       <button class="analytics-icon-btn" aria-label="Help">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
@@ -1198,8 +1201,8 @@
         <div class="upload-icon">
           <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
         </div>
-        <div class="upload-title">DXF / DWG Yükle</div>
-        <div class="upload-sub" id="uploadSub">Sorgu dosyanızı sürükleyin</div>
+        <div class="upload-title" data-i18n="search.upload_label">DXF / DWG Yükle</div>
+        <div class="upload-sub" id="uploadSub" data-i18n="search.upload_sub">Sorgu dosyanızı sürükleyin</div>
         <div class="upload-fname" id="uploadFname"></div>
       </div>
       <input type="file" id="fileInput" accept=".dxf,.dwg,.jpg,.jpeg,.png" style="display:none" onchange="onFileSelect(event)">
@@ -1207,47 +1210,47 @@
       <!-- Anlık önizleme -->
       <div class="sidebar-preview" id="sidebarPreview" style="display:none">
         <div class="sidebar-preview-label">
-          <span>Önizleme</span>
+          <span data-i18n="search.preview">Önizleme</span>
           <span id="sidebarPreviewInfo" style="color:var(--text2)"></span>
         </div>
         <div id="sidebarPreviewSvg"></div>
       </div>
 
       <div class="divider"></div>
-      <div class="section-label">Kategori Filtresi</div>
+      <div class="section-label" data-i18n="search.category_filter">Kategori Filtresi</div>
       <select id="searchCategorySelect" style="background:var(--bg3);border:1px solid var(--border2);border-radius:6px;color:var(--text);padding:6px 8px;font-size:12px;width:100%;outline:none">
-        <option value="">Tüm kategoriler</option>
+        <option value="" data-i18n="search.all_categories">Tüm kategoriler</option>
       </select>
       <div id="searchCatInfo" style="font-size:11px;color:var(--text3);display:none"></div>
 
       <div class="divider"></div>
-      <div class="section-label">Arama Ayarları</div>
+      <div class="section-label" data-i18n="search.settings">Arama Ayarları</div>
       <div class="filter-group">
         <div class="filter-row">
-          <label>Sonuç sayısı</label>
+          <label data-i18n="search.result_count">Sonuç sayısı</label>
           <span class="filter-val" id="topkVal">10</span>
         </div>
         <input type="range" min="5" max="50" step="5" value="10" id="topkSlider"
           oninput="document.getElementById('topkVal').textContent=this.value">
         <div class="filter-row">
-          <label>Min. benzerlik</label>
+          <label data-i18n="search.min_similarity">Min. benzerlik</label>
           <span class="filter-val" id="minSimVal">20%</span>
         </div>
         <input type="range" min="0" max="95" step="1" value="20" id="minSimSlider"
           oninput="document.getElementById('minSimVal').textContent=this.value+'%'">
-        <div class="filter-row"><label>Sıralama</label></div>
+        <div class="filter-row"><label data-i18n="search.sort">Sıralama</label></div>
         <select id="sortSelect">
-          <option value="similarity">Benzerlik (yüksek → düşük)</option>
-          <option value="entity_count">Entity sayısı</option>
-          <option value="layer_count">Katman sayısı</option>
+          <option value="similarity" data-i18n="search.sort_similarity">Benzerlik (yüksek → düşük)</option>
+          <option value="entity_count" data-i18n="search.sort_entity">Entity sayısı</option>
+          <option value="layer_count" data-i18n="search.sort_layer">Katman sayısı</option>
         </select>
       </div>
-      <button class="search-btn" id="searchBtn" onclick="doSearch()" disabled>Benzer Çizimleri Bul</button>
+      <button class="search-btn" id="searchBtn" onclick="doSearch()" disabled data-i18n="search.find_btn">Benzer Çizimleri Bul</button>
 
       <div class="divider"></div>
       <div style="display:flex;align-items:center;justify-content:space-between">
-        <div class="section-label">Arama Geçmişi</div>
-        <button onclick="clearHistory()" style="background:transparent;border:none;color:var(--text3);font-size:11px;cursor:pointer;padding:0" title="Geçmişi temizle">✕ Temizle</button>
+        <div class="section-label" data-i18n="search.history">Arama Geçmişi</div>
+        <button onclick="clearHistory()" style="background:transparent;border:none;color:var(--text3);font-size:11px;cursor:pointer;padding:0" data-i18n="search.history_clear">✕ Temizle</button>
       </div>
       <div id="historyList" style="display:flex;flex-direction:column;gap:6px"></div>
     </div>
@@ -1257,8 +1260,8 @@
         <div class="empty-icon">
           <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         </div>
-        <div class="empty-title">Arama yapmaya hazır</div>
-        <div class="empty-sub">Sol taraftan bir DXF/DWG dosyası yükleyin. DB'nizdeki kalıplar arasında en benzerleri bulunacak.</div>
+        <div class="empty-title" data-i18n="search.empty_title">Arama yapmaya hazır</div>
+        <div class="empty-sub" data-i18n="search.empty_sub">Sol taraftan bir DXF/DWG dosyası yükleyin. DB'nizdeki kalıplar arasında en benzerleri bulunacak.</div>
       </div>
     </div>
   </div>
@@ -1268,17 +1271,17 @@
 <div class="page" id="page-db" style="background:#f8fafc;">
   <div class="page-header">
     <div>
-      <h1 class="ph-title">File Library</h1>
-      <p class="ph-sub">Manage and organize your CAD files and technical drawings</p>
+      <h1 class="ph-title" data-i18n="db.title">File Library</h1>
+      <p class="ph-sub" data-i18n="db.sub">Manage and organize your CAD files and technical drawings</p>
     </div>
     <div class="ph-actions">
       <button class="analytics-primary-btn" onclick="toggleDbUploadPanel()">
         <span class="btn-ic"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></span>
-        Upload Files
+        <span data-i18n="common.upload_files">Upload Files</span>
       </button>
       <label class="analytics-searchbox">
         <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-        <input type="text" placeholder="Search...">
+        <input type="text" data-i18n-placeholder="common.search_placeholder" placeholder="Search...">
       </label>
       <button class="analytics-icon-btn" aria-label="Help">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
@@ -1294,10 +1297,10 @@
     <div class="fl-upload-inner">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
         <div>
-          <h3 style="font-size:15px;font-weight:600;color:#0f172a;margin:0">Upload Files</h3>
-          <p style="font-size:12px;color:#64748b;margin:4px 0 0">DWG, DXF, PDF or image files. Bulk upload supported.</p>
+          <h3 style="font-size:15px;font-weight:600;color:#0f172a;margin:0" data-i18n="db.upload_panel_title">Upload Files</h3>
+          <p style="font-size:12px;color:#64748b;margin:4px 0 0" data-i18n="db.upload_panel_sub">DWG, DXF, PDF or image files. Bulk upload supported.</p>
         </div>
-        <button onclick="toggleDbUploadPanel()" style="background:transparent;border:none;color:#64748b;cursor:pointer;padding:4px 8px;font-size:20px;line-height:1;border-radius:6px" title="Close">×</button>
+        <button onclick="toggleDbUploadPanel()" style="background:transparent;border:none;color:#64748b;cursor:pointer;padding:4px 8px;font-size:20px;line-height:1;border-radius:6px" data-i18n-title="common.close" title="Close">×</button>
       </div>
       <div class="db-drop" id="dbDrop"
         ondragover="dbDragOver(event)" ondragleave="dbDragLeave()"
@@ -1305,8 +1308,8 @@
         <div class="db-drop-icon">
           <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
         </div>
-        <h3 id="dbDropTitle">Dosyaları buraya sürükleyin</h3>
-        <p id="dbDropSub">veya tıklayarak seçin — birden fazla dosya seçebilirsiniz</p>
+        <h3 id="dbDropTitle" data-i18n="db.drop_title">Dosyaları buraya sürükleyin</h3>
+        <p id="dbDropSub" data-i18n="db.drop_sub">veya tıklayarak seçin — birden fazla dosya seçebilirsiniz</p>
         <div class="formats">
           <span class="fmt-badge fmt-dwg">DWG</span>
           <span class="fmt-badge fmt-dxf">DXF</span>
@@ -1321,15 +1324,15 @@
         </div>
       </div>
       <div style="margin-top:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-        <label style="font-size:12px;color:var(--text3);white-space:nowrap">Kategori:</label>
+        <label style="font-size:12px;color:var(--text3);white-space:nowrap" data-i18n="db.category_label">Kategori:</label>
         <select id="dbCategorySelect" style="background:var(--bg3);border:1px solid var(--border2);border-radius:6px;color:var(--text);padding:6px 10px;font-size:12px;outline:none;min-width:160px">
-          <option value="">— Kategori seçin (isteğe bağlı) —</option>
+          <option value="" data-i18n="db.category_optional">— Kategori seçin (isteğe bağlı) —</option>
         </select>
       </div>
       <div style="margin-top:10px;display:flex;align-items:center;gap:8px">
         <input type="checkbox" id="dbSkipClip" checked style="accent-color:var(--blue);cursor:pointer">
-        <label for="dbSkipClip" style="font-size:12px;color:var(--text2);cursor:pointer">
-          Hızlı mod (AI görsel analiz atla) — <span style="color:var(--text3)">büyük yüklemeler için önerilir</span>
+        <label for="dbSkipClip" style="font-size:12px;color:var(--text2);cursor:pointer" data-i18n="db.fast_mode">
+          Hızlı mod (AI görsel analiz atla) — büyük yüklemeler için önerilir
         </label>
       </div>
       <div class="db-selected-files" id="dbSelectedFiles">
@@ -1337,29 +1340,29 @@
         <div class="db-file-chips" id="dbFileChips"></div>
         <div class="db-archive-preview" id="dbArchivePreview">
           <div class="db-archive-preview-head">
-            <span>Arşiv içindeki dosyalar (yüklemeden önce)</span>
+            <span data-i18n="db.archive_preview_label">Arşiv içindeki dosyalar (yüklemeden önce)</span>
             <span id="dbArchiveCount"></span>
           </div>
           <div class="db-archive-list" id="dbArchiveList"></div>
         </div>
         <div class="db-image-preview" id="dbImagePreview">
-          <div class="db-image-preview-title">Seçilen görsel önizlemesi</div>
+          <div class="db-image-preview-title" data-i18n="db.image_preview_label">Seçilen görsel önizlemesi</div>
           <div class="db-image-preview-grid" id="dbImagePreviewGrid"></div>
         </div>
       </div>
       <div class="db-progress" id="dbProgress">
-        <div class="db-progress-label" id="dbProgressLabel">Yükleniyor...</div>
+        <div class="db-progress-label" id="dbProgressLabel" data-i18n="db.uploading">Yükleniyor...</div>
         <div class="db-progress-bar-wrap"><div class="db-progress-bar" id="dbProgressBar"></div></div>
         <div class="db-upload-stats">
-          <span>Başarılı: <span class="ok-count" id="dbOkCount">0</span></span>
-          <span>Hatalı: <span class="fail-count" id="dbFailCount">0</span></span>
+          <span><span data-i18n="db.success_count">Başarılı</span>: <span class="ok-count" id="dbOkCount">0</span></span>
+          <span><span data-i18n="db.fail_count">Hatalı</span>: <span class="fail-count" id="dbFailCount">0</span></span>
         </div>
         <div class="db-upload-queue" id="dbUploadQueue"></div>
         <div class="db-error-list" id="dbErrorList"></div>
       </div>
       <div class="db-actions">
-        <button class="btn-primary" id="dbUploadBtn" onclick="startDbUpload()" disabled>Yükle ve İndeksle</button>
-        <button class="btn-secondary" id="dbClearBtn" onclick="clearDbSelection()" style="display:none">Temizle</button>
+        <button class="btn-primary" id="dbUploadBtn" onclick="startDbUpload()" disabled data-i18n="db.upload_btn">Yükle ve İndeksle</button>
+        <button class="btn-secondary" id="dbClearBtn" onclick="clearDbSelection()" style="display:none" data-i18n="common.clear">Temizle</button>
       </div>
       <div id="dbUploadStatus" class="db-upload-status"></div>
     </div>
@@ -1375,36 +1378,36 @@
       <div style="padding:12px 8px 4px">
         <button onclick="toggleDbUploadPanel()" style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 12px;background:#0ea5e9;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:background 0.15s;font-family:var(--font-body)" onmouseover="this.style.background='#0284c7'" onmouseout="this.style.background='#0ea5e9'">
           <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          Upload Files
+          <span data-i18n="common.upload_files">Upload Files</span>
         </button>
       </div>
-      <div class="fl-section-label">FOLDERS</div>
+      <div class="fl-section-label" data-i18n="common.folders">FOLDERS</div>
       <div style="padding:0 8px 8px">
         <button class="fl-folder-btn active" id="flFolderAll" onclick="flSetFolder('all',this)">
           <svg viewBox="0 0 24 24"><path d="M2 8Q2 6 4 6H9L11 8.5H20Q22 8.5 22 10.5V19Q22 21 20 21H4Q2 21 2 19Z"></path></svg>
-          <span>All Files</span>
+          <span data-i18n="common.all_files">All Files</span>
           <span class="fl-folder-count" id="flCountAll">—</span>
         </button>
         <button class="fl-folder-btn" id="flFolderNew" onclick="flSetFolder('uploaded',this)">
           <svg viewBox="0 0 24 24"><path d="M2 8Q2 6 4 6H9L11 8.5H20Q22 8.5 22 10.5V19Q22 21 20 21H4Q2 21 2 19Z"></path></svg>
-          <span>New</span>
+          <span data-i18n="common.new">New</span>
           <span class="fl-folder-count" id="flCountNew">—</span>
         </button>
         <button class="fl-folder-btn" id="flFolderDraft" onclick="navLibrary('draft',document.getElementById('nav-library-draft'))">
           <svg viewBox="0 0 24 24"><path d="M2 8Q2 6 4 6H9L11 8.5H20Q22 8.5 22 10.5V19Q22 21 20 21H4Q2 21 2 19Z"></path></svg>
-          <span>Review Queue</span>
+          <span data-i18n="nav.review_queue">Review Queue</span>
           <span class="fl-folder-count" id="flCountDraft">—</span>
         </button>
         <button class="fl-folder-btn" id="flFolderApproved" onclick="navLibrary('approved',document.getElementById('nav-library-approved'))">
           <svg viewBox="0 0 24 24"><path d="M2 8Q2 6 4 6H9L11 8.5H20Q22 8.5 22 10.5V19Q22 21 20 21H4Q2 21 2 19Z"></path></svg>
-          <span>Approved Catalog</span>
+          <span data-i18n="nav.approved_catalog">Approved Catalog</span>
           <span class="fl-folder-count" id="flCountApproved">—</span>
         </button>
       </div>
       <div class="fl-storage">
-        <div style="font-size:11px;font-weight:700;color:#64748b;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:10px">STORAGE</div>
+        <div style="font-size:11px;font-weight:700;color:#64748b;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:10px" data-i18n="common.storage">STORAGE</div>
         <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px">
-          <span style="color:#475569">Total files</span>
+          <span style="color:#475569" data-i18n="common.total_files">Total files</span>
           <span style="font-family:monospace;font-weight:600;color:#0f172a" id="flStorageFiles">—</span>
         </div>
         <div class="fl-storage-bar-wrap"><div class="fl-storage-bar" id="flStorageBar"></div></div>
@@ -1418,24 +1421,24 @@
         <div style="display:flex;align-items:center;gap:10px">
           <div class="fl-toolbar-search">
             <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-            <input id="dbSearchBox" placeholder="Search files..." oninput="dbSearchDebounce()">
+            <input id="dbSearchBox" data-i18n-placeholder="db.search_placeholder" placeholder="Search files..." oninput="dbSearchDebounce()">
           </div>
           <a href="db-filters.html" class="fl-filter-btn">
             <svg viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
-            Filter
+            <span data-i18n="common.filter">Filter</span>
           </a>
         </div>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-          <span id="dbSelectedApproveInfo" style="font-size:11px;color:#64748b;white-space:nowrap">0 selected</span>
+          <span id="dbSelectedApproveInfo" style="font-size:11px;color:#64748b;white-space:nowrap">0 <span data-i18n="common.selected">selected</span></span>
           <select id="dbBulkStatusSelect" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;color:#334155;padding:6px 10px;font-size:12px;outline:none">
-            <option value="uploaded">New</option>
-            <option value="draft">Review Queue</option>
-            <option value="approved">Approved Catalog</option>
+            <option value="uploaded" data-i18n="common.new">New</option>
+            <option value="draft" data-i18n="nav.review_queue">Review Queue</option>
+            <option value="approved" data-i18n="nav.approved_catalog">Approved Catalog</option>
           </select>
-          <button class="pg-btn" id="dbApplyStatusBtn" onclick="applyStatusToDbSelection()" disabled>Apply Status</button>
+          <button class="pg-btn" id="dbApplyStatusBtn" onclick="applyStatusToDbSelection()" disabled data-i18n="common.apply_status">Apply Status</button>
           <div class="fl-view-toggle">
-            <button class="fl-view-btn" id="flViewGrid" onclick="setDbViewMode('grid')">Grid</button>
-            <button class="fl-view-btn active" id="flViewList" onclick="setDbViewMode('list')">List</button>
+            <button class="fl-view-btn" id="flViewGrid" onclick="setDbViewMode('grid')" data-i18n="common.grid">Grid</button>
+            <button class="fl-view-btn active" id="flViewList" onclick="setDbViewMode('list')" data-i18n="common.list">List</button>
           </div>
         </div>
       </div>
@@ -1452,19 +1455,19 @@
                 <tr>
                   <th style="width:30px;text-align:center"><input id="dbSelectAll" type="checkbox" onchange="toggleDbSelectAll(this.checked)" style="accent-color:var(--blue);cursor:pointer"></th>
                   <th style="width:48px"></th>
-                  <th>Dosya Adı</th>
-                  <th>Format</th>
-                  <th>Kategori</th>
-                  <th>Entity</th>
-                  <th>Katman</th>
-                  <th>Boyut</th>
-                  <th>Durum</th>
-                  <th>Eklenme</th>
-                  <th>İşlem</th>
+                  <th data-i18n="table.filename">Dosya Adı</th>
+                  <th data-i18n="table.format">Format</th>
+                  <th data-i18n="table.category">Kategori</th>
+                  <th data-i18n="table.entity">Entity</th>
+                  <th data-i18n="table.layer">Katman</th>
+                  <th data-i18n="table.size">Boyut</th>
+                  <th data-i18n="table.status">Durum</th>
+                  <th data-i18n="table.added">Eklenme</th>
+                  <th data-i18n="table.action">İşlem</th>
                 </tr>
               </thead>
               <tbody id="dbTableBody">
-                <tr><td colspan="11" class="db-empty">Yükleniyor...</td></tr>
+                <tr><td colspan="11" class="db-empty" data-i18n="common.loading">Yükleniyor...</td></tr>
               </tbody>
             </table>
           </div>
@@ -1472,8 +1475,8 @@
           <div class="db-pagination" id="dbPagination" style="display:none">
             <span id="dbPageInfo"></span>
             <div class="db-pagination-btns">
-              <button class="pg-btn" id="dbPrevBtn" onclick="dbChangePage(-1)">‹ Önceki</button>
-              <button class="pg-btn" id="dbNextBtn" onclick="dbChangePage(1)">Sonraki ›</button>
+              <button class="pg-btn" id="dbPrevBtn" onclick="dbChangePage(-1)" data-i18n="common.prev">‹ Önceki</button>
+              <button class="pg-btn" id="dbNextBtn" onclick="dbChangePage(1)" data-i18n="common.next">Sonraki ›</button>
             </div>
           </div>
         </div>
@@ -1487,17 +1490,17 @@
 <div class="page" id="page-approved" style="background:#f8fafc;">
   <div class="page-header">
     <div>
-      <h1 class="ph-title" id="approvedPageTitle">Review Queue</h1>
-      <p class="ph-sub" id="approvedPageSub">Review and approve pending CAD files</p>
+      <h1 class="ph-title" id="approvedPageTitle" data-i18n="approved.review_title">Review Queue</h1>
+      <p class="ph-sub" id="approvedPageSub" data-i18n="approved.review_sub">Review and approve pending CAD files</p>
     </div>
     <div class="ph-actions">
       <button class="analytics-primary-btn" onclick="navGo('db', document.getElementById('nav-library')); setTimeout(()=>{ const p=document.getElementById('dbUploadPanel'); if(p&&p.style.display==='none') toggleDbUploadPanel(); },100)">
         <span class="btn-ic"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></span>
-        Upload Files
+        <span data-i18n="common.upload_files">Upload Files</span>
       </button>
       <label class="analytics-searchbox">
         <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-        <input type="text" placeholder="Search...">
+        <input type="text" data-i18n-placeholder="common.search_placeholder" placeholder="Search...">
       </label>
       <button class="analytics-icon-btn" aria-label="Help">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
@@ -1514,34 +1517,34 @@
       <div style="padding:12px 8px 4px">
         <button onclick="navGo('db', document.getElementById('nav-library')); setTimeout(()=>{ const p=document.getElementById('dbUploadPanel'); if(p&&p.style.display==='none') toggleDbUploadPanel(); },100)" style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 12px;background:#0ea5e9;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:background 0.15s;font-family:var(--font-body)" onmouseover="this.style.background='#0284c7'" onmouseout="this.style.background='#0ea5e9'">
           <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          Upload Files
+          <span data-i18n="common.upload_files">Upload Files</span>
         </button>
       </div>
-      <div class="fl-section-label">FOLDERS</div>
+      <div class="fl-section-label" data-i18n="common.folders">FOLDERS</div>
       <div style="padding:0 8px 8px">
         <button class="fl-folder-btn" onclick="navLibrary('db',document.getElementById('nav-library-db'))">
           <svg viewBox="0 0 24 24"><path d="M2 8Q2 6 4 6H9L11 8.5H20Q22 8.5 22 10.5V19Q22 21 20 21H4Q2 21 2 19Z"></path></svg>
-          <span>All Files</span>
+          <span data-i18n="common.all_files">All Files</span>
         </button>
         <button class="fl-folder-btn" onclick="navLibrary('db',document.getElementById('nav-library-db'));setTimeout(()=>flSetFolder('uploaded',null),100)">
           <svg viewBox="0 0 24 24"><path d="M2 8Q2 6 4 6H9L11 8.5H20Q22 8.5 22 10.5V19Q22 21 20 21H4Q2 21 2 19Z"></path></svg>
-          <span>New</span>
+          <span data-i18n="common.new">New</span>
         </button>
         <button class="fl-folder-btn active" id="apFolderDraft" onclick="apSetFolder('draft',this)">
           <svg viewBox="0 0 24 24"><path d="M2 8Q2 6 4 6H9L11 8.5H20Q22 8.5 22 10.5V19Q22 21 20 21H4Q2 21 2 19Z"></path></svg>
-          <span>Review Queue</span>
+          <span data-i18n="nav.review_queue">Review Queue</span>
           <span class="fl-folder-count" id="apCountDraft">—</span>
         </button>
         <button class="fl-folder-btn" id="apFolderApproved" onclick="apSetFolder('approved',this)">
           <svg viewBox="0 0 24 24"><path d="M2 8Q2 6 4 6H9L11 8.5H20Q22 8.5 22 10.5V19Q22 21 20 21H4Q2 21 2 19Z"></path></svg>
-          <span>Approved Catalog</span>
+          <span data-i18n="nav.approved_catalog">Approved Catalog</span>
           <span class="fl-folder-count" id="apCountApproved">—</span>
         </button>
       </div>
       <div class="fl-storage">
-        <div style="font-size:11px;font-weight:700;color:#64748b;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:10px">STORAGE</div>
+        <div style="font-size:11px;font-weight:700;color:#64748b;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:10px" data-i18n="common.storage">STORAGE</div>
         <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px">
-          <span style="color:#475569">Total files</span>
+          <span style="color:#475569" data-i18n="common.total_files">Total files</span>
           <span style="font-family:monospace;font-weight:600;color:#0f172a" id="apStorageFiles">—</span>
         </div>
         <div class="fl-storage-bar-wrap"><div class="fl-storage-bar" id="apStorageBar"></div></div>
@@ -1556,12 +1559,12 @@
           <div style="display:flex;align-items:center;gap:10px">
             <div class="fl-toolbar-search">
               <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-              <input id="draftSearchBox" placeholder="Search review items..." oninput="productSearchDebounce('draft')">
+              <input id="draftSearchBox" data-i18n-placeholder="db.search_review" placeholder="Search review items..." oninput="productSearchDebounce('draft')">
             </div>
           </div>
           <div style="display:flex;align-items:center;gap:8px">
-            <span id="draftSelectedInfo" style="font-size:11px;color:#64748b;white-space:nowrap">0 selected</span>
-            <button class="analytics-primary-btn" id="draftToApprovedBtn" onclick="moveProductSelection('draft')" disabled style="height:34px;font-size:12px">
+            <span id="draftSelectedInfo" style="font-size:11px;color:#64748b;white-space:nowrap">0 <span data-i18n="common.selected">selected</span></span>
+            <button class="analytics-primary-btn" id="draftToApprovedBtn" onclick="moveProductSelection('draft')" disabled style="height:34px;font-size:12px" data-i18n="db.move_to_approved">
               Move to Approved →
             </button>
           </div>
@@ -1569,7 +1572,7 @@
         <div class="fl-content">
           <div class="db-files-card" id="draftProductsCard">
             <div class="db-files-header">
-              <h2>Review Queue <span id="draftTotalBadge" style="font-size:12px;color:var(--text3);font-weight:400"></span></h2>
+              <h2><span data-i18n="nav.review_queue">Review Queue</span> <span id="draftTotalBadge" style="font-size:12px;color:var(--text3);font-weight:400"></span></h2>
             </div>
             <div class="db-table-wrap">
               <table>
@@ -1577,19 +1580,19 @@
                   <tr>
                     <th style="width:30px;text-align:center"><input id="draftSelectAll" type="checkbox" onchange="toggleProductSelectAll('draft', this.checked)" style="accent-color:var(--blue);cursor:pointer"></th>
                     <th style="width:48px"></th>
-                    <th>Dosya Adı</th><th>Format</th><th>Kategori</th><th>Entity</th><th>Katman</th><th>Boyut</th><th>Tarih</th><th>İşlem</th>
+                    <th data-i18n="table.filename">Dosya Adı</th><th data-i18n="table.format">Format</th><th data-i18n="table.category">Kategori</th><th data-i18n="table.entity">Entity</th><th data-i18n="table.layer">Katman</th><th data-i18n="table.size">Boyut</th><th data-i18n="table.date">Tarih</th><th data-i18n="table.action">İşlem</th>
                   </tr>
                 </thead>
                 <tbody id="draftTableBody">
-                  <tr><td colspan="10" class="db-empty">Yükleniyor...</td></tr>
+                  <tr><td colspan="10" class="db-empty" data-i18n="common.loading">Yükleniyor...</td></tr>
                 </tbody>
               </table>
             </div>
             <div class="db-pagination" id="draftPagination" style="display:none">
               <span id="draftPageInfo"></span>
               <div class="db-pagination-btns">
-                <button class="pg-btn" id="draftPrevBtn" onclick="productChangePage('draft', -1)">‹ Önceki</button>
-                <button class="pg-btn" id="draftNextBtn" onclick="productChangePage('draft', 1)">Sonraki ›</button>
+                <button class="pg-btn" id="draftPrevBtn" onclick="productChangePage('draft', -1)" data-i18n="common.prev">‹ Önceki</button>
+                <button class="pg-btn" id="draftNextBtn" onclick="productChangePage('draft', 1)" data-i18n="common.next">Sonraki ›</button>
               </div>
             </div>
           </div>
@@ -1602,18 +1605,18 @@
           <div style="display:flex;align-items:center;gap:10px">
             <div class="fl-toolbar-search">
               <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-              <input id="approvedSearchBox" placeholder="Search approved items..." oninput="productSearchDebounce('approved')">
+              <input id="approvedSearchBox" data-i18n-placeholder="db.search_approved" placeholder="Search approved items..." oninput="productSearchDebounce('approved')">
             </div>
           </div>
           <div style="display:flex;align-items:center;gap:8px">
-            <span id="approvedSelectedInfo" style="font-size:11px;color:#64748b;white-space:nowrap">0 selected</span>
-            <button class="pg-btn" id="approvedToDraftBtn" onclick="moveProductSelection('approved')" disabled>← Move to Review</button>
+            <span id="approvedSelectedInfo" style="font-size:11px;color:#64748b;white-space:nowrap">0 <span data-i18n="common.selected">selected</span></span>
+            <button class="pg-btn" id="approvedToDraftBtn" onclick="moveProductSelection('approved')" disabled data-i18n="db.move_to_review">← Move to Review</button>
           </div>
         </div>
         <div class="fl-content">
           <div class="db-files-card" id="approvedProductsCard">
             <div class="db-files-header">
-              <h2>Approved Catalog <span id="approvedTotalBadge" style="font-size:12px;color:var(--text3);font-weight:400"></span></h2>
+              <h2><span data-i18n="nav.approved_catalog">Approved Catalog</span> <span id="approvedTotalBadge" style="font-size:12px;color:var(--text3);font-weight:400"></span></h2>
             </div>
             <div class="db-table-wrap">
               <table>
@@ -1621,19 +1624,19 @@
                   <tr>
                     <th style="width:30px;text-align:center"><input id="approvedSelectAll" type="checkbox" onchange="toggleProductSelectAll('approved', this.checked)" style="accent-color:var(--blue);cursor:pointer"></th>
                     <th style="width:48px"></th>
-                    <th>Dosya Adı</th><th>Format</th><th>Kategori</th><th>Entity</th><th>Katman</th><th>Boyut</th><th>Tarih</th><th>İşlem</th>
+                    <th data-i18n="table.filename">Dosya Adı</th><th data-i18n="table.format">Format</th><th data-i18n="table.category">Kategori</th><th data-i18n="table.entity">Entity</th><th data-i18n="table.layer">Katman</th><th data-i18n="table.size">Boyut</th><th data-i18n="table.date">Tarih</th><th data-i18n="table.action">İşlem</th>
                   </tr>
                 </thead>
                 <tbody id="approvedTableBody">
-                  <tr><td colspan="10" class="db-empty">Yükleniyor...</td></tr>
+                  <tr><td colspan="10" class="db-empty" data-i18n="common.loading">Yükleniyor...</td></tr>
                 </tbody>
               </table>
             </div>
             <div class="db-pagination" id="approvedPagination" style="display:none">
               <span id="approvedPageInfo"></span>
               <div class="db-pagination-btns">
-                <button class="pg-btn" id="approvedPrevBtn" onclick="productChangePage('approved', -1)">‹ Önceki</button>
-                <button class="pg-btn" id="approvedNextBtn" onclick="productChangePage('approved', 1)">Sonraki ›</button>
+                <button class="pg-btn" id="approvedPrevBtn" onclick="productChangePage('approved', -1)" data-i18n="common.prev">‹ Önceki</button>
+                <button class="pg-btn" id="approvedNextBtn" onclick="productChangePage('approved', 1)" data-i18n="common.next">Sonraki ›</button>
               </div>
             </div>
           </div>
@@ -1647,17 +1650,17 @@
 <div class="page" id="page-contour" style="padding:0; background:#f8fafc; align-items: stretch; flex-direction: column;">
   <div class="page-header">
     <div>
-      <h1 class="ph-title">Image to Contour</h1>
-      <p class="ph-sub">Generate outline drawings</p>
+      <h1 class="ph-title" data-i18n="contour.title">Image to Contour</h1>
+      <p class="ph-sub" data-i18n="contour.sub">Generate outline drawings</p>
     </div>
     <div class="ph-actions">
       <button class="analytics-primary-btn" onclick="navGo('search', document.getElementById('nav-search'))">
         <span class="btn-ic"><svg viewBox="0 0 24 24"><path d="M5 12h14M12 5v14"></path></svg></span>
-        New Comparison
+        <span data-i18n="common.new_comparison">New Comparison</span>
       </button>
       <label class="analytics-searchbox">
         <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-        <input type="text" placeholder="Search...">
+        <input type="text" data-i18n-placeholder="common.search_placeholder" placeholder="Search...">
       </label>
       <button class="analytics-icon-btn" aria-label="Help">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
@@ -1670,16 +1673,16 @@
   <div class="contour-layout" style="padding:32px; max-width:1400px; width:100%; margin:0 auto;">
     <div class="contour-card">
       <div class="contour-head">
-        <h2>Profesyonel Kontur -> DXF</h2>
-        <p>AI kullanılmaz. Teknik kalibrasyon (2 nokta), katmanlı DXF (OUTER/INNER/HOLES/REF) ve kalite raporu ile üretime uygun çıktı üretir.</p>
+        <h2 data-i18n="contour.card_title">Profesyonel Kontur → DXF</h2>
+        <p data-i18n="contour.card_desc">AI kullanılmaz. Teknik kalibrasyon (2 nokta), katmanlı DXF (OUTER/INNER/HOLES/REF) ve kalite raporu ile üretime uygun çıktı üretir.</p>
       </div>
       <div class="contour-grid">
         <div class="contour-panel">
           <div class="contour-drop" id="contourDrop"
             ondragover="contourDragOver(event)" ondragleave="contourDragLeave()"
             ondrop="contourDropFile(event)" onclick="document.getElementById('contourFileInput').click()">
-            <div class="contour-drop-title">Görsel yükle (PNG/JPG/JPEG/BMP/WEBP/TIFF)</div>
-            <div class="contour-drop-sub">Sürükle-bırak veya tıkla</div>
+            <div class="contour-drop-title" data-i18n="contour.drop_title">Görsel yükle (PNG/JPG/JPEG/BMP/WEBP/TIFF)</div>
+            <div class="contour-drop-sub" data-i18n="contour.drop_sub">Sürükle-bırak veya tıkla</div>
             <div class="contour-fname" id="contourFname"></div>
           </div>
           <input type="file" id="contourFileInput" accept="image/*,.png,.jpg,.jpeg,.bmp,.webp,.tif,.tiff" style="display:none" onchange="contourFileSelected(event)">
@@ -1687,15 +1690,15 @@
           <div class="contour-fields">
             <div class="contour-field-row">
               <div class="contour-field">
-                <label for="contourCalibrationMode">Kalibrasyon Modu</label>
+                <label for="contourCalibrationMode" data-i18n="contour.calib_mode">Kalibrasyon Modu</label>
                 <select id="contourCalibrationMode" onchange="onContourCalibrationModeChange()">
-                  <option value="auto_scan">Otomatik Tarama Kalibrasyonu (Önerilen)</option>
-                  <option value="factor">Manual Ölçek</option>
-                  <option value="two_point">2 Nokta Referans</option>
+                  <option value="auto_scan" data-i18n="contour.calib_auto">Otomatik Tarama Kalibrasyonu (Önerilen)</option>
+                  <option value="factor" data-i18n="contour.calib_factor">Manual Ölçek</option>
+                  <option value="two_point" data-i18n="contour.calib_two_point">2 Nokta Referans</option>
                 </select>
               </div>
               <div class="contour-field">
-                <label for="contourScaleInput">Manual Ölçek Çarpanı</label>
+                <label for="contourScaleInput" data-i18n="contour.scale_factor">Manual Ölçek Çarpanı</label>
                 <input id="contourScaleInput" type="number" min="0.000001" step="0.1" value="1" />
               </div>
             </div>
@@ -1703,25 +1706,25 @@
             <div id="contourCalibFields" style="display:none">
               <div class="contour-field-row">
                 <div class="contour-field">
-                  <label for="contourCalibDistance">Gerçek Referans Mesafe</label>
+                  <label for="contourCalibDistance" data-i18n="contour.real_distance">Gerçek Referans Mesafe</label>
                   <input id="contourCalibDistance" type="number" min="0.000001" step="0.1" value="100" oninput="updateContourCalibInfo()" />
                 </div>
                 <div class="contour-field">
-                  <label>Nokta Seçimi</label>
+                  <label data-i18n="contour.point_select">Nokta Seçimi</label>
                   <div style="display:flex;gap:4px">
-                    <button class="contour-btn" style="flex:1" onclick="undoContourCalibPoint()">Son Noktayı Geri Al</button>
-                    <button class="contour-btn" style="flex:1" onclick="resetContourCalibPoints()">Tümünü Sıfırla</button>
+                    <button class="contour-btn" style="flex:1" onclick="undoContourCalibPoint()" data-i18n="contour.undo_point">Son Noktayı Geri Al</button>
+                    <button class="contour-btn" style="flex:1" onclick="resetContourCalibPoints()" data-i18n="contour.reset_points">Tümünü Sıfırla</button>
                   </div>
                 </div>
               </div>
-              <div class="contour-calib-info" id="contourCalibInfo">
+              <div class="contour-calib-info" id="contourCalibInfo" data-i18n="contour.calib_info">
                 Kalibrasyon için sağ panelde görüntüye tıklayarak P1 ve P2 noktalarını seçin.
               </div>
             </div>
 
             <div class="contour-field-row">
               <div class="contour-field">
-                <label for="contourUnitSelect">DXF Birimi</label>
+                <label for="contourUnitSelect" data-i18n="contour.dxf_unit">DXF Birimi</label>
                 <select id="contourUnitSelect">
                   <option value="mm">Millimeter (mm)</option>
                   <option value="unitless">Unitless</option>
@@ -1732,7 +1735,7 @@
                 </select>
               </div>
               <div class="contour-field">
-                <label for="contourOriginMode">Koordinat Orijini</label>
+                <label for="contourOriginMode" data-i18n="contour.origin_mode">Koordinat Orijini</label>
                 <select id="contourOriginMode">
                   <option value="bottom_left">Bottom-Left</option>
                   <option value="top_left">Top-Left</option>
@@ -1743,104 +1746,104 @@
 
             <div class="contour-field-row">
               <div class="contour-field">
-                <label for="contourMinAreaInput">Min Kontur Alanı (px²)</label>
+                <label for="contourMinAreaInput" data-i18n="contour.min_area">Min Kontur Alanı (px²)</label>
                 <input id="contourMinAreaInput" type="number" min="0" step="1" value="16" />
               </div>
               <div class="contour-field">
-                <label for="contourMinAreaPctInput">Min Alan Yüzdesi (%)</label>
+                <label for="contourMinAreaPctInput" data-i18n="contour.min_area_pct">Min Alan Yüzdesi (%)</label>
                 <input id="contourMinAreaPctInput" type="number" min="0" max="50" step="0.01" value="0" title="Görsel alanının yüzdesi olarak minimum kontur alanı. 0 = devre dışı." />
               </div>
             </div>
 
             <div class="contour-field-row">
               <div class="contour-field">
-                <label for="contourSimplifyInput">Polyline Sadeleştirme (px)</label>
+                <label for="contourSimplifyInput" data-i18n="contour.simplify">Polyline Sadeleştirme (px)</label>
                 <input id="contourSimplifyInput" type="number" min="0" max="50" step="0.1" value="0.8" />
               </div>
               <div class="contour-field">
-                <label for="contourBlurSigmaInput">Gürültü Azaltma (blur σ)</label>
+                <label for="contourBlurSigmaInput" data-i18n="contour.blur">Gürültü Azaltma (blur σ)</label>
                 <input id="contourBlurSigmaInput" type="number" min="0" max="10" step="0.1" value="0" title="Taranmış görsellerde gürültüyü azaltır. 0 = kapalı, 0.8-1.5 taranmış için önerilir." />
               </div>
             </div>
 
             <div class="contour-field-row">
               <div class="contour-field">
-                <label for="contourCircleTolerance">Circle Fitting Toleransı</label>
+                <label for="contourCircleTolerance" data-i18n="contour.circle_tol">Circle Fitting Toleransı</label>
                 <input id="contourCircleTolerance" type="number" min="0" max="0.5" step="0.01" value="0.08" />
               </div>
               <div class="contour-field">
-                <label for="contourMinSegInput">Min Segment Uzunluğu (çıktı birim)</label>
+                <label for="contourMinSegInput" data-i18n="contour.min_seg">Min Segment Uzunluğu (çıktı birim)</label>
                 <input id="contourMinSegInput" type="number" min="0" step="0.1" value="0" />
               </div>
             </div>
 
             <div class="contour-field-row">
-              <label class="contour-check"><input type="checkbox" id="contourDetectCircles" checked> Daireleri CIRCLE/ELLIPSE olarak yaz</label>
-              <label class="contour-check"><input type="checkbox" id="contourDetectArcs"> Yayları ARC olarak yaz</label>
+              <label class="contour-check"><input type="checkbox" id="contourDetectCircles" checked> <span data-i18n="contour.detect_circles">Daireleri CIRCLE/ELLIPSE olarak yaz</span></label>
+              <label class="contour-check"><input type="checkbox" id="contourDetectArcs"> <span data-i18n="contour.detect_arcs">Yayları ARC olarak yaz</span></label>
             </div>
             <div class="contour-field-row" id="contourArcToleranceRow" style="display:none">
               <div class="contour-field">
-                <label for="contourArcTolerance">Arc Fitting Toleransı</label>
+                <label for="contourArcTolerance" data-i18n="contour.arc_tol">Arc Fitting Toleransı</label>
                 <input id="contourArcTolerance" type="number" min="0" max="0.5" step="0.01" value="0.06" />
               </div>
               <div class="contour-field"></div>
             </div>
             <div class="contour-field-row">
-              <label class="contour-check"><input type="checkbox" id="contourFlipX"> X eksenini çevir (flip)</label>
-              <label class="contour-check"><input type="checkbox" id="contourFlipY"> Y eksenini çevir (flip)</label>
+              <label class="contour-check"><input type="checkbox" id="contourFlipX"> <span data-i18n="contour.flip_x">X eksenini çevir (flip)</span></label>
+              <label class="contour-check"><input type="checkbox" id="contourFlipY"> <span data-i18n="contour.flip_y">Y eksenini çevir (flip)</span></label>
             </div>
             <div class="contour-field-row">
-              <label class="contour-check"><input type="checkbox" id="contourExportSvg"> SVG de üret</label>
-              <span class="contour-mini-note">Layerlar: OUTER / INNER / HOLES / REF</span>
+              <label class="contour-check"><input type="checkbox" id="contourExportSvg"> <span data-i18n="contour.export_svg">SVG de üret</span></label>
+              <span class="contour-mini-note" data-i18n="contour.layers_note">Katmanlar: DIŞ / İÇ / DELİKLER / REF</span>
             </div>
           </div>
 
           <div class="contour-actions">
-            <button class="contour-btn primary" id="contourRunBtn" onclick="runContourVectorize()" disabled>Kontur Çıkar</button>
-            <button class="contour-btn" id="contourDownloadBtn" onclick="downloadContourDxf('raw')" disabled>Konturlu DXF İndir</button>
-            <button class="contour-btn" id="contourDownloadNetBtn" onclick="downloadContourDxf('net')" disabled>Net DXF İndir</button>
-            <button class="contour-btn" id="contourDownloadSvgBtn" onclick="downloadContourSvg()" disabled style="display:none">SVG İndir</button>
-            <button class="contour-btn" onclick="clearContourState()">Temizle</button>
+            <button class="contour-btn primary" id="contourRunBtn" onclick="runContourVectorize()" disabled data-i18n="contour.run_btn">Kontur Çıkar</button>
+            <button class="contour-btn" id="contourDownloadBtn" onclick="downloadContourDxf('raw')" disabled data-i18n="contour.download_raw">Konturlu DXF İndir</button>
+            <button class="contour-btn" id="contourDownloadNetBtn" onclick="downloadContourDxf('net')" disabled data-i18n="contour.download_net">Net DXF İndir</button>
+            <button class="contour-btn" id="contourDownloadSvgBtn" onclick="downloadContourSvg()" disabled style="display:none" data-i18n="contour.download_svg">SVG İndir</button>
+            <button class="contour-btn" onclick="clearContourState()" data-i18n="common.clear">Temizle</button>
           </div>
           <div class="contour-msg" id="contourMsg"></div>
           <div class="contour-stats" id="contourStats" style="display:none">
-            <div class="contour-stat"><div class="lbl">Kontur</div><div class="val" id="contourStatCount">—</div></div>
-            <div class="contour-stat"><div class="lbl">Nokta</div><div class="val" id="contourStatPoints">—</div></div>
-            <div class="contour-stat"><div class="lbl">Görsel</div><div class="val" id="contourStatSize">—</div></div>
-            <div class="contour-stat"><div class="lbl">Birim/Ölçek</div><div class="val" id="contourStatScale">—</div></div>
+            <div class="contour-stat"><div class="lbl" data-i18n="contour.stat_count">Kontur</div><div class="val" id="contourStatCount">—</div></div>
+            <div class="contour-stat"><div class="lbl" data-i18n="contour.stat_points">Nokta</div><div class="val" id="contourStatPoints">—</div></div>
+            <div class="contour-stat"><div class="lbl" data-i18n="contour.stat_size">Görsel</div><div class="val" id="contourStatSize">—</div></div>
+            <div class="contour-stat"><div class="lbl" data-i18n="contour.stat_scale">Birim/Ölçek</div><div class="val" id="contourStatScale">—</div></div>
           </div>
           <div class="contour-quality" id="contourQualityBox" style="display:none">
-            <div class="contour-quality-item"><span>Self-Intersection</span><strong id="contourQIntersect">—</strong></div>
-            <div class="contour-quality-item"><span>Kısa Segment</span><strong id="contourQShortSeg">—</strong></div>
-            <div class="contour-quality-item"><span>Layer Özeti</span><strong id="contourQLayers">—</strong></div>
+            <div class="contour-quality-item"><span data-i18n="contour.quality_intersect">Self-Intersection</span><strong id="contourQIntersect">—</strong></div>
+            <div class="contour-quality-item"><span data-i18n="contour.quality_short_seg">Kısa Segment</span><strong id="contourQShortSeg">—</strong></div>
+            <div class="contour-quality-item"><span data-i18n="contour.quality_layers">Katman Özeti</span><strong id="contourQLayers">—</strong></div>
             <div id="contourQWarnings"></div>
           </div>
         </div>
 
         <div class="contour-panel">
-          <div class="section-label">Kalibrasyon Kaynağı (P1/P2 seçim)</div>
+          <div class="section-label" data-i18n="contour.calib_source">Kalibrasyon Kaynağı (P1/P2 seçim)</div>
           <div class="contour-source-wrap">
             <canvas id="contourSourceCanvas" class="contour-source-canvas" onclick="onContourSourceCanvasClick(event)"></canvas>
-            <div class="contour-empty" id="contourSourceEmpty">Henüz görsel yüklenmedi</div>
+            <div class="contour-empty" id="contourSourceEmpty" data-i18n="contour.no_image">Henüz görsel yüklenmedi</div>
           </div>
-          <div class="section-label">Çıktı Preview</div>
+          <div class="section-label" data-i18n="contour.output_preview">Çıktı Önizleme</div>
           <div class="contour-preview-grid">
             <div class="contour-preview-col">
-              <div class="contour-mini-note">Konturlu Görsel</div>
+              <div class="contour-mini-note" data-i18n="contour.preview_contour">Konturlu Görsel</div>
               <div class="contour-preview-wrap" id="contourPreviewWrap">
-                <div class="contour-empty">Henüz görsel yüklenmedi</div>
+                <div class="contour-empty" data-i18n="contour.no_image">Henüz görsel yüklenmedi</div>
               </div>
             </div>
             <div class="contour-preview-col">
-              <div class="contour-mini-note">Ölçülü Görsel</div>
+              <div class="contour-mini-note" data-i18n="contour.preview_dim">Ölçülü Görsel</div>
               <div class="contour-preview-wrap" id="contourPreviewDimWrap">
-                <div class="contour-empty">Henüz görsel yüklenmedi</div>
+                <div class="contour-empty" data-i18n="contour.no_image">Henüz görsel yüklenmedi</div>
               </div>
             </div>
             <div class="contour-preview-col">
-              <div class="contour-mini-note">Net Görsel</div>
+              <div class="contour-mini-note" data-i18n="contour.preview_net">Net Görsel</div>
               <div class="contour-preview-wrap" id="contourPreviewNetWrap">
-                <div class="contour-empty">Henüz görsel yüklenmedi</div>
+                <div class="contour-empty" data-i18n="contour.no_image">Henüz görsel yüklenmedi</div>
               </div>
             </div>
           </div>
@@ -1854,8 +1857,8 @@
 <div class="page" id="page-cat" style="padding:0; background:#f8fafc; align-items: stretch; flex-direction: column;">
   <div class="page-header">
     <div>
-      <h1 class="ph-title">Categories</h1>
-      <p class="ph-sub">Manage file categories</p>
+      <h1 class="ph-title" data-i18n="cat.title">Categories</h1>
+      <p class="ph-sub" data-i18n="cat.sub">Manage file categories</p>
     </div>
     <div class="ph-actions">
       <button class="analytics-primary-btn" onclick="navGo('search', document.getElementById('nav-search'))">
@@ -1878,30 +1881,30 @@
 
     <!-- Yeni kategori ekle -->
     <div class="cat-add-card">
-      <h2>Yeni Kategori</h2>
+      <h2 data-i18n="cat.new_category">Yeni Kategori</h2>
       <div class="cat-add-row">
-        <input class="cat-name-input" id="catNameInput" placeholder="Kategori adı..." maxlength="60"
+        <input class="cat-name-input" id="catNameInput" data-i18n-placeholder="cat.name_placeholder" placeholder="Kategori adı..." maxlength="60"
           onkeydown="if(event.key==='Enter') addCategory()">
         <div class="cat-color-wrap">
-          <label>Renk</label>
+          <label data-i18n="common.color">Renk</label>
           <input type="color" id="catColorInput" value="#6366f1">
         </div>
-        <button class="btn-primary" onclick="addCategory()">Ekle</button>
+        <button class="btn-primary" onclick="addCategory()" data-i18n="common.add">Ekle</button>
       </div>
       <div id="catAddMsg" style="margin-top:8px;font-size:12px;display:none"></div>
     </div>
 
     <!-- Excel import -->
     <div class="cat-add-card">
-      <h2>Excel ile Toplu İçe Aktar</h2>
+      <h2 data-i18n="cat.excel_import">Excel ile Toplu İçe Aktar</h2>
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
         <button class="btn-secondary" onclick="downloadCategoryTemplate()">
           <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;margin-right:5px;vertical-align:-2px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-          Template İndir
+          <span data-i18n="cat.template_download">Template İndir</span>
         </button>
         <label class="btn-primary" style="cursor:pointer;margin:0">
           <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;margin-right:5px;vertical-align:-2px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-          Excel Yükle
+          <span data-i18n="cat.excel_upload">Excel Yükle</span>
           <input type="file" accept=".xlsx,.xls" style="display:none" onchange="importCategoryExcel(this)">
         </label>
         <span id="catImportStatus" style="font-size:12px;color:var(--text3)"></span>
@@ -1912,10 +1915,10 @@
     <!-- Kategori listesi -->
     <div class="cat-list-card">
       <div class="cat-list-header">
-        Kategoriler <span id="catListBadge" style="font-size:12px;color:var(--text3);font-weight:400"></span>
+        <span data-i18n="cat.list_header">Kategoriler</span> <span id="catListBadge" style="font-size:12px;color:var(--text3);font-weight:400"></span>
       </div>
       <div id="catListBody">
-        <div class="cat-empty">Yükleniyor...</div>
+        <div class="cat-empty" data-i18n="common.loading">Yükleniyor...</div>
       </div>
     </div>
 
@@ -1926,8 +1929,8 @@
 <div class="page" id="page-analytics" style="padding:0; background:#f8fafc; align-items: stretch; flex-direction: column;">
   <div class="page-header">
     <div>
-      <h1 class="ph-title">Dashboard</h1>
-      <p class="ph-sub">Overview of your CAD analysis platform</p>
+      <h1 class="ph-title" data-i18n="dash.title">Dashboard</h1>
+      <p class="ph-sub" data-i18n="dash.sub">Overview of your CAD analysis platform</p>
     </div>
     <div class="ph-actions">
       <button class="analytics-primary-btn" onclick="navGo('search', document.getElementById('nav-search'))">
@@ -1953,7 +1956,7 @@
       <!-- Kart 1 -->
       <div style="background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:20px; display:flex; flex-direction:column; gap:8px;">
         <div style="display:flex; justify-content:space-between; align-items:center;">
-          <span style="font-size:11px; font-weight:700; color:#64748b; letter-spacing:0.05em;">FILES PROCESSED</span>
+          <span style="font-size:11px; font-weight:700; color:#64748b; letter-spacing:0.05em;" data-i18n="dash.files_processed">FILES PROCESSED</span>
           <div style="width:32px; height:32px; border-radius:8px; background:#f0f9ff; display:flex; align-items:center; justify-content:center; color:#0ea5e9;">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
           </div>
@@ -1964,7 +1967,7 @@
       <!-- Kart 2 -->
       <div style="background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:20px; display:flex; flex-direction:column; gap:8px;">
         <div style="display:flex; justify-content:space-between; align-items:center;">
-          <span style="font-size:11px; font-weight:700; color:#64748b; letter-spacing:0.05em;">DIFFERENCES DETECTED</span>
+          <span style="font-size:11px; font-weight:700; color:#64748b; letter-spacing:0.05em;" data-i18n="dash.differences">DIFFERENCES DETECTED</span>
           <div style="width:32px; height:32px; border-radius:8px; background:#f0fdf4; display:flex; align-items:center; justify-content:center; color:#10b981;">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
           </div>
@@ -1975,7 +1978,7 @@
       <!-- Kart 3 -->
       <div style="background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:20px; display:flex; flex-direction:column; gap:8px;">
         <div style="display:flex; justify-content:space-between; align-items:center;">
-          <span style="font-size:11px; font-weight:700; color:#64748b; letter-spacing:0.05em;">PENDING REVIEWS</span>
+          <span style="font-size:11px; font-weight:700; color:#64748b; letter-spacing:0.05em;" data-i18n="dash.pending_reviews">PENDING REVIEWS</span>
           <div style="width:32px; height:32px; border-radius:8px; background:#fffbeb; display:flex; align-items:center; justify-content:center; color:#f59e0b;">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
           </div>
@@ -1986,7 +1989,7 @@
       <!-- Kart 4 -->
       <div style="background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:20px; display:flex; flex-direction:column; gap:8px;">
         <div style="display:flex; justify-content:space-between; align-items:center;">
-          <span style="font-size:11px; font-weight:700; color:#64748b; letter-spacing:0.05em;">EXPORTS CREATED</span>
+          <span style="font-size:11px; font-weight:700; color:#64748b; letter-spacing:0.05em;" data-i18n="dash.exports">EXPORTS CREATED</span>
           <div style="width:32px; height:32px; border-radius:8px; background:#f0f9ff; display:flex; align-items:center; justify-content:center; color:#0ea5e9;">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
           </div>
@@ -1998,28 +2001,28 @@
 
     <!-- Quick Actions -->
     <div class="analytics-quick-section">
-      <h2 style="font-size:16px; font-weight:700; color:#0f172a; margin-bottom:16px; margin-top:0;">Quick Actions</h2>
+      <h2 style="font-size:16px; font-weight:700; color:#0f172a; margin-bottom:16px; margin-top:0;" data-i18n="dash.quick_actions">Quick Actions</h2>
       <div class="analytics-actions-grid">
         <button class="analytics-quick-card" onclick="navGo('search', document.getElementById('nav-search'))">
           <div class="analytics-quick-icon">
             <svg viewBox="0 0 24 24"><circle cx="8" cy="8" r="4"></circle><circle cx="16" cy="16" r="4"></circle><path d="M11 8H16M8 11V16"></path></svg>
           </div>
-          <div class="analytics-quick-title">Start CAD Comparison</div>
-          <div class="analytics-quick-sub">Compare two or more CAD files</div>
+          <div class="analytics-quick-title" data-i18n="dash.start_comparison">Start CAD Comparison</div>
+          <div class="analytics-quick-sub" data-i18n="dash.compare_sub">Compare two or more CAD files</div>
         </button>
         <button class="analytics-quick-card" onclick="navGo('contour', document.getElementById('nav-contour'))">
           <div class="analytics-quick-icon">
             <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"></rect><circle cx="8" cy="9" r="2"></circle><path d="M2 17L7 12L11 15L15 10L22 17"></path></svg>
           </div>
-          <div class="analytics-quick-title">Convert Image to Contour</div>
-          <div class="analytics-quick-sub">Generate outline drawings</div>
+          <div class="analytics-quick-title" data-i18n="dash.convert_image">Convert Image to Contour</div>
+          <div class="analytics-quick-sub" data-i18n="dash.convert_sub">Generate outline drawings</div>
         </button>
         <button class="analytics-quick-card" onclick="navGo('db', document.getElementById('nav-upload'))">
           <div class="analytics-quick-icon">
             <svg viewBox="0 0 24 24"><path d="M2 8Q2 6 4 6H9L11 8.5H20Q22 8.5 22 10.5V19Q22 21 20 21H4Q2 21 2 19Z"></path></svg>
           </div>
-          <div class="analytics-quick-title">View File Library</div>
-          <div class="analytics-quick-sub">Browse all your CAD files</div>
+          <div class="analytics-quick-title" data-i18n="dash.view_library">View File Library</div>
+          <div class="analytics-quick-sub" data-i18n="dash.library_sub">Browse all your CAD files</div>
         </button>
       </div>
     </div>
@@ -2027,18 +2030,18 @@
     <!-- Recent Activity -->
     <div class="analytics-table-section">
       <div class="analytics-table-head">
-        <h2 style="font-size:16px; font-weight:700; color:#0f172a; margin:0;">Recent Activity</h2>
-        <button class="analytics-link-btn" onclick="navGo('activity', document.getElementById('nav-activity'))">View All →</button>
+        <h2 style="font-size:16px; font-weight:700; color:#0f172a; margin:0;" data-i18n="dash.recent_activity">Recent Activity</h2>
+        <button class="analytics-link-btn" onclick="navGo('activity', document.getElementById('nav-activity'))" data-i18n="dash.view_all">View All →</button>
       </div>
       <div class="analytics-table-card">
         <table class="analytics-preview-table">
           <thead>
             <tr>
-              <th>JOB NAME</th>
-              <th>TYPE</th>
-              <th>STATUS</th>
-              <th>DATE</th>
-              <th>RESULT</th>
+              <th data-i18n="dash.col_job">JOB NAME</th>
+              <th data-i18n="dash.col_type">TYPE</th>
+              <th data-i18n="dash.col_status">STATUS</th>
+              <th data-i18n="dash.col_date">DATE</th>
+              <th data-i18n="dash.col_result">RESULT</th>
             </tr>
           </thead>
           <tbody>
@@ -2081,8 +2084,8 @@
 <div class="page" id="page-activity" style="padding:0; background:#f8fafc; align-items: stretch; flex-direction: column;">
   <div class="page-header">
     <div>
-      <h1 class="ph-title">Job History</h1>
-      <p class="ph-sub">View your recent activity</p>
+      <h1 class="ph-title" data-i18n="activity.title">Job History</h1>
+      <p class="ph-sub" data-i18n="activity.sub">View your recent activity</p>
     </div>
     <div class="ph-actions">
       <button class="analytics-primary-btn" onclick="navGo('search', document.getElementById('nav-search'))">
@@ -2104,30 +2107,30 @@
   <div class="db-layout" style="padding:32px; max-width:1400px; width:100%; margin:0 auto;">
     <div class="db-files-card">
       <div class="db-files-header">
-        <h2>Log History</h2>
-        <button class="pg-btn" onclick="loadActivityLog()">Yenile</button>
+        <h2 data-i18n="activity.log_title">Log History</h2>
+        <button class="pg-btn" onclick="loadActivityLog()" data-i18n="common.refresh">Yenile</button>
       </div>
       <div class="db-table-wrap">
         <table>
           <thead>
             <tr>
-              <th>Tarih</th>
-              <th>Kullanici</th>
-              <th>Aksiyon</th>
-              <th>Dosya</th>
-              <th>Detay</th>
+              <th data-i18n="activity.col_date">Tarih</th>
+              <th data-i18n="activity.col_user">Kullanıcı</th>
+              <th data-i18n="activity.col_action">Aksiyon</th>
+              <th data-i18n="activity.col_file">Dosya</th>
+              <th data-i18n="activity.col_detail">Detay</th>
             </tr>
           </thead>
           <tbody id="activityTableBody">
-            <tr><td colspan="5" class="db-empty">Yukleniyor...</td></tr>
+            <tr><td colspan="5" class="db-empty" data-i18n="common.loading">Yükleniyor...</td></tr>
           </tbody>
         </table>
       </div>
       <div class="db-pagination" id="activityPagination" style="display:none">
         <span id="activityPageInfo"></span>
         <div class="db-pagination-btns">
-          <button class="pg-btn" id="activityPrevBtn" onclick="activityChangePage(-1)">&#8249; Onceki</button>
-          <button class="pg-btn" id="activityNextBtn" onclick="activityChangePage(1)">Sonraki &#8250;</button>
+          <button class="pg-btn" id="activityPrevBtn" onclick="activityChangePage(-1)" data-i18n="common.prev">‹ Önceki</button>
+          <button class="pg-btn" id="activityNextBtn" onclick="activityChangePage(1)" data-i18n="common.next">Sonraki ›</button>
         </div>
       </div>
     </div>
@@ -2138,8 +2141,8 @@
 <div class="page" id="page-scan" style="padding:0; background:#f8fafc; align-items: stretch; flex-direction: column;">
   <div class="page-header">
     <div>
-      <h1 class="ph-title">Scan → CAD</h1>
-      <p class="ph-sub">Digitize physical parts</p>
+      <h1 class="ph-title" data-i18n="scan.title">Scan → CAD</h1>
+      <p class="ph-sub" data-i18n="scan.sub">Digitize physical parts</p>
     </div>
     <div class="ph-actions">
       <button class="analytics-primary-btn" onclick="navGo('search', document.getElementById('nav-search'))">
@@ -2163,36 +2166,36 @@
     <!-- Sol panel: yükleme + ayarlar -->
     <div class="scan-left">
       <div class="scan-card">
-        <div class="scan-card-title">Dosya Yükle</div>
+        <div class="scan-card-title" data-i18n="scan.upload_card">Dosya Yükle</div>
         <div class="scan-drop" id="scanDrop"
           ondragover="scanDragOver(event)" ondragleave="scanDragLeave()"
           ondrop="scanDrop_handler(event)" onclick="document.getElementById('scanFileInput').click()">
           <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
-          <div class="scan-drop-title">Sürükle & Bırak</div>
-          <div class="scan-drop-sub">JPG · PNG · PDF · DXF · DWG · BMP · TIFF</div>
+          <div class="scan-drop-title" data-i18n="scan.drop_title">Sürükle & Bırak</div>
+          <div class="scan-drop-sub" data-i18n="scan.drop_sub">JPG · PNG · PDF · DXF · DWG · BMP · TIFF</div>
           <div class="scan-drop-fname" id="scanDropFname"></div>
         </div>
         <input type="file" id="scanFileInput" accept=".jpg,.jpeg,.png,.bmp,.tiff,.tif,.pdf,.dxf,.dwg" style="display:none" onchange="scanFileSelected(this)">
 
         <div class="scan-stats" id="scanStats" style="display:none">
-          <div class="scan-stat"><div class="scan-stat-lbl">Çizgi</div><div class="scan-stat-val" id="sSLines">—</div></div>
-          <div class="scan-stat"><div class="scan-stat-lbl">Çember</div><div class="scan-stat-val" id="sSCircles">—</div></div>
-          <div class="scan-stat"><div class="scan-stat-lbl">Yay</div><div class="scan-stat-val" id="sSArcs">—</div></div>
-          <div class="scan-stat"><div class="scan-stat-lbl">Toplam</div><div class="scan-stat-val" id="sSTotal">—</div></div>
+          <div class="scan-stat"><div class="scan-stat-lbl" data-i18n="scan.stat_lines">Çizgi</div><div class="scan-stat-val" id="sSLines">—</div></div>
+          <div class="scan-stat"><div class="scan-stat-lbl" data-i18n="scan.stat_circles">Çember</div><div class="scan-stat-val" id="sSCircles">—</div></div>
+          <div class="scan-stat"><div class="scan-stat-lbl" data-i18n="scan.stat_arcs">Yay</div><div class="scan-stat-val" id="sSArcs">—</div></div>
+          <div class="scan-stat"><div class="scan-stat-lbl" data-i18n="scan.stat_total">Toplam</div><div class="scan-stat-val" id="sSTotal">—</div></div>
         </div>
 
         <div class="scan-actions">
           <button class="scan-btn primary" id="scanConvertBtn" onclick="scanConvert()" disabled>
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-            Dönüştür
+            <span data-i18n="scan.convert_btn">Dönüştür</span>
           </button>
           <button class="scan-btn smooth" id="scanSmoothBtn" onclick="scanSmooth()" disabled title="Gürültüyü temizle, eğrileri pürüzsüzleştir">
             <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12c3-6 9-6 12 0s9 6 12 0"/><path d="M3 12c3 6 9 6 12 0s9-6 12 0" opacity=".4"/></svg>
-            İyileştir
+            <span data-i18n="scan.smooth_btn">İyileştir</span>
           </button>
-          <button class="scan-btn" id="scanExportBtn" onclick="scanExportDXF()" disabled>DXF İndir</button>
-          <button class="scan-btn" id="scanIndexBtn" onclick="scanIndexFile()" disabled>Arşive Ekle</button>
-          <button class="scan-btn" onclick="scanReset()">Temizle</button>
+          <button class="scan-btn" id="scanExportBtn" onclick="scanExportDXF()" disabled data-i18n="scan.export_btn">DXF İndir</button>
+          <button class="scan-btn" id="scanIndexBtn" onclick="scanIndexFile()" disabled data-i18n="scan.index_btn">Arşive Ekle</button>
+          <button class="scan-btn" onclick="scanReset()" data-i18n="common.clear">Temizle</button>
         </div>
 
         <div class="scan-msg" id="scanMsg"></div>
@@ -2200,7 +2203,7 @@
 
       <!-- Orijinal görsel önizleme -->
       <div class="scan-card" id="scanOriginalCard" style="display:none">
-        <div class="scan-card-title">Orijinal</div>
+        <div class="scan-card-title" data-i18n="scan.original">Orijinal</div>
         <div class="scan-preview-wrap">
           <img id="scanOriginalImg" src="" alt="original">
         </div>
@@ -2211,7 +2214,7 @@
     <div class="scan-right">
       <div class="scan-card scan-editor-card">
         <div class="scan-editor-header">
-          <div class="scan-card-title">Vektör Editör</div>
+          <div class="scan-card-title" data-i18n="scan.vector_editor">Vektör Editör</div>
           <div class="scan-editor-tools">
             <button class="scan-tool-btn active" id="toolSelect" onclick="setTool('select')" title="Seç">
               <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 3l14 9-7 1-4 7z"/></svg>
@@ -2250,7 +2253,7 @@
           <div id="scanSvgLayer" style="display:none;width:100%;height:100%;background:#fafbfc;position:relative;overflow:auto"></div>
           <div class="scan-canvas-empty" id="scanCanvasEmpty">
             <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="#cbd5e1" stroke-width="1"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
-            <div>Dosya yükleyip Dönüştür'e basın</div>
+            <div data-i18n="scan.empty">Dosya yükleyip Dönüştür'e basın</div>
           </div>
         </div>
         <div class="scan-status-bar">
@@ -2271,7 +2274,7 @@
     <div class="acad-logo">CAD PRO</div>
 
     <div class="acad-tool-grp">
-      <span class="acad-tool-label">Çiz</span>
+      <span class="acad-tool-label" data-i18n="scan.draw">Çiz</span>
       <button class="acad-tool" data-tool="line" onclick="acadSetTool('line')" title="Line (L)">╱</button>
       <button class="acad-tool" data-tool="circle" onclick="acadSetTool('circle')" title="Circle (C)">◯</button>
       <button class="acad-tool" data-tool="arc" onclick="acadSetTool('arc')" title="Arc 3pt (A)">⌒</button>
@@ -2281,7 +2284,7 @@
     </div>
 
     <div class="acad-tool-grp">
-      <span class="acad-tool-label">Değiştir</span>
+      <span class="acad-tool-label" data-i18n="scan.modify">Değiştir</span>
       <button class="acad-tool" data-tool="select" onclick="acadSetTool('select')" title="Select (SEL)">⬚</button>
       <button class="acad-tool" data-tool="move" onclick="acadSetTool('move')" title="Move (M)">⇔</button>
       <button class="acad-tool" data-tool="copy" onclick="acadSetTool('copy')" title="Copy (CO)">⎘</button>
@@ -2293,13 +2296,13 @@
     </div>
 
     <div class="acad-tool-grp">
-      <span class="acad-tool-label">Ölçü</span>
+      <span class="acad-tool-label" data-i18n="scan.measure">Ölçü</span>
       <button class="acad-tool" data-tool="dim-lin" onclick="acadSetTool('dim-lin')" title="Linear Dimension (DLI)">⊢⊣</button>
       <button class="acad-tool" data-tool="dim-ali" onclick="acadSetTool('dim-ali')" title="Aligned Dimension (DAL)">⤢</button>
     </div>
 
     <div class="acad-tool-grp">
-      <span class="acad-tool-label">Mod</span>
+      <span class="acad-tool-label" data-i18n="scan.mode">Mod</span>
       <button class="acad-tool toggle" id="acadToggleOsnap" onclick="acadToggle('osnap')" title="Object Snap (F3)">OSNAP</button>
       <button class="acad-tool toggle" id="acadToggleOrtho" onclick="acadToggle('ortho')" title="Ortho (F8)">ORTHO</button>
       <button class="acad-tool toggle" id="acadToggleGrid" onclick="acadToggle('gridSnap')" title="Grid Snap (F9)">GSNAP</button>
@@ -2315,18 +2318,18 @@
 
     <button class="acad-btn-save" onclick="acadExportDXF()" title="DXF olarak indir">DXF</button>
     <button class="acad-btn-save" onclick="acadExportSVG()" title="SVG olarak indir">SVG</button>
-    <button class="acad-btn-close" onclick="closeAcad()">× Kapat</button>
+    <button class="acad-btn-close" onclick="closeAcad()">× <span data-i18n="common.close">Kapat</span></button>
   </div>
 
   <div class="acad-main">
     <div class="acad-side">
       <div class="acad-side-hdr">
-        <span>Katmanlar</span>
-        <button onclick="acadLayerAdd()">+ Yeni</button>
+        <span data-i18n="scan.layers">Katmanlar</span>
+        <button onclick="acadLayerAdd()" data-i18n="scan.new_layer">+ Yeni</button>
       </div>
       <div id="acadLayerList"></div>
-      <div class="acad-side-hdr" style="margin-top:10px">Seçim</div>
-      <div id="acadSelectionInfo" style="padding:8px 10px;font-size:11px;color:#9ca0a9;line-height:1.6">Henüz seçim yok</div>
+      <div class="acad-side-hdr" style="margin-top:10px" data-i18n="scan.selection_panel">Seçim</div>
+      <div id="acadSelectionInfo" style="padding:8px 10px;font-size:11px;color:#9ca0a9;line-height:1.6" data-i18n="scan.no_selection">Henüz seçim yok</div>
     </div>
 
     <div class="acad-canvas-area" id="acadCanvasArea">
@@ -2343,9 +2346,9 @@
   <div class="acad-bottom">
     <div class="acad-cmd-history" id="acadCmdHistory"></div>
     <div class="acad-cmd-line">
-      <span class="acad-cmd-prompt" id="acadCmdPrompt">Komut:</span>
+      <span class="acad-cmd-prompt" id="acadCmdPrompt" data-i18n="scan.cmd_prompt">Komut:</span>
       <input class="acad-cmd-input" id="acadCmdInput" autocomplete="off" spellcheck="false"
-             onkeydown="acadCmdKey(event)" placeholder="Komut veya kısayol yazıp Enter (örn: L, C, REC, M, E, TR)">
+             onkeydown="acadCmdKey(event)" data-i18n-placeholder="scan.cmd_placeholder" placeholder="Komut veya kısayol yazıp Enter (örn: L, C, REC, M, E, TR)">
     </div>
     <div class="acad-status-bar">
       <span>X: <span id="acadCoordX" class="hl">0.00</span></span>
@@ -2453,13 +2456,13 @@ function apSetFolder(kind, el) {
   if (kind === 'approved') {
     if (draftPanel) draftPanel.style.display = 'none';
     if (approvedPanel) { approvedPanel.style.display = 'flex'; }
-    if (titleEl) titleEl.textContent = 'Approved Catalog';
-    if (subEl) subEl.textContent = 'Browse all approved CAD files';
+    if (titleEl) titleEl.textContent = t('approved.approved_title');
+    if (subEl) subEl.textContent = t('approved.approved_sub');
   } else {
     if (draftPanel) draftPanel.style.display = 'flex';
     if (approvedPanel) approvedPanel.style.display = 'none';
-    if (titleEl) titleEl.textContent = 'Review Queue';
-    if (subEl) subEl.textContent = 'Review and approve pending CAD files';
+    if (titleEl) titleEl.textContent = t('approved.review_title');
+    if (subEl) subEl.textContent = t('approved.review_sub');
   }
 }
 
@@ -2512,12 +2515,12 @@ async function loadStats() {
     const totalEl = document.getElementById('totalFiles');
     if (totalEl) totalEl.textContent = Number(d.total_files || 0).toLocaleString('en-US');
     document.getElementById('statusDot').style.background = '#22c55e';
-    document.getElementById('statusText').textContent = 'Connected';
+    document.getElementById('statusText').textContent = t('common.connected');
   } catch {
     // Backend sonradan ayağa kalktıysa base'i tekrar keşfet.
     await ensureApiBase(true);
     document.getElementById('statusDot').style.background = '#ef4444';
-    document.getElementById('statusText').textContent = 'No connection';
+    document.getElementById('statusText').textContent = t('common.no_connection');
   }
 }
 
@@ -2922,7 +2925,7 @@ function updateDbApprovalSelectionUi() {
   const selected = dbState.selectedIds.size;
   const info = document.getElementById('dbSelectedApproveInfo');
   const applyBtn = document.getElementById('dbApplyStatusBtn');
-  if (info) info.textContent = `${selected} selected`;
+  if (info) info.textContent = `${selected} ${t('common.selected')}`;
   if (applyBtn) applyBtn.disabled = selected === 0;
 
   const allBox = document.getElementById('dbSelectAll');
@@ -2970,8 +2973,8 @@ function resetDbDropIndicator() {
   const previewImg = document.getElementById('dbDropPreviewImg');
   const previewName = document.getElementById('dbDropPreviewName');
   drop.classList.remove('loaded');
-  title.textContent = 'Dosyaları buraya sürükleyin';
-  sub.textContent = 'veya tıklayarak seçin — birden fazla dosya seçebilirsiniz';
+  title.textContent = t('db.drop_title');
+  sub.textContent = t('db.drop_sub');
   preview.style.display = 'none';
   previewImg.removeAttribute('src');
   previewName.textContent = '';
@@ -2993,8 +2996,8 @@ function setDbDropIndicator(files, isZip) {
   const previewName = document.getElementById('dbDropPreviewName');
 
   drop.classList.add('loaded');
-  title.textContent = `${files.length} dosya seçildi`;
-  sub.textContent = isZip ? 'Arşiv seçildi, içindeki dosyalar yüklenecek' : 'Yükle ve İndeksle ile işleme başlayabilirsiniz';
+  title.textContent = `${files.length} ${currentLang === 'tr' ? 'dosya seçildi' : 'file(s) selected'}`;
+  sub.textContent = isZip ? (currentLang === 'tr' ? 'Arşiv seçildi, içindeki dosyalar yüklenecek' : 'Archive selected, files inside will be uploaded') : t('db.upload_btn');
 
   if (!isZip) {
     const imageFile = files.find(isDbImageFile);
@@ -3101,7 +3104,7 @@ function renderDbArchivePreview() {
   list.innerHTML = '';
 
   if (dbState.archivePreviewLoading) {
-    count.textContent = 'okunuyor...';
+    count.textContent = t('common.reading');
     const item = document.createElement('div');
     item.className = 'db-archive-item';
     item.innerHTML = `<span class="db-archive-name">Arşiv içeriği okunuyor...</span><span class="db-archive-meta">Bekleyin</span>`;
@@ -3865,7 +3868,7 @@ function updateProductSelectionUi(kind) {
   const info = document.getElementById(`${kind}SelectedInfo`);
   const btn = document.getElementById(kind === 'draft' ? 'draftToApprovedBtn' : 'approvedToDraftBtn');
   const selected = st.selectedIds.size;
-  if (info) info.textContent = `${selected} selected`;
+  if (info) info.textContent = `${selected} ${t('common.selected')}`;
   if (btn) btn.disabled = selected === 0;
 
   const allBox = document.getElementById(`${kind}SelectAll`);
@@ -9749,6 +9752,8 @@ function pointToSegmentDist(px, py, ax, ay, bx, by) {
 
 // ── Initialization ──
 (function init() {
+  applyI18n();
+  updateLangBtn();
   switchTab('analytics');
   setActiveNav(document.getElementById('nav-dashboard'));
   loadStats();

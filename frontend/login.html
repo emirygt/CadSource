@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="theme.css" />
+<script src="i18n.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -60,43 +61,48 @@
 </head>
 <body>
 <div class="card">
-  <h1>CAD Arama Motoru</h1>
-  <p class="sub">DWG/DXF dosyalarınızda benzerlik araması</p>
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
+    <div>
+      <h1 data-i18n="login.title">CAD Arama Motoru</h1>
+      <p class="sub" data-i18n="login.sub">DWG/DXF dosyalarınızda benzerlik araması</p>
+    </div>
+    <button id="langToggleBtn" onclick="toggleLang()" style="background:transparent;border:1px solid #94a3b8;color:#64748b;cursor:pointer;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:700;letter-spacing:0.05em;margin-top:4px">EN</button>
+  </div>
 
   <div class="tabs">
-    <div class="tab active" id="tab-login" onclick="showTab('login')">Giriş Yap</div>
-    <div class="tab" id="tab-register" onclick="showTab('register')">Kayıt Ol</div>
+    <div class="tab active" id="tab-login" onclick="showTab('login')" data-i18n="login.tab_login">Giriş Yap</div>
+    <div class="tab" id="tab-register" onclick="showTab('register')" data-i18n="login.tab_register">Kayıt Ol</div>
   </div>
 
   <!-- Giriş Formu -->
   <div id="form-login">
     <div class="form-group">
-      <label>E-posta</label>
+      <label data-i18n="login.email">E-posta</label>
       <input type="email" id="login-email" placeholder="ali@sirket.com">
     </div>
     <div class="form-group">
-      <label>Şifre</label>
+      <label data-i18n="login.password">Şifre</label>
       <input type="password" id="login-password" placeholder="••••••••">
     </div>
-    <button class="primary" id="btn-login" onclick="doLogin()">Giriş Yap</button>
+    <button class="primary" id="btn-login" onclick="doLogin()" data-i18n="login.btn_login">Giriş Yap</button>
     <div id="login-msg"></div>
   </div>
 
   <!-- Kayıt Formu -->
   <div id="form-register" style="display:none">
     <div class="form-group">
-      <label>E-posta</label>
+      <label data-i18n="login.email">E-posta</label>
       <input type="email" id="reg-email" placeholder="ali@sirket.com">
     </div>
     <div class="form-group">
-      <label>Şirket Adı (isteğe bağlı)</label>
-      <input type="text" id="reg-company" placeholder="Acme Mühendislik">
+      <label data-i18n="login.company">Şirket Adı (isteğe bağlı)</label>
+      <input type="text" id="reg-company" data-i18n-placeholder="login.company_placeholder" placeholder="Acme Mühendislik">
     </div>
     <div class="form-group">
-      <label>Şifre</label>
-      <input type="password" id="reg-password" placeholder="En az 6 karakter">
+      <label data-i18n="login.password">Şifre</label>
+      <input type="password" id="reg-password" placeholder="••••••••">
     </div>
-    <button class="primary" id="btn-register" onclick="doRegister()">Kayıt Ol</button>
+    <button class="primary" id="btn-register" onclick="doRegister()" data-i18n="login.btn_register">Kayıt Ol</button>
     <div id="register-msg"></div>
   </div>
 </div>
@@ -176,9 +182,9 @@ async function doLogin() {
   const email = document.getElementById('login-email').value.trim();
   const password = document.getElementById('login-password').value;
 
-  if (!email || !password) { msg.className = 'error'; msg.textContent = 'Email ve şifre gerekli'; return; }
+  if (!email || !password) { msg.className = 'error'; msg.textContent = t('login.err_required'); return; }
 
-  btn.disabled = true; btn.textContent = 'Giriş yapılıyor...';
+  btn.disabled = true; btn.textContent = t('login.logging_in');
   try {
     await ensureApiBase();
     const res = await fetch(`${API}/auth/login`, {
@@ -186,14 +192,14 @@ async function doLogin() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
     });
-    const data = await parseJsonResponse(res, 'Giriş başarısız');
+    const data = await parseJsonResponse(res, t('login.fail_login'));
     localStorage.setItem('token', data.token);
     localStorage.setItem('email', data.email);
     window.location.href = 'index.html';
   } catch (e) {
     msg.className = 'error'; msg.textContent = e.message;
   } finally {
-    btn.disabled = false; btn.textContent = 'Giriş Yap';
+    btn.disabled = false; btn.textContent = t('login.btn_login');
   }
 }
 
@@ -204,10 +210,10 @@ async function doRegister() {
   const password = document.getElementById('reg-password').value;
   const company_name = document.getElementById('reg-company').value.trim();
 
-  if (!email || !password) { msg.className = 'error'; msg.textContent = 'Email ve şifre gerekli'; return; }
-  if (password.length < 6) { msg.className = 'error'; msg.textContent = 'Şifre en az 6 karakter olmalı'; return; }
+  if (!email || !password) { msg.className = 'error'; msg.textContent = t('login.err_required'); return; }
+  if (password.length < 6) { msg.className = 'error'; msg.textContent = t('login.err_min_pass'); return; }
 
-  btn.disabled = true; btn.textContent = 'Kayıt yapılıyor...';
+  btn.disabled = true; btn.textContent = t('login.registering');
   try {
     await ensureApiBase();
     const res = await fetch(`${API}/auth/register`, {
@@ -215,19 +221,22 @@ async function doRegister() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password, company_name }),
     });
-    const data = await parseJsonResponse(res, 'Kayıt başarısız');
+    const data = await parseJsonResponse(res, t('login.fail_register'));
     localStorage.setItem('token', data.token);
     localStorage.setItem('email', data.email);
     window.location.href = 'index.html';
   } catch (e) {
     msg.className = 'error'; msg.textContent = e.message;
   } finally {
-    btn.disabled = false; btn.textContent = 'Kayıt Ol';
+    btn.disabled = false; btn.textContent = t('login.btn_register');
   }
 }
 
 // Zaten giriş yapıldıysa ana sayfaya yönlendir
 if (localStorage.getItem('token')) window.location.href = 'index.html';
+
+applyI18n();
+updateLangBtn();
 </script>
 </body>
 </html>
