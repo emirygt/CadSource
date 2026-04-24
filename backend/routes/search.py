@@ -1297,3 +1297,189 @@ def get_stats(
         "formats": {row[0]: row[1] for row in formats},
         "ready": total > 0,
     }
+
+
+# ─── Duplicate Group Management ───────────────────────────────────────────────
+
+class MergeGroupPayload(BaseModel):
+    file_ids: List[int]
+    title: Optional[str] = None
+
+
+@router.get("/groups")
+def list_groups(
+    group_type: Optional[str] = Query(default=None),
+    page: int = Query(default=1, ge=1),
+    per_page: int = Query(default=20, ge=1, le=100),
+    tenant: dict = Depends(get_current_tenant),
+    db: Session = Depends(get_db),
+):
+    """Tüm duplicate/revision gruplarını listele."""
+    apply_tenant_schema(tenant, db)
+    clauses = []
+    params: dict = {"offset": (page - 1) * per_page, "limit": per_page}
+    if group_type:
+        clauses.append("g.group_type = :group_type")
+        params["group_type"] = group_type
+    where = ("WHERE " + " AND ".join(clauses)) if clauses else ""
+    total = db.execute(text(f"SELECT COUNT(*) FROM cad_file_groups g {where}"), params).scalar() or 0
+    rows = db.execute(text(f"""
+        SELECT g.id, g.group_type, g.title, g.created_at, g.updated_at,
+               COUNT(m.id) AS member_count
+        FROM cad_file_groups g
+        LEFT JOIN cad_file_group_members m ON m.group_id = g.id
+        {where}
+        GROUP BY g.id
+        ORDER BY g.updated_at DESC
+        OFFSET :offset LIMIT :limit
+    """), params).fetchall()
+    groups = []
+    for row in rows:
+        rm = row._mapping
+        members = db.execute(text("""
+            SELECT m.role, m.score, m.reason, f.id, f.filename, f.file_format, f.jpg_preview
+            FROM cad_file_group_members m
+            JOIN cad_files f ON f.id = m.file_id
+            WHERE m.group_id = :gid
+            LIMIT 6
+        """), {"gid": rm["id"]}).fetchall()
+        groups.append({
+            "id": rm["id"],
+            "group_type": rm["group_type"],
+            "title": rm["title"],
+            "member_count": int(rm["member_count"] or 0),
+            "created_at": rm["created_at"].isoformat() if rm["created_at"] else None,
+            "updated_at": rm["updated_at"].isoformat() if rm["updated_at"] else None,
+            "members": [{"role": r._mapping["role"], "score": r._mapping["score"],
+                         "reason": r._mapping["reason"], "file_id": r._mapping["id"],
+                         "filename": r._mapping["filename"], "file_format": r._mapping["file_format"],
+                         "jpg_preview": r._mapping["jpg_preview"]} for r in members],
+        })
+    return {"total": int(total), "page": page, "per_page": per_page, "groups": groups}
+
+
+@router.post("/groups/merge")
+def merge_into_group(
+    payload: MergeGroupPayload,
+    tenant: dict = Depends(get_current_tenant),
+    db: Session = Depends(get_db),
+):
+    """Verilen dosyaları yeni bir revision grubuna ekle."""
+    apply_tenant_schema(tenant, db)
+    if len(payload.file_ids) < 2:
+        raise HTTPException(status_code=400, detail="En az 2 dosya gerekli")
+    grp = db.execute(text("""
+        INSERT INTO cad_file_groups (group_type, title, created_at, updated_at)
+        VALUES ('revision', :title, NOW(), NOW()) RETURNING id
+    """), {"title": payload.title or None}).fetchone()
+    group_id = grp[0]
+    for i, fid in enumerate(payload.file_ids):
+        role = "original" if i == 0 else "candidate"
+        db.execute(text("""
+            INSERT INTO cad_file_group_members (group_id, file_id, role, score, created_at)
+            VALUES (:gid, :fid, :role, 1.0, NOW())
+            ON CONFLICT (group_id, file_id) DO NOTHING
+        """), {"gid": group_id, "fid": fid, "role": role})
+        db.execute(text("""
+            UPDATE cad_files SET duplicate_group_id = :gid, duplicate_status = 'revision_candidate'
+            WHERE id = :fid
+        """), {"gid": group_id, "fid": fid})
+    db.commit()
+    return {"group_id": group_id, "status": "created", "member_count": len(payload.file_ids)}
+
+
+@router.post("/groups/{group_id}/remove-member/{file_id}")
+def remove_group_member(
+    group_id: int,
+    file_id: int,
+    tenant: dict = Depends(get_current_tenant),
+    db: Session = Depends(get_db),
+):
+    """Dosyayı gruptan çıkar, unique olarak işaretle."""
+    apply_tenant_schema(tenant, db)
+    db.execute(text("""
+        DELETE FROM cad_file_group_members WHERE group_id = :gid AND file_id = :fid
+    """), {"gid": group_id, "fid": file_id})
+    db.execute(text("""
+        UPDATE cad_files SET duplicate_group_id = NULL, duplicate_status = 'unique' WHERE id = :fid
+    """), {"fid": file_id})
+    remaining = db.execute(text(
+        "SELECT COUNT(*) FROM cad_file_group_members WHERE group_id = :gid"
+    ), {"gid": group_id}).scalar() or 0
+    if remaining < 2:
+        db.execute(text("""
+            UPDATE cad_files SET duplicate_group_id = NULL, duplicate_status = 'unique'
+            WHERE duplicate_group_id = :gid
+        """), {"gid": group_id})
+        db.execute(text("DELETE FROM cad_file_groups WHERE id = :gid"), {"gid": group_id})
+    db.commit()
+    return {"status": "removed", "file_id": file_id, "group_id": group_id}
+
+
+@router.post("/groups/{group_id}/dissolve")
+def dissolve_group(
+    group_id: int,
+    tenant: dict = Depends(get_current_tenant),
+    db: Session = Depends(get_db),
+):
+    """Grubu dağıt, tüm üyeleri unique yap."""
+    apply_tenant_schema(tenant, db)
+    db.execute(text("""
+        UPDATE cad_files SET duplicate_group_id = NULL, duplicate_status = 'unique'
+        WHERE duplicate_group_id = :gid
+    """), {"gid": group_id})
+    db.execute(text("DELETE FROM cad_file_groups WHERE id = :gid"), {"gid": group_id})
+    db.commit()
+    return {"status": "dissolved", "group_id": group_id}
+
+
+# ─── Search Feedback ──────────────────────────────────────────────────────────
+
+class FeedbackPayload(BaseModel):
+    query_file_id: int
+    result_file_id: int
+    similarity_score: Optional[float] = None
+    is_relevant: bool
+
+
+@router.post("/search/feedback")
+def save_search_feedback(
+    payload: FeedbackPayload,
+    tenant: dict = Depends(get_current_tenant),
+    db: Session = Depends(get_db),
+):
+    apply_tenant_schema(tenant, db)
+    db.execute(text("""
+        INSERT INTO search_feedback (query_file_id, result_file_id, similarity_score, is_relevant, created_at)
+        VALUES (:qfid, :rfid, :score, :relevant, NOW())
+    """), {
+        "qfid": payload.query_file_id,
+        "rfid": payload.result_file_id,
+        "score": payload.similarity_score,
+        "relevant": payload.is_relevant,
+    })
+    db.commit()
+    return {"status": "saved"}
+
+
+@router.get("/search/feedback/stats")
+def get_feedback_stats(
+    tenant: dict = Depends(get_current_tenant),
+    db: Session = Depends(get_db),
+):
+    apply_tenant_schema(tenant, db)
+    rows = db.execute(text("""
+        SELECT result_file_id, f.filename,
+               COUNT(*) FILTER (WHERE is_relevant=true)  AS thumbs_up,
+               COUNT(*) FILTER (WHERE is_relevant=false) AS thumbs_down,
+               COUNT(*) AS total
+        FROM search_feedback sf
+        LEFT JOIN cad_files f ON f.id = sf.result_file_id
+        GROUP BY result_file_id, f.filename
+        ORDER BY thumbs_down DESC
+        LIMIT 50
+    """)).fetchall()
+    return {"stats": [{"file_id": r._mapping["result_file_id"], "filename": r._mapping["filename"],
+                       "thumbs_up": int(r._mapping["thumbs_up"] or 0),
+                       "thumbs_down": int(r._mapping["thumbs_down"] or 0),
+                       "total": int(r._mapping["total"] or 0)} for r in rows]}

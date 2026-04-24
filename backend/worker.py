@@ -28,6 +28,7 @@ from services.job_service import ensure_job_tables, json_dumps, json_loads
 
 
 POLL_SECONDS = float(os.getenv("JOB_WORKER_POLL_SECONDS", "2"))
+JOB_WORKER_BATCH_SIZE = int(os.getenv("JOB_WORKER_BATCH_SIZE", "50"))
 STOP = False
 
 
@@ -303,6 +304,148 @@ def process_reindex_like(db, job, *, action: str):
     return {"file_ids": processed}
 
 
+def heartbeat(db, job_id: int):
+    """Job'ın updated_at alanını güncelle (stuck job tespiti için)."""
+    try:
+        db.execute(text("UPDATE public.jobs SET updated_at=NOW() WHERE id=:id"), {"id": job_id})
+        db.commit()
+    except Exception:
+        pass
+
+
+def recover_stuck_jobs(db):
+    """1 saatten uzun süre 'running' kalan job'ları failed olarak işaretle."""
+    try:
+        db.execute(text("""
+            UPDATE public.jobs
+            SET status='failed', error='Worker yeniden başlatıldı, job yarıda kesildi',
+                finished_at=NOW(), updated_at=NOW()
+            WHERE status='running' AND updated_at < NOW() - INTERVAL '1 hour'
+        """))
+        db.commit()
+    except Exception:
+        pass
+
+
+def process_gen_preview(db, job):
+    """jpg_preview eksik dosyalar için preview üret."""
+    from routes.index import generate_jpg_preview_from_bytes as _gen_jpg
+    apply_tenant_schema({"schema_name": job.schema_name}, db)
+    payload = json_loads(job.payload) or {}
+    file_ids = payload.get("file_ids") or []
+    if file_ids:
+        rows = db.execute(text(
+            "SELECT id, filename, file_data, file_format FROM cad_files WHERE id = ANY(:ids)"
+        ), {"ids": file_ids}).fetchall()
+    else:
+        rows = db.execute(text(
+            "SELECT id, filename, file_data, file_format FROM cad_files WHERE jpg_preview IS NULL AND file_data IS NOT NULL LIMIT 5000"
+        )).fetchall()
+    processed = []
+    for idx, row in enumerate(rows):
+        if is_cancelled(db, job.id): return {"cancelled": True, "file_ids": processed}
+        try:
+            file_bytes = bytes(row.file_data)
+            jpg_b64 = _gen_jpg(file_bytes, row.filename or "")
+            if jpg_b64:
+                db.execute(text("UPDATE cad_files SET jpg_preview=:p WHERE id=:id"), {"p": jpg_b64, "id": row.id})
+                db.commit()
+                mark_item(db, job.id, idx, "succeeded", "preview üretildi", row.id)
+                processed.append(row.id)
+            else:
+                mark_item(db, job.id, idx, "failed", "preview üretilemedi", row.id)
+        except Exception as e:
+            db.rollback()
+            mark_item(db, job.id, idx, "failed", str(e), row.id)
+        heartbeat(db, job.id)
+    return {"file_ids": processed}
+
+
+def process_check_file_data(db, job):
+    """file_data alanını doğrula, decode edilemeyen/boş olanları raporla."""
+    apply_tenant_schema({"schema_name": job.schema_name}, db)
+    payload = json_loads(job.payload) or {}
+    file_ids = payload.get("file_ids") or []
+    if file_ids:
+        rows = db.execute(text(
+            "SELECT id, filename, file_data FROM cad_files WHERE id = ANY(:ids)"
+        ), {"ids": file_ids}).fetchall()
+    else:
+        rows = db.execute(text(
+            "SELECT id, filename, file_data FROM cad_files WHERE file_data IS NOT NULL LIMIT 10000"
+        )).fetchall()
+    processed = []
+    for idx, row in enumerate(rows):
+        if is_cancelled(db, job.id): return {"cancelled": True, "file_ids": processed}
+        try:
+            data = bytes(row.file_data)
+            if len(data) < 4:
+                db.execute(text("UPDATE cad_files SET approval_status='error' WHERE id=:id"), {"id": row.id})
+                db.commit()
+                mark_item(db, job.id, idx, "failed", "file_data çok küçük veya boş", row.id)
+            else:
+                mark_item(db, job.id, idx, "succeeded", f"{len(data)} bytes OK", row.id)
+                processed.append(row.id)
+        except Exception as e:
+            db.rollback()
+            mark_item(db, job.id, idx, "failed", str(e), row.id)
+        heartbeat(db, job.id)
+    return {"file_ids": processed}
+
+
+def process_duplicate_rescan(db, job):
+    """Tüm/seçili dosyalar için duplicate ilişkilerini yeniden hesapla."""
+    from services.duplicate_service import update_duplicate_relationships
+    apply_tenant_schema({"schema_name": job.schema_name}, db)
+    payload = json_loads(job.payload) or {}
+    file_ids = payload.get("file_ids") or []
+    if file_ids:
+        rows = db.execute(text(
+            "SELECT id FROM cad_files WHERE id = ANY(:ids)"
+        ), {"ids": file_ids}).fetchall()
+    else:
+        rows = db.execute(text("SELECT id FROM cad_files")).fetchall()
+    processed = []
+    for idx, row in enumerate(rows):
+        if is_cancelled(db, job.id): return {"cancelled": True, "file_ids": processed}
+        try:
+            update_duplicate_relationships(db, row.id, job.schema_name)
+            mark_item(db, job.id, idx, "succeeded", "duplicate ilişkileri güncellendi", row.id)
+            processed.append(row.id)
+        except Exception as e:
+            db.rollback()
+            mark_item(db, job.id, idx, "failed", str(e), row.id)
+        if idx % 10 == 0:
+            heartbeat(db, job.id)
+    return {"file_ids": processed}
+
+
+def process_cleanup_payloads(db, job):
+    """7 günden eski job_payloads'ı temizle."""
+    deleted = db.execute(text("""
+        DELETE FROM public.job_payloads
+        WHERE job_id IN (
+            SELECT id FROM public.jobs
+            WHERE schema_name = :schema AND finished_at < NOW() - INTERVAL '7 days'
+        )
+    """), {"schema": job.schema_name}).rowcount
+    db.commit()
+    mark_item(db, job.id, 0, "succeeded", f"{deleted} payload silindi")
+    return {"deleted_count": deleted}
+
+
+def process_report_broken(db, job):
+    """Hatalı veya eksik feature_vector olan dosyaları işaretle."""
+    apply_tenant_schema({"schema_name": job.schema_name}, db)
+    rows = db.execute(text(
+        "SELECT id, filename FROM cad_files WHERE approval_status='error' OR feature_vector IS NULL"
+    )).fetchall()
+    for idx, row in enumerate(rows):
+        if is_cancelled(db, job.id): return {"cancelled": True}
+        mark_item(db, job.id, idx, "failed", f"Bozuk dosya: {row.filename}", row.id)
+    return {"broken_count": len(rows)}
+
+
 def process_job(db, job):
     if job.type == "upload":
         return process_upload(db, job)
@@ -310,6 +453,16 @@ def process_job(db, job):
         return process_reindex_like(db, job, action="clip_backfill")
     if job.type == "reindex":
         return process_reindex_like(db, job, action="reindex")
+    if job.type == "gen_preview":
+        return process_gen_preview(db, job)
+    if job.type == "check_file_data":
+        return process_check_file_data(db, job)
+    if job.type == "duplicate_rescan":
+        return process_duplicate_rescan(db, job)
+    if job.type == "cleanup_payloads":
+        return process_cleanup_payloads(db, job)
+    if job.type == "report_broken":
+        return process_report_broken(db, job)
     raise ValueError(f"Bilinmeyen job tipi: {job.type}")
 
 
@@ -333,6 +486,8 @@ def run_once() -> bool:
 
 def main():
     init_db()
+    with SessionLocal() as db:
+        recover_stuck_jobs(db)
     print("CAD-Search worker hazir.")
     while not STOP:
         worked = run_once()

@@ -104,6 +104,24 @@ CREATE INDEX IF NOT EXISTS {schema}_cad_files_geometry_hash_idx
 
 CREATE INDEX IF NOT EXISTS {schema}_cad_files_duplicate_status_idx
     ON {schema}.cad_files (duplicate_status);
+
+CREATE INDEX IF NOT EXISTS {schema}_cad_files_category_id_idx
+    ON {schema}.cad_files (category_id);
+
+CREATE INDEX IF NOT EXISTS {schema}_cad_files_indexed_at_idx
+    ON {schema}.cad_files (indexed_at);
+
+CREATE INDEX IF NOT EXISTS {schema}_cad_files_approval_idx
+    ON {schema}.cad_files (approval_status);
+
+CREATE TABLE IF NOT EXISTS {schema}.search_feedback (
+    id               SERIAL PRIMARY KEY,
+    query_file_id    INTEGER REFERENCES {schema}.cad_files(id) ON DELETE SET NULL,
+    result_file_id   INTEGER REFERENCES {schema}.cad_files(id) ON DELETE SET NULL,
+    similarity_score REAL,
+    is_relevant      BOOLEAN NOT NULL,
+    created_at       TIMESTAMPTZ DEFAULT NOW()
+);
 """
 
 

@@ -82,28 +82,52 @@ def _row_to_item(row) -> dict:
 def list_jobs(
     status: Optional[str] = Query(default=None),
     type: Optional[str] = Query(default=None),
+    file_id: Optional[int] = Query(default=None),
     page: int = Query(default=1, ge=1),
     per_page: int = Query(default=20, ge=1, le=100),
     tenant: dict = Depends(get_current_tenant),
     db: Session = Depends(get_db),
 ):
     ensure_job_tables(db)
-    clauses = ["schema_name = :schema_name"]
-    params = {"schema_name": tenant["schema_name"], "offset": (page - 1) * per_page, "limit": per_page}
-    if status:
-        clauses.append("status = :status")
-        params["status"] = status
-    if type:
-        clauses.append("type = :type")
-        params["type"] = type
-    where = " AND ".join(clauses)
-    total = db.execute(text(f"SELECT COUNT(*) FROM public.jobs WHERE {where}"), params).scalar() or 0
-    rows = db.execute(text(f"""
-        SELECT * FROM public.jobs
-        WHERE {where}
-        ORDER BY created_at DESC
-        OFFSET :offset LIMIT :limit
-    """), params).fetchall()
+    params: dict = {"schema_name": tenant["schema_name"], "offset": (page - 1) * per_page, "limit": per_page}
+    if file_id:
+        clauses = ["j.schema_name = :schema_name"]
+        if status:
+            clauses.append("j.status = :status")
+            params["status"] = status
+        if type:
+            clauses.append("j.type = :type")
+            params["type"] = type
+        params["file_id"] = file_id
+        where = " AND ".join(clauses)
+        total = db.execute(text(f"""
+            SELECT COUNT(DISTINCT j.id) FROM public.jobs j
+            JOIN public.job_items ji ON ji.job_id = j.id
+            WHERE {where} AND ji.file_id = :file_id
+        """), params).scalar() or 0
+        rows = db.execute(text(f"""
+            SELECT DISTINCT ON (j.id) j.* FROM public.jobs j
+            JOIN public.job_items ji ON ji.job_id = j.id
+            WHERE {where} AND ji.file_id = :file_id
+            ORDER BY j.id DESC
+            OFFSET :offset LIMIT :limit
+        """), params).fetchall()
+    else:
+        clauses = ["schema_name = :schema_name"]
+        if status:
+            clauses.append("status = :status")
+            params["status"] = status
+        if type:
+            clauses.append("type = :type")
+            params["type"] = type
+        where = " AND ".join(clauses)
+        total = db.execute(text(f"SELECT COUNT(*) FROM public.jobs WHERE {where}"), params).scalar() or 0
+        rows = db.execute(text(f"""
+            SELECT * FROM public.jobs
+            WHERE {where}
+            ORDER BY created_at DESC
+            OFFSET :offset LIMIT :limit
+        """), params).fetchall()
     return {"total": int(total), "page": page, "per_page": per_page, "jobs": [_row_to_job(r) for r in rows]}
 
 
@@ -154,6 +178,178 @@ def cancel_job(
     db.execute(text("DELETE FROM public.job_payloads WHERE job_id = :id"), {"id": job_id})
     db.commit()
     return {"status": "cancelled", "job_id": job_id}
+
+
+@router.post("/{job_id}/retry-failed")
+def retry_failed_items(
+    job_id: int,
+    tenant: dict = Depends(get_current_tenant),
+    db: Session = Depends(get_db),
+):
+    """Başarısız item'ları yeni bir reindex job'ı olarak yeniden kuyruğa al."""
+    ensure_job_tables(db)
+    apply_tenant_schema(tenant, db)
+    job_row = db.execute(text("""
+        SELECT * FROM public.jobs
+        WHERE id = :id AND schema_name = :schema_name
+    """), {"id": job_id, "schema_name": tenant["schema_name"]}).fetchone()
+    if not job_row:
+        raise HTTPException(status_code=404, detail="Job bulunamadı")
+    failed_items = db.execute(text("""
+        SELECT file_id, filename FROM public.job_items
+        WHERE job_id = :job_id AND status = 'failed' AND file_id IS NOT NULL
+    """), {"job_id": job_id}).fetchall()
+    if not failed_items:
+        raise HTTPException(status_code=400, detail="Yeniden denenecek başarısız item yok")
+    file_ids = [r._mapping["file_id"] for r in failed_items]
+    new_job_id = create_job(
+        db,
+        schema_name=tenant["schema_name"],
+        user_email=tenant.get("email", ""),
+        job_type="reindex",
+        payload={"file_ids": file_ids, "skip_clip": False, "retry_of": job_id},
+        total_items=len(file_ids),
+        priority=85,
+    )
+    for i, fid in enumerate(file_ids):
+        add_job_item(db, job_id=new_job_id, item_index=i, file_id=fid, action="reindex")
+    return {"job_id": new_job_id, "status": "queued", "total_items": len(file_ids)}
+
+
+@router.post("/gen-missing-preview")
+def enqueue_gen_preview_job(
+    payload: Optional[FileIdsPayload] = Body(default=None),
+    tenant: dict = Depends(get_current_tenant),
+    db: Session = Depends(get_db),
+):
+    """jpg_preview eksik olan dosyalar için preview üret."""
+    apply_tenant_schema(tenant, db)
+    payload = payload or FileIdsPayload()
+    file_ids = sorted({int(x) for x in (payload.file_ids or []) if int(x) > 0})
+    if file_ids:
+        total = len(file_ids)
+    else:
+        total = db.execute(text(
+            "SELECT COUNT(*) FROM cad_files WHERE jpg_preview IS NULL AND file_data IS NOT NULL"
+        )).scalar() or 0
+    job_id = create_job(
+        db,
+        schema_name=tenant["schema_name"],
+        user_email=tenant.get("email", ""),
+        job_type="gen_preview",
+        payload={"file_ids": file_ids},
+        total_items=int(total),
+        priority=150,
+    )
+    for i, fid in enumerate(file_ids):
+        add_job_item(db, job_id=job_id, item_index=i, file_id=fid, action="gen_preview")
+    return {"job_id": job_id, "status": "queued", "total_items": int(total)}
+
+
+@router.post("/check-file-data")
+def enqueue_check_file_data_job(
+    payload: Optional[FileIdsPayload] = Body(default=None),
+    tenant: dict = Depends(get_current_tenant),
+    db: Session = Depends(get_db),
+):
+    """file_data alanını doğrula, bozuk dosyaları raporla."""
+    apply_tenant_schema(tenant, db)
+    payload = payload or FileIdsPayload()
+    file_ids = sorted({int(x) for x in (payload.file_ids or []) if int(x) > 0})
+    if file_ids:
+        total = len(file_ids)
+    else:
+        total = db.execute(text(
+            "SELECT COUNT(*) FROM cad_files WHERE file_data IS NOT NULL"
+        )).scalar() or 0
+    job_id = create_job(
+        db,
+        schema_name=tenant["schema_name"],
+        user_email=tenant.get("email", ""),
+        job_type="check_file_data",
+        payload={"file_ids": file_ids},
+        total_items=int(total),
+        priority=200,
+    )
+    for i, fid in enumerate(file_ids):
+        add_job_item(db, job_id=job_id, item_index=i, file_id=fid, action="check_file_data")
+    return {"job_id": job_id, "status": "queued", "total_items": int(total)}
+
+
+@router.post("/duplicate-rescan")
+def enqueue_duplicate_rescan_job(
+    payload: Optional[FileIdsPayload] = Body(default=None),
+    tenant: dict = Depends(get_current_tenant),
+    db: Session = Depends(get_db),
+):
+    """Duplicate ilişkilerini tüm/seçili dosyalar için yeniden hesapla."""
+    apply_tenant_schema(tenant, db)
+    payload = payload or FileIdsPayload()
+    file_ids = sorted({int(x) for x in (payload.file_ids or []) if int(x) > 0})
+    if file_ids:
+        total = len(file_ids)
+    else:
+        total = db.execute(text("SELECT COUNT(*) FROM cad_files")).scalar() or 0
+    job_id = create_job(
+        db,
+        schema_name=tenant["schema_name"],
+        user_email=tenant.get("email", ""),
+        job_type="duplicate_rescan",
+        payload={"file_ids": file_ids},
+        total_items=int(total),
+        priority=170,
+    )
+    for i, fid in enumerate(file_ids):
+        add_job_item(db, job_id=job_id, item_index=i, file_id=fid, action="duplicate_rescan")
+    return {"job_id": job_id, "status": "queued", "total_items": int(total)}
+
+
+@router.post("/cleanup-payloads")
+def enqueue_cleanup_payloads_job(
+    tenant: dict = Depends(get_current_tenant),
+    db: Session = Depends(get_db),
+):
+    """7 günden eski job payload'larını temizle."""
+    ensure_job_tables(db)
+    total = db.execute(text("""
+        SELECT COUNT(*) FROM public.job_payloads jp
+        JOIN public.jobs j ON j.id = jp.job_id
+        WHERE j.schema_name = :schema_name
+          AND j.finished_at < NOW() - INTERVAL '7 days'
+    """), {"schema_name": tenant["schema_name"]}).scalar() or 0
+    job_id = create_job(
+        db,
+        schema_name=tenant["schema_name"],
+        user_email=tenant.get("email", ""),
+        job_type="cleanup_payloads",
+        payload={},
+        total_items=int(total),
+        priority=250,
+    )
+    return {"job_id": job_id, "status": "queued", "total_items": int(total)}
+
+
+@router.post("/report-broken")
+def enqueue_report_broken_job(
+    tenant: dict = Depends(get_current_tenant),
+    db: Session = Depends(get_db),
+):
+    """Hatalı veya eksik feature_vector'u olan dosyaları raporla."""
+    apply_tenant_schema(tenant, db)
+    total = db.execute(text("""
+        SELECT COUNT(*) FROM cad_files
+        WHERE approval_status = 'error' OR feature_vector IS NULL
+    """)).scalar() or 0
+    job_id = create_job(
+        db,
+        schema_name=tenant["schema_name"],
+        user_email=tenant.get("email", ""),
+        job_type="report_broken",
+        payload={},
+        total_items=int(total),
+        priority=240,
+    )
+    return {"job_id": job_id, "status": "queued", "total_items": int(total)}
 
 
 @router.post("/clip-backfill")
