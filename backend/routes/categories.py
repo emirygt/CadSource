@@ -13,6 +13,12 @@ import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment
 from openpyxl.utils import get_column_letter
 
+# Turkish-aware case normalization: İ→i, Ğ→ğ, Ş→ş, Ç→ç, Ü→ü, Ö→ö then lower()
+_TR_UPPER = str.maketrans("İĞŞÇÜÖI", "iğşçüöı")
+
+def _norm(s: str) -> str:
+    return s.strip().translate(_TR_UPPER).lower()
+
 from db import get_db
 from middleware.tenant import get_current_tenant, apply_tenant_schema
 
@@ -48,19 +54,24 @@ def _ensure_categories_table(db: Session):
 
 
 def _get_or_create_category(name: str, parent_id: Optional[int], db: Session) -> int:
-    """Case-insensitive name + parent_id で既存を探す。なければINSERT。"""
+    """Turkish-safe case-insensitive name + parent_id eşleşmesi; yoksa INSERT."""
+    name = name.strip()
+    name_norm = _norm(name)
+
     if parent_id is None:
-        row = db.execute(
-            text("SELECT id FROM categories WHERE LOWER(name)=LOWER(:name) AND parent_id IS NULL"),
-            {"name": name},
-        ).fetchone()
+        rows = db.execute(
+            text("SELECT id, name FROM categories WHERE parent_id IS NULL")
+        ).fetchall()
     else:
-        row = db.execute(
-            text("SELECT id FROM categories WHERE LOWER(name)=LOWER(:name) AND parent_id=:pid"),
-            {"name": name, "pid": parent_id},
-        ).fetchone()
-    if row:
-        return row.id
+        rows = db.execute(
+            text("SELECT id, name FROM categories WHERE parent_id = :pid"),
+            {"pid": parent_id},
+        ).fetchall()
+
+    for row in rows:
+        if _norm(row.name) == name_norm:
+            return row.id
+
     result = db.execute(
         text("INSERT INTO categories (name, parent_id) VALUES (:name, :pid) RETURNING id"),
         {"name": name, "pid": parent_id},
@@ -104,14 +115,15 @@ def create_category(
     db: Session = Depends(get_db),
 ):
     apply_tenant_schema(tenant, db)
+    _ensure_categories_table(db)
     name = body.name.strip()
     if not name:
         raise HTTPException(status_code=400, detail="Kategori adı boş olamaz")
+
     existing = db.execute(
-        text("SELECT id FROM categories WHERE LOWER(name) = LOWER(:name) AND parent_id IS NULL"),
-        {"name": name},
-    ).fetchone()
-    if existing:
+        text("SELECT id, name FROM categories WHERE parent_id IS NULL")
+    ).fetchall()
+    if any(_norm(row.name) == _norm(name) for row in existing):
         raise HTTPException(status_code=400, detail="Bu isimde kategori zaten var")
     result = db.execute(
         text("INSERT INTO categories (name, color) VALUES (:name, :color) RETURNING id, name, color, created_at"),
@@ -214,14 +226,15 @@ def download_template(
         ws.column_dimensions[get_column_letter(col)].width = 24
 
     sample_rows = [
-        ("Mekanik", "Şasi", "Bağlantı Elemanları"),
-        ("Mekanik", "Şasi", "Kaynak Parçaları"),
-        ("Mekanik", "Motor Grubu", ""),
-        ("Elektrik", "Kablo Kanalları", ""),
-        ("Elektrik", "", ""),
-        ("Mimari", "Kat Planları", "Bodrum"),
-        ("Mimari", "Kat Planları", "Zemin"),
-        ("Mimari", "Kat Planları", "1. Kat"),
+        ("Giyim", "Üst Giyim", "Mont"),
+        ("Giyim", "Üst Giyim", "Kazak"),
+        ("Giyim", "Alt Giyim", "Pantolon"),
+        ("Giyim", "Alt Giyim", ""),
+        ("Elektronik", "", ""),
+        ("Elektronik", "Bilgisayar", "Laptop"),
+        ("Ev", "Dekorasyon", ""),
+        ("Ev", "Dekorasyon", "Tablo"),
+        ("İç Giyim", "", ""),
     ]
     for row_data in sample_rows:
         ws.append(row_data)
