@@ -4611,22 +4611,41 @@ function showCatMsg(text, type) {
   setTimeout(() => { el.style.display = 'none'; }, 3000);
 }
 
-function downloadCategoryTemplate() {
-  const a = document.createElement('a');
-  a.href = `${API}/categories/template`;
-  a.download = 'kategori_template.xlsx';
-  // Auth header'ı fetch ile, sonra blob URL ile indir
-  fetch(`${API}/categories/template`, { headers: authH() })
-    .then(r => r.blob())
-    .then(blob => {
-      const url = URL.createObjectURL(blob);
-      a.href = url;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    })
-    .catch(() => alert('Template indirilemedi.'));
+async function downloadCategoryTemplate() {
+  try {
+    const r = await fetch(`${API}/categories/template`, { headers: authH() });
+    const ct = (r.headers.get('content-type') || '').toLowerCase();
+
+    if (!r.ok) {
+      let msg = 'Template indirilemedi.';
+      try {
+        const d = await r.json();
+        if (d && d.detail) msg = d.detail;
+      } catch {}
+      alert(msg);
+      return;
+    }
+
+    if (!ct.includes('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')) {
+      alert('Sunucudan geçerli Excel dosyası gelmedi. Lütfen tekrar giriş yapın.');
+      return;
+    }
+
+    const cd = r.headers.get('content-disposition') || '';
+    const m = cd.match(/filename=\"?([^\";]+)\"?/i);
+    const filename = (m && m[1]) ? m[1] : 'kategori_template.xlsx';
+    const blob = await r.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } catch {
+    alert('Template indirilemedi.');
+  }
 }
 
 async function importCategoryExcel(input) {
