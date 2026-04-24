@@ -63,7 +63,7 @@ def analytics_overview(
     # Entity tipi dağılımı (tüm dosyaların entity_types JSON'larını topla)
     entity_rows = db.execute(text("""
         SELECT entity_types FROM cad_files
-        WHERE entity_types IS NOT NULL AND entity_types != '{}'::jsonb
+        WHERE entity_types IS NOT NULL AND entity_types::jsonb != '{}'::jsonb
         LIMIT 500
     """)).fetchall()
 
