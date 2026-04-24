@@ -972,8 +972,9 @@
     .analytics-insights-head p { font-size: 13px; color: #64748b; }
 
     /* Page Header Unified Styles */
-    .page-header { display: flex; justify-content: space-between; align-items: center; padding: 24px 32px; background: var(--nav-bg); border-bottom: 1px solid #1C3248; width: 100% !important; max-width: none !important; margin: 0 !important; flex-shrink: 0; position: relative; }
-    .page-header > div:first-child { position: absolute; left: 50%; transform: translateX(-50%); text-align: center; pointer-events: none; }
+    .page-header { display: flex; justify-content: center; align-items: center; padding: 24px 32px; background: var(--nav-bg); border-bottom: 1px solid #1C3248; width: 100% !important; max-width: none !important; margin: 0 !important; flex-shrink: 0; position: relative; }
+    .page-header > div:first-child { text-align: center; }
+    .ph-actions { position: absolute; right: 32px; display: flex; align-items: center; gap: 8px; }
     .ph-title { font-size: 24px; font-weight: 700; color: var(--nav-text); margin-bottom: 4px; margin-top: 0; }
     .ph-sub { font-size: 13px; color: var(--nav-muted); margin: 0; }
     .ph-actions { display: flex; gap: 12px; align-items: center; }
