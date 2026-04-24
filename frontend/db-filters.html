@@ -330,6 +330,7 @@
       <div class="card-head">
         <h2>Filtre Sonuçları</h2>
         <button class="btn success" id="excelBtn" onclick="exportExcel()" disabled>Excel İndir</button>
+        <button class="btn" id="csvBtn" onclick="exportCsv()" disabled>CSV Indir</button>
       </div>
 
       <div class="card-body">
@@ -677,6 +678,8 @@
       state.total = Number(d.total || 0);
       renderTable();
       document.getElementById('excelBtn').disabled = !state.total;
+      const csvBtn = document.getElementById('csvBtn');
+      if (csvBtn) csvBtn.disabled = !state.total;
       setStatus(`Filtre hazir. ${state.total.toLocaleString('tr')} kayit bulundu.`, state.total ? 'good' : 'warn');
     }
 
@@ -793,6 +796,50 @@
         URL.revokeObjectURL(url);
       }
       setStatus(`${exportRows.length.toLocaleString('tr')} kayit disa aktarildi.`, 'good');
+    }
+
+    async function downloadFilteredReport(format = 'xlsx') {
+      const total = Number(state.total || 0);
+      if (!total) return;
+      const params = buildServerFilterParams(1, state.perPage);
+      params.delete('page');
+      params.delete('per_page');
+      params.set('fmt', format);
+      params.set('limit', '50000');
+      setStatus(`${format.toUpperCase()} raporu hazirlaniyor...`, 'warn');
+      const r = await fetch(`${API}/reports/files?${params.toString()}`, { headers: authH() });
+      if (r.status === 401) { logout(); return; }
+      if (!r.ok) {
+        const data = await r.json().catch(() => ({}));
+        throw new Error(data.detail || 'Rapor olusturulamadi');
+      }
+      const blob = await r.blob();
+      const cd = r.headers.get('Content-Disposition') || '';
+      const m = cd.match(/filename="?([^"]+)"?/i);
+      const filename = m ? m[1] : `cad-files-report.${format}`;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+      setStatus(`${format.toUpperCase()} raporu indirildi.`, 'good');
+    }
+
+    async function exportExcel() {
+      try {
+        await downloadFilteredReport('xlsx');
+      } catch (e) {
+        setStatus(`Excel raporu olusturulamadi: ${e.message}`, 'bad');
+      }
+    }
+
+    async function exportCsv() {
+      try {
+        await downloadFilteredReport('csv');
+      } catch (e) {
+        setStatus(`CSV raporu olusturulamadi: ${e.message}`, 'bad');
+      }
     }
 
     async function reloadAllData() {

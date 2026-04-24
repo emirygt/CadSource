@@ -2019,6 +2019,27 @@
           <div class="analytics-quick-title" data-i18n="dash.view_library">View File Library</div>
           <div class="analytics-quick-sub" data-i18n="dash.library_sub">Browse all your CAD files</div>
         </button>
+        <button class="analytics-quick-card" onclick="downloadReport('/reports/files?fmt=xlsx&limit=50000', 'cad-files-report.xlsx')">
+          <div class="analytics-quick-icon">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6Q4 2 4 4V20Q4 22 6 22H18Q20 22 20 20V8Z"></path><path d="M14 2V8H20"></path><path d="M8 13H16"></path><path d="M8 17H14"></path></svg>
+          </div>
+          <div class="analytics-quick-title">File Report</div>
+          <div class="analytics-quick-sub">Export library inventory</div>
+        </button>
+        <button class="analytics-quick-card" onclick="downloadReport('/reports/duplicates?fmt=xlsx&limit=50000', 'cad-duplicates-report.xlsx')">
+          <div class="analytics-quick-icon">
+            <svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"></rect><rect x="4" y="4" width="12" height="12" rx="2"></rect></svg>
+          </div>
+          <div class="analytics-quick-title">Duplicate Report</div>
+          <div class="analytics-quick-sub">Review exact and revision groups</div>
+        </button>
+        <button class="analytics-quick-card" onclick="downloadReport('/reports/jobs?fmt=xlsx&limit=50000', 'cad-jobs-report.xlsx')">
+          <div class="analytics-quick-icon">
+            <svg viewBox="0 0 24 24"><path d="M4 7H20"></path><path d="M4 12H20"></path><path d="M4 17H14"></path><circle cx="18" cy="17" r="2"></circle></svg>
+          </div>
+          <div class="analytics-quick-title">Job Report</div>
+          <div class="analytics-quick-sub">Export queue and item history</div>
+        </button>
       </div>
     </div>
 
@@ -6055,6 +6076,31 @@ async function downloadFile(fileId, filename, fmt) {
 // ══════════════════════════════════════════════════════════════════════════════
 //  ANALİTİK DASHBOARD (Faza 3.2)
 // ══════════════════════════════════════════════════════════════════════════════
+async function downloadReport(path, fallbackName) {
+  try {
+    const r = await fetch(`${API}${path}`, { headers: authH() });
+    if (r.status === 401) { logout(); return; }
+    if (!r.ok) {
+      const data = await r.json().catch(() => ({}));
+      throw new Error(data.detail || 'Rapor olusturulamadi');
+    }
+    const blob = await r.blob();
+    const cd = r.headers.get('Content-Disposition') || '';
+    const m = cd.match(/filename="?([^"]+)"?/i);
+    const filename = m ? m[1] : fallbackName;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    alert(err?.message || 'Rapor olusturulamadi.');
+  }
+}
+
 const analyticsState = { loaded: false, charts: {} };
 
 // Chart.js global defaults — dark theme
