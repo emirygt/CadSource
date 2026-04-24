@@ -47,10 +47,33 @@ CREATE TABLE IF NOT EXISTS {schema}.cad_files (
     svg_preview     TEXT,
     jpg_preview     TEXT,
     file_data       BYTEA,
+    content_hash    VARCHAR(64),
+    geometry_hash   VARCHAR(64),
+    duplicate_status VARCHAR(32) DEFAULT 'unique',
+    duplicate_group_id INTEGER,
     category_id     INTEGER REFERENCES {schema}.categories(id) ON DELETE SET NULL,
     approved        BOOLEAN DEFAULT FALSE,
     approved_at     TIMESTAMP,
     approval_status VARCHAR(20) DEFAULT 'uploaded'
+);
+
+CREATE TABLE IF NOT EXISTS {schema}.cad_file_groups (
+    id           SERIAL PRIMARY KEY,
+    group_type   VARCHAR(30) NOT NULL DEFAULT 'duplicate',
+    title        VARCHAR,
+    created_at   TIMESTAMP DEFAULT NOW(),
+    updated_at   TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS {schema}.cad_file_group_members (
+    id         SERIAL PRIMARY KEY,
+    group_id   INTEGER NOT NULL REFERENCES {schema}.cad_file_groups(id) ON DELETE CASCADE,
+    file_id    INTEGER NOT NULL REFERENCES {schema}.cad_files(id) ON DELETE CASCADE,
+    role       VARCHAR(30) DEFAULT 'member',
+    score      FLOAT,
+    reason     VARCHAR,
+    created_at TIMESTAMP DEFAULT NOW(),
+    UNIQUE(group_id, file_id)
 );
 
 CREATE TABLE IF NOT EXISTS {schema}.activity_log (
@@ -72,6 +95,15 @@ CREATE INDEX IF NOT EXISTS {schema}_clip_vector_idx
     ON {schema}.cad_files
     USING hnsw (clip_vector vector_cosine_ops)
     WITH (m = 16, ef_construction = 64);
+
+CREATE INDEX IF NOT EXISTS {schema}_cad_files_content_hash_idx
+    ON {schema}.cad_files (content_hash);
+
+CREATE INDEX IF NOT EXISTS {schema}_cad_files_geometry_hash_idx
+    ON {schema}.cad_files (geometry_hash);
+
+CREATE INDEX IF NOT EXISTS {schema}_cad_files_duplicate_status_idx
+    ON {schema}.cad_files (duplicate_status);
 """
 
 

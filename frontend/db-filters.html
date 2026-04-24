@@ -382,6 +382,7 @@
       page: 1,
       perPage: 50,
     };
+    let filterTimer = null;
 
     function logout() {
       localStorage.clear();
@@ -628,6 +629,184 @@
       }
     }
 
+    function buildServerFilterParams(page = state.page, perPage = state.perPage) {
+      const params = new URLSearchParams();
+      params.set('page', String(page));
+      params.set('per_page', String(perPage));
+      params.set('sort_by', 'indexed_at');
+      params.set('sort_dir', 'desc');
+
+      const name = document.getElementById('fName').value.trim();
+      const cat = document.getElementById('fCategory').value;
+      const eMin = document.getElementById('fEntityMin').value;
+      const eMax = document.getElementById('fEntityMax').value;
+      const lMin = document.getElementById('fLayerMin').value;
+      const lMax = document.getElementById('fLayerMax').value;
+      const dFrom = document.getElementById('fDateFrom').value;
+      const dTo = document.getElementById('fDateTo').value;
+      const preview = document.getElementById('fPreview').value;
+      const checkedFormats = [...document.querySelectorAll('.fmtCheck:checked')].map(x => x.value);
+      const allFormats = [...document.querySelectorAll('.fmtCheck')].map(x => x.value);
+
+      if (name) params.set('search', name);
+      if (cat) params.set('category_id', cat);
+      if (eMin !== '') params.set('entity_min', eMin);
+      if (eMax !== '') params.set('entity_max', eMax);
+      if (lMin !== '') params.set('layer_min', lMin);
+      if (lMax !== '') params.set('layer_max', lMax);
+      if (dFrom) params.set('indexed_from', dFrom);
+      if (dTo) params.set('indexed_to', dTo);
+      if (preview === 'yes') params.set('has_preview', 'true');
+      if (preview === 'no') params.set('has_preview', 'false');
+      if (checkedFormats.length === 0 && allFormats.length) {
+        params.set('file_format', '__none__');
+      } else if (checkedFormats.length && checkedFormats.length < allFormats.length) {
+        params.set('file_format', checkedFormats.join(','));
+      }
+
+      return params;
+    }
+
+    async function loadAllFiles(resetPage = true) {
+      if (resetPage) state.page = 1;
+      const params = buildServerFilterParams(state.page, state.perPage);
+      setStatus('Filtreli veriler aliniyor...', 'warn');
+      const d = await fetchJson(`${API}/files?${params.toString()}`);
+      state.filtered = Array.isArray(d.files) ? d.files : [];
+      state.allFiles = state.filtered;
+      state.total = Number(d.total || 0);
+      renderTable();
+      document.getElementById('excelBtn').disabled = !state.total;
+      setStatus(`Filtre hazir. ${state.total.toLocaleString('tr')} kayit bulundu.`, state.total ? 'good' : 'warn');
+    }
+
+    function applyFilters(resetPage = true) {
+      clearTimeout(filterTimer);
+      filterTimer = setTimeout(() => {
+        loadAllFiles(resetPage).catch(e => {
+          setStatus(`Veriler yuklenemedi: ${e.message}`, 'bad');
+          state.filtered = [];
+          state.total = 0;
+          renderTable();
+        });
+      }, 250);
+    }
+
+    function renderTable() {
+      const body = document.getElementById('resultBody');
+      const total = Number(state.total || 0);
+      const pages = Math.max(1, Math.ceil(total / state.perPage));
+      state.page = Math.max(1, Math.min(pages, state.page));
+      const list = state.filtered || [];
+
+      document.getElementById('kTotal').textContent = total.toLocaleString('tr');
+      document.getElementById('kFiltered').textContent = total.toLocaleString('tr');
+      document.getElementById('kPage').textContent = list.length.toLocaleString('tr');
+      document.getElementById('pageInfo').textContent = `Sayfa ${state.page} / ${pages}`;
+      document.getElementById('prevBtn').disabled = state.page <= 1;
+      document.getElementById('nextBtn').disabled = state.page >= pages;
+
+      if (!list.length) {
+        body.innerHTML = '<tr><td colspan="8" class="empty">Filtreye uygun kayit bulunamadi.</td></tr>';
+        return;
+      }
+
+      body.innerHTML = list.map(f => {
+        const fmt = String(f.file_format || '').toUpperCase();
+        const hasPreview = (f.jpg_preview || f.svg_preview) ? 'Var' : 'Yok';
+        const date = f.indexed_at ? new Date(f.indexed_at).toLocaleString('tr-TR') : '-';
+        const wh = (f.bbox_width && f.bbox_height)
+          ? `${Number(f.bbox_width).toFixed(0)} x ${Number(f.bbox_height).toFixed(0)}`
+          : '-';
+        return `
+          <tr>
+            <td class="fname" title="${esc(f.filename || '')}">${esc(f.filename || '')}</td>
+            <td><span class="badge">${esc(fmt)}</span></td>
+            <td>${esc(f.category_name || '-')}</td>
+            <td>${Number(f.entity_count || 0).toLocaleString('tr')}</td>
+            <td>${Number(f.layer_count || 0).toLocaleString('tr')}</td>
+            <td>${esc(wh)}</td>
+            <td>${hasPreview}</td>
+            <td>${esc(date)}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function changePage(dir) {
+      const total = Number(state.total || 0);
+      const pages = Math.max(1, Math.ceil(total / state.perPage));
+      state.page = Math.max(1, Math.min(pages, state.page + dir));
+      loadAllFiles(false).catch(e => setStatus(`Sayfa yuklenemedi: ${e.message}`, 'bad'));
+    }
+
+    async function exportExcel() {
+      const total = Number(state.total || 0);
+      if (!total) return;
+
+      const rows = [];
+      let page = 1;
+      const perPage = 100;
+      setStatus('Excel icin filtreli sonuc aliniyor...', 'warn');
+      while (rows.length < total) {
+        const params = buildServerFilterParams(page, perPage);
+        const d = await fetchJson(`${API}/files?${params.toString()}`);
+        const list = Array.isArray(d.files) ? d.files : [];
+        if (!list.length) break;
+        rows.push(...list);
+        page += 1;
+      }
+
+      const exportRows = rows.map(f => ({
+        'Dosya Adi': f.filename || '',
+        'Format': String(f.file_format || '').toUpperCase(),
+        'Kategori': f.category_name || '',
+        'Entity': Number(f.entity_count || 0),
+        'Katman': Number(f.layer_count || 0),
+        'BBox Genislik': Number(f.bbox_width || 0),
+        'BBox Yukseklik': Number(f.bbox_height || 0),
+        'Eklenme': f.indexed_at ? new Date(f.indexed_at).toLocaleString('tr-TR') : '',
+        'Onizleme': (f.jpg_preview || f.svg_preview) ? 'Var' : 'Yok',
+        'Duplicate Durumu': f.duplicate_status || 'unique',
+        'Dosya Yolu': f.filepath || '',
+      }));
+
+      const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
+      const base = `cad-db-filtre-sonuc-${stamp}`;
+      if (window.XLSX) {
+        const ws = XLSX.utils.json_to_sheet(exportRows);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Sonuclar');
+        XLSX.writeFile(wb, `${base}.xlsx`);
+      } else {
+        const head = Object.keys(exportRows[0] || {});
+        const csv = [head.join(',')].concat(exportRows.map(r => head.map(k => {
+          const v = String(r[k] ?? '').replace(/"/g, '""');
+          return `"${v}"`;
+        }).join(','))).join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${base}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+      setStatus(`${exportRows.length.toLocaleString('tr')} kayit disa aktarildi.`, 'good');
+    }
+
+    async function reloadAllData() {
+      const btn = document.getElementById('refreshBtn');
+      btn.disabled = true;
+      try {
+        await loadAllFiles(true);
+      } catch (e) {
+        setStatus(`Veriler yuklenemedi: ${e.message}`, 'bad');
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
     async function init() {
       document.getElementById('userEmail').textContent = localStorage.getItem('email') || 'Kullanici';
 
@@ -646,8 +825,7 @@
 
       try {
         await loadCategories();
-        await loadAllFiles();
-        applyFilters(true);
+        await loadAllFiles(true);
       } catch (e) {
         setStatus(`Başlatılamadı: ${e.message}`, 'bad');
         document.getElementById('resultBody').innerHTML =

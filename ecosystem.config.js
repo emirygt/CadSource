@@ -26,5 +26,22 @@ module.exports = {
       log_date_format: "YYYY-MM-DD HH:mm:ss",
       time: true,
     },
+    {
+      name: "cadsearch-worker",
+      cwd: BACKEND_DIR,
+      script: path.join(BACKEND_DIR, "worker.py"),
+      interpreter: path.join(BACKEND_DIR, "venv", "bin", "python"),
+      env: {
+        ENVIRONMENT: "production",
+        PYTHONUNBUFFERED: "1",
+      },
+      watch: false,
+      autorestart: true,
+      max_restarts: 10,
+      restart_delay: 3000,
+      merge_logs: true,
+      log_date_format: "YYYY-MM-DD HH:mm:ss",
+      time: true,
+    },
   ],
 };

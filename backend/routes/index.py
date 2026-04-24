@@ -32,6 +32,12 @@ from features import (
 from middleware.tenant import get_current_tenant, apply_tenant_schema
 from clip_encoder import extract_clip_vector, extract_clip_vector_from_bytes
 from routes.activity import log_activity
+from services.duplicate_service import (
+    compute_content_hash,
+    compute_geometry_hash,
+    update_duplicate_relationships,
+)
+from services.job_service import enqueue_clip_backfill
 
 router = APIRouter(tags=["index"])
 
@@ -107,6 +113,8 @@ def _upsert_file(db, stored_path, filename, ext, data, category_id, skip_clip: b
     import base64
     vec = extract_features(data)
     stats = extract_stats(data)
+    content_hash = compute_content_hash(raw_bytes)
+    geometry_hash = compute_geometry_hash(stats)
     svg = generate_svg_preview(data)
 
     # JPEG preview — önce gerçek DWG/DXF render dene, olmazsa data fallback.
@@ -137,6 +145,8 @@ def _upsert_file(db, stored_path, filename, ext, data, category_id, skip_clip: b
         "svg": svg,
         "jpg": jpg_b64,
         "file_data": raw_bytes,
+        "content_hash": content_hash,
+        "geometry_hash": geometry_hash,
         "cat": category_id,
         "layers": json.dumps(stats["layers"]),
         "entity_types": json.dumps(stats["entity_types"]),
@@ -161,24 +171,47 @@ def _upsert_file(db, stored_path, filename, ext, data, category_id, skip_clip: b
                 svg_preview    = :svg,
                 jpg_preview    = :jpg,
                 file_data      = CASE WHEN :file_data IS NOT NULL THEN :file_data ELSE file_data END,
+                content_hash   = COALESCE(:content_hash, content_hash),
+                geometry_hash  = :geometry_hash,
                 category_id    = :cat,
                 indexed_at     = NOW()
             WHERE filepath = :fp
         """), params)
-        return "updated"
+        file_id = int(existing.id)
+        status = "updated"
     else:
-        db.execute(text("""
+        inserted = db.execute(text("""
             INSERT INTO cad_files
                 (filename, filepath, file_format, feature_vector, clip_vector,
                  entity_count, layer_count, layers, entity_types,
-                 bbox_width, bbox_height, bbox_area, svg_preview, jpg_preview, file_data, category_id)
+                 bbox_width, bbox_height, bbox_area, svg_preview, jpg_preview, file_data,
+                 content_hash, geometry_hash, category_id)
             VALUES
                 (:filename, :fp, :fmt, CAST(:vec AS vector),
                  CASE WHEN :clip_vec IS NOT NULL THEN CAST(:clip_vec AS vector) ELSE NULL END,
                  :entity_count, :layer_count, CAST(:layers AS jsonb), CAST(:entity_types AS jsonb),
-                 :bbox_width, :bbox_height, :bbox_area, :svg, :jpg, :file_data, :cat)
+                 :bbox_width, :bbox_height, :bbox_area, :svg, :jpg, :file_data,
+                 :content_hash, :geometry_hash, :cat)
+            RETURNING id
         """), {**params, "filename": filename, "fmt": ext})
-        return "indexed"
+        file_id = int(inserted.fetchone().id)
+        status = "indexed"
+
+    duplicate = update_duplicate_relationships(
+        db,
+        file_id=file_id,
+        filename=filename,
+        content_hash=content_hash,
+        geometry_hash=geometry_hash,
+        feature_vector=str(vec.tolist()),
+    )
+    return {
+        "status": status,
+        "file_id": file_id,
+        "content_hash": content_hash,
+        "geometry_hash": geometry_hash,
+        **duplicate,
+    }
 
 
 def _unique_stored_path(base_path: str, db) -> str:
@@ -222,10 +255,17 @@ async def index_file(
             detail=_parse_error_detail(filename, ext),
         )
 
-    status = _upsert_file(db, stored_path, filename, ext, data, category_id, skip_clip=skip_clip, raw_bytes=content)
+    result = _upsert_file(db, stored_path, filename, ext, data, category_id, skip_clip=skip_clip, raw_bytes=content)
     log_activity(db, "upload", tenant.get("email", ""), filename=filename)
+    if skip_clip and result.get("file_id"):
+        enqueue_clip_backfill(
+            db,
+            schema_name=tenant["schema_name"],
+            user_email=tenant.get("email", ""),
+            file_ids=[result["file_id"]],
+        )
     db.commit()
-    return {"status": status, "filename": filename}
+    return {"status": result["status"], "filename": filename, **result}
 
 
 @router.post("/index/bulk")
@@ -259,8 +299,15 @@ async def bulk_index(
             if data is None:
                 raise ValueError(_parse_error_detail(filename, ext))
 
-            _upsert_file(db, stored_path, filename, ext, data, category_id, skip_clip=skip_clip, raw_bytes=content)
+            result = _upsert_file(db, stored_path, filename, ext, data, category_id, skip_clip=skip_clip, raw_bytes=content)
             log_activity(db, "upload", tenant.get("email", ""), filename=filename)
+            if skip_clip and result.get("file_id"):
+                enqueue_clip_backfill(
+                    db,
+                    schema_name=tenant["schema_name"],
+                    user_email=tenant.get("email", ""),
+                    file_ids=[result["file_id"]],
+                )
             db.commit()
             results["success"] += 1
         except Exception as e:
@@ -471,8 +518,15 @@ async def bulk_index_zip(
             if data is None:
                 raise ValueError(_parse_error_detail(filename, ext))
 
-            _upsert_file(db, stored_path, filename, ext, data, category_id, skip_clip=skip_clip, raw_bytes=file_bytes)
+            result = _upsert_file(db, stored_path, filename, ext, data, category_id, skip_clip=skip_clip, raw_bytes=file_bytes)
             log_activity(db, "upload", tenant.get("email", ""), filename=filename)
+            if skip_clip and result.get("file_id"):
+                enqueue_clip_backfill(
+                    db,
+                    schema_name=tenant["schema_name"],
+                    user_email=tenant.get("email", ""),
+                    file_ids=[result["file_id"]],
+                )
             db.commit()
             results["success"] += 1
         except Exception as e:

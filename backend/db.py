@@ -7,6 +7,7 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 from pgvector.sqlalchemy import Vector
 from dotenv import load_dotenv
 import datetime
+from services.job_service import ensure_job_tables
 
 load_dotenv()
 
@@ -79,6 +80,8 @@ def init_db():
             )
         """))
         conn.commit()
+    with SessionLocal() as db:
+        ensure_job_tables(db)
     Base.metadata.create_all(bind=engine)
     # Yeni kolonları mevcut tenant schema'larına ekle
     with engine.connect() as conn:
@@ -132,6 +135,50 @@ def init_db():
             SET approval_status = CASE WHEN approved THEN 'approved' ELSE 'uploaded' END
             WHERE approval_status IS NULL OR approval_status = '';
         """))
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS cad_file_groups (
+                id           SERIAL PRIMARY KEY,
+                group_type   VARCHAR(30) NOT NULL DEFAULT 'duplicate',
+                title        VARCHAR,
+                created_at   TIMESTAMP DEFAULT NOW(),
+                updated_at   TIMESTAMP DEFAULT NOW()
+            )
+        """))
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS cad_file_group_members (
+                id         SERIAL PRIMARY KEY,
+                group_id   INTEGER NOT NULL REFERENCES cad_file_groups(id) ON DELETE CASCADE,
+                file_id    INTEGER NOT NULL REFERENCES cad_files(id) ON DELETE CASCADE,
+                role       VARCHAR(30) DEFAULT 'member',
+                score      FLOAT,
+                reason     VARCHAR,
+                created_at TIMESTAMP DEFAULT NOW(),
+                UNIQUE(group_id, file_id)
+            )
+        """))
+        conn.execute(text("""
+            DO $$ BEGIN
+                ALTER TABLE cad_files ADD COLUMN IF NOT EXISTS content_hash VARCHAR(64);
+            EXCEPTION WHEN others THEN NULL; END $$;
+        """))
+        conn.execute(text("""
+            DO $$ BEGIN
+                ALTER TABLE cad_files ADD COLUMN IF NOT EXISTS geometry_hash VARCHAR(64);
+            EXCEPTION WHEN others THEN NULL; END $$;
+        """))
+        conn.execute(text("""
+            DO $$ BEGIN
+                ALTER TABLE cad_files ADD COLUMN IF NOT EXISTS duplicate_status VARCHAR(32) DEFAULT 'unique';
+            EXCEPTION WHEN others THEN NULL; END $$;
+        """))
+        conn.execute(text("""
+            DO $$ BEGIN
+                ALTER TABLE cad_files ADD COLUMN IF NOT EXISTS duplicate_group_id INTEGER;
+            EXCEPTION WHEN others THEN NULL; END $$;
+        """))
+        conn.execute(text("CREATE INDEX IF NOT EXISTS cad_files_content_hash_idx ON cad_files (content_hash)"))
+        conn.execute(text("CREATE INDEX IF NOT EXISTS cad_files_geometry_hash_idx ON cad_files (geometry_hash)"))
+        conn.execute(text("CREATE INDEX IF NOT EXISTS cad_files_duplicate_status_idx ON cad_files (duplicate_status)"))
         conn.commit()
     # Mevcut tenant schema'larına search_history tablosunu ekle
     with engine.connect() as conn:
@@ -213,6 +260,59 @@ def init_db():
                     details     VARCHAR,
                     created_at  TIMESTAMP DEFAULT NOW()
                 )
+            """))
+            conn.execute(text(f"""
+                CREATE TABLE IF NOT EXISTS {schema}.cad_file_groups (
+                    id           SERIAL PRIMARY KEY,
+                    group_type   VARCHAR(30) NOT NULL DEFAULT 'duplicate',
+                    title        VARCHAR,
+                    created_at   TIMESTAMP DEFAULT NOW(),
+                    updated_at   TIMESTAMP DEFAULT NOW()
+                )
+            """))
+            conn.execute(text(f"""
+                CREATE TABLE IF NOT EXISTS {schema}.cad_file_group_members (
+                    id         SERIAL PRIMARY KEY,
+                    group_id   INTEGER NOT NULL REFERENCES {schema}.cad_file_groups(id) ON DELETE CASCADE,
+                    file_id    INTEGER NOT NULL REFERENCES {schema}.cad_files(id) ON DELETE CASCADE,
+                    role       VARCHAR(30) DEFAULT 'member',
+                    score      FLOAT,
+                    reason     VARCHAR,
+                    created_at TIMESTAMP DEFAULT NOW(),
+                    UNIQUE(group_id, file_id)
+                )
+            """))
+            conn.execute(text(f"""
+                DO $$ BEGIN
+                    ALTER TABLE {schema}.cad_files ADD COLUMN IF NOT EXISTS content_hash VARCHAR(64);
+                EXCEPTION WHEN others THEN NULL; END $$;
+            """))
+            conn.execute(text(f"""
+                DO $$ BEGIN
+                    ALTER TABLE {schema}.cad_files ADD COLUMN IF NOT EXISTS geometry_hash VARCHAR(64);
+                EXCEPTION WHEN others THEN NULL; END $$;
+            """))
+            conn.execute(text(f"""
+                DO $$ BEGIN
+                    ALTER TABLE {schema}.cad_files ADD COLUMN IF NOT EXISTS duplicate_status VARCHAR(32) DEFAULT 'unique';
+                EXCEPTION WHEN others THEN NULL; END $$;
+            """))
+            conn.execute(text(f"""
+                DO $$ BEGIN
+                    ALTER TABLE {schema}.cad_files ADD COLUMN IF NOT EXISTS duplicate_group_id INTEGER;
+                EXCEPTION WHEN others THEN NULL; END $$;
+            """))
+            conn.execute(text(f"""
+                CREATE INDEX IF NOT EXISTS {schema}_cad_files_content_hash_idx
+                ON {schema}.cad_files (content_hash)
+            """))
+            conn.execute(text(f"""
+                CREATE INDEX IF NOT EXISTS {schema}_cad_files_geometry_hash_idx
+                ON {schema}.cad_files (geometry_hash)
+            """))
+            conn.execute(text(f"""
+                CREATE INDEX IF NOT EXISTS {schema}_cad_files_duplicate_status_idx
+                ON {schema}.cad_files (duplicate_status)
             """))
         conn.commit()
 

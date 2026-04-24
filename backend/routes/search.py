@@ -805,6 +805,11 @@ async def search_similar(
         db.commit()
     except Exception:
         db.rollback()
+    try:
+        log_activity(db, "search", tenant.get("email", ""), filename=filename, details=f"{len(matches)} sonuc")
+        db.commit()
+    except Exception:
+        db.rollback()
 
     return {
         "query_file": filename,
@@ -822,42 +827,140 @@ def list_files(
     search: Optional[str] = Query(default=None),
     approved: Optional[bool] = Query(default=None),
     status: Optional[str] = Query(default=None),
+    category_id: Optional[int] = Query(default=None),
+    file_format: Optional[str] = Query(default=None),
+    has_preview: Optional[bool] = Query(default=None),
+    has_clip: Optional[bool] = Query(default=None),
+    has_file_data: Optional[bool] = Query(default=None),
+    entity_min: Optional[int] = Query(default=None, ge=0),
+    entity_max: Optional[int] = Query(default=None, ge=0),
+    layer_min: Optional[int] = Query(default=None, ge=0),
+    layer_max: Optional[int] = Query(default=None, ge=0),
+    bbox_width_min: Optional[float] = Query(default=None),
+    bbox_width_max: Optional[float] = Query(default=None),
+    bbox_height_min: Optional[float] = Query(default=None),
+    bbox_height_max: Optional[float] = Query(default=None),
+    aspect_min: Optional[float] = Query(default=None),
+    aspect_max: Optional[float] = Query(default=None),
+    indexed_from: Optional[str] = Query(default=None),
+    indexed_to: Optional[str] = Query(default=None),
+    layer: Optional[str] = Query(default=None),
+    entity_type: Optional[str] = Query(default=None),
+    duplicate_status: Optional[str] = Query(default=None),
+    group_id: Optional[int] = Query(default=None),
+    sort_by: str = Query(default="indexed_at"),
+    sort_dir: str = Query(default="desc"),
     tenant: dict = Depends(get_current_tenant),
     db: Session = Depends(get_db),
 ):
     """Tenant'a ait indexlenmiş dosyaları listele."""
     apply_tenant_schema(tenant, db)
 
-    count_q = "SELECT COUNT(*) FROM cad_files"
+    count_q = "SELECT COUNT(*) FROM cad_files f LEFT JOIN categories c ON c.id = f.category_id"
     params: dict = {}
     count_clauses = []
     list_clauses = []
 
     if search:
         params["search"] = f"%{search}%"
-        count_clauses.append("filename ILIKE :search")
+        count_clauses.append("f.filename ILIKE :search")
         list_clauses.append("f.filename ILIKE :search")
     if approved is not None:
         params["approved"] = approved
-        count_clauses.append("approved = :approved")
+        count_clauses.append("f.approved = :approved")
         list_clauses.append("f.approved = :approved")
     if status is not None:
         status_norm = _normalize_status(status)
         params["status"] = status_norm
-        count_clauses.append("approval_status = :status")
+        count_clauses.append("f.approval_status = :status")
         list_clauses.append("f.approval_status = :status")
+    if category_id is not None:
+        params["category_id"] = category_id
+        count_clauses.append("f.category_id = :category_id")
+        list_clauses.append("f.category_id = :category_id")
+    if file_format:
+        formats = [x.strip().lower() for x in str(file_format).split(",") if x.strip()]
+        if formats:
+            params["formats"] = formats
+            count_clauses.append("LOWER(f.file_format) IN :formats")
+            list_clauses.append("LOWER(f.file_format) IN :formats")
+    if has_preview is not None:
+        clause = "(f.jpg_preview IS NOT NULL OR f.svg_preview IS NOT NULL)" if has_preview else "(f.jpg_preview IS NULL AND f.svg_preview IS NULL)"
+        count_clauses.append(clause)
+        list_clauses.append(clause)
+    if has_clip is not None:
+        clause = "f.clip_vector IS NOT NULL" if has_clip else "f.clip_vector IS NULL"
+        count_clauses.append(clause)
+        list_clauses.append(clause)
+    if has_file_data is not None:
+        clause = "f.file_data IS NOT NULL" if has_file_data else "f.file_data IS NULL"
+        count_clauses.append(clause)
+        list_clauses.append(clause)
+    for key, value, clause in [
+        ("entity_min", entity_min, "f.entity_count >= :entity_min"),
+        ("entity_max", entity_max, "f.entity_count <= :entity_max"),
+        ("layer_min", layer_min, "f.layer_count >= :layer_min"),
+        ("layer_max", layer_max, "f.layer_count <= :layer_max"),
+        ("bbox_width_min", bbox_width_min, "f.bbox_width >= :bbox_width_min"),
+        ("bbox_width_max", bbox_width_max, "f.bbox_width <= :bbox_width_max"),
+        ("bbox_height_min", bbox_height_min, "f.bbox_height >= :bbox_height_min"),
+        ("bbox_height_max", bbox_height_max, "f.bbox_height <= :bbox_height_max"),
+        ("aspect_min", aspect_min, "(f.bbox_width / NULLIF(f.bbox_height, 0)) >= :aspect_min"),
+        ("aspect_max", aspect_max, "(f.bbox_width / NULLIF(f.bbox_height, 0)) <= :aspect_max"),
+    ]:
+        if value is not None:
+            params[key] = value
+            count_clauses.append(clause)
+            list_clauses.append(clause)
+    if indexed_from:
+        params["indexed_from"] = indexed_from
+        clause = "f.indexed_at >= CAST(:indexed_from AS timestamp)"
+        count_clauses.append(clause)
+        list_clauses.append(clause)
+    if indexed_to:
+        params["indexed_to"] = indexed_to
+        clause = "f.indexed_at <= (CAST(:indexed_to AS timestamp) + INTERVAL '1 day')"
+        count_clauses.append(clause)
+        list_clauses.append(clause)
+    if layer:
+        params["layer"] = layer
+        clause = "f.layers::jsonb ? :layer"
+        count_clauses.append(clause)
+        list_clauses.append(clause)
+    if entity_type:
+        params["entity_type"] = entity_type.upper()
+        clause = "f.entity_types::jsonb ? :entity_type"
+        count_clauses.append(clause)
+        list_clauses.append(clause)
+    if duplicate_status:
+        params["duplicate_status"] = duplicate_status
+        count_clauses.append("f.duplicate_status = :duplicate_status")
+        list_clauses.append("f.duplicate_status = :duplicate_status")
+    if group_id is not None:
+        params["group_id"] = group_id
+        clause = """(f.duplicate_group_id = :group_id OR EXISTS (
+            SELECT 1 FROM cad_file_group_members gm
+            WHERE gm.file_id = f.id AND gm.group_id = :group_id
+        ))"""
+        count_clauses.append(clause)
+        list_clauses.append(clause)
 
     if count_clauses:
         count_q += " WHERE " + " AND ".join(count_clauses)
 
-    total = db.execute(text(count_q), params).scalar()
+    count_stmt = text(count_q)
+    if "formats" in params:
+        count_stmt = count_stmt.bindparams(bindparam("formats", expanding=True))
+    total = db.execute(count_stmt, params).scalar()
 
     list_q = """
         SELECT f.id, f.filename, f.filepath, f.file_format,
-               f.entity_count, f.layer_count, f.bbox_width, f.bbox_height,
+               f.entity_count, f.layer_count, f.bbox_width, f.bbox_height, f.bbox_area,
                f.indexed_at, f.svg_preview, f.jpg_preview,
                f.approved, f.approved_at, f.approval_status,
                (f.file_data IS NOT NULL) AS has_file_data,
+               (f.clip_vector IS NOT NULL) AS has_clip,
+               f.content_hash, f.geometry_hash, f.duplicate_status, f.duplicate_group_id,
                f.category_id,
                c.name AS category_name, c.color AS category_color
         FROM cad_files f
@@ -865,11 +968,26 @@ def list_files(
     """
     if list_clauses:
         list_q += " WHERE " + " AND ".join(list_clauses)
-    list_q += " ORDER BY f.indexed_at DESC OFFSET :offset LIMIT :limit"
+    sort_columns = {
+        "indexed_at": "f.indexed_at",
+        "filename": "f.filename",
+        "entity_count": "f.entity_count",
+        "layer_count": "f.layer_count",
+        "bbox_width": "f.bbox_width",
+        "bbox_height": "f.bbox_height",
+        "file_format": "f.file_format",
+        "duplicate_status": "f.duplicate_status",
+    }
+    sort_col = sort_columns.get(sort_by, "f.indexed_at")
+    sort_direction = "ASC" if str(sort_dir).lower() == "asc" else "DESC"
+    list_q += f" ORDER BY {sort_col} {sort_direction}, f.id DESC OFFSET :offset LIMIT :limit"
     params["offset"] = (page - 1) * per_page
     params["limit"] = per_page
 
-    files = db.execute(text(list_q), params).fetchall()
+    list_stmt = text(list_q)
+    if "formats" in params:
+        list_stmt = list_stmt.bindparams(bindparam("formats", expanding=True))
+    files = db.execute(list_stmt, params).fetchall()
 
     return {
         "total": total,
@@ -885,6 +1003,7 @@ def list_files(
                 "layer_count": f.layer_count,
                 "bbox_width": f.bbox_width,
                 "bbox_height": f.bbox_height,
+                "bbox_area": f.bbox_area,
                 "indexed_at": f.indexed_at.isoformat() if f.indexed_at else None,
                 "svg_preview": f.svg_preview,
                 "jpg_preview": f.jpg_preview,
@@ -892,6 +1011,11 @@ def list_files(
                 "approved_at": f.approved_at.isoformat() if f.approved_at else None,
                 "approval_status": f.approval_status or ("approved" if f.approved else "uploaded"),
                 "has_file_data": f.has_file_data,
+                "has_clip": bool(f.has_clip),
+                "content_hash": f.content_hash,
+                "geometry_hash": f.geometry_hash,
+                "duplicate_status": f.duplicate_status or "unique",
+                "duplicate_group_id": f.duplicate_group_id,
                 "category_id": f.category_id,
                 "category_name": f.category_name,
                 "category_color": f.category_color,
@@ -975,6 +1099,7 @@ def get_file(
                 f.bbox_width, f.bbox_height, f.bbox_area,
                 f.approved, f.approved_at, f.approval_status,
                 f.svg_preview, f.jpg_preview, f.category_id,
+                f.content_hash, f.geometry_hash, f.duplicate_status, f.duplicate_group_id,
                 c.name AS category_name, c.color AS category_color,
                 (f.file_data IS NOT NULL) AS has_file_data,
                 OCTET_LENGTH(f.file_data) AS file_size_bytes
@@ -1010,10 +1135,62 @@ def get_file(
         "category_id": m["category_id"],
         "category_name": m["category_name"],
         "category_color": m["category_color"],
+        "content_hash": m["content_hash"],
+        "geometry_hash": m["geometry_hash"],
+        "duplicate_status": m["duplicate_status"] or "unique",
+        "duplicate_group_id": m["duplicate_group_id"],
         "has_file_data": bool(m["has_file_data"]),
         "file_size_bytes": int(m["file_size_bytes"] or 0),
         "file_data": 1 if m["has_file_data"] else None,
     }
+    if m["duplicate_group_id"]:
+        members = db.execute(text("""
+            SELECT gm.group_id, gm.role, gm.score, gm.reason,
+                   f.id, f.filename, f.file_format, f.duplicate_status,
+                   f.jpg_preview
+            FROM cad_file_group_members gm
+            JOIN cad_files f ON f.id = gm.file_id
+            WHERE gm.group_id = :group_id
+            ORDER BY CASE gm.role WHEN 'original' THEN 0 WHEN 'duplicate' THEN 1 ELSE 2 END, f.id
+        """), {"group_id": m["duplicate_group_id"]}).fetchall()
+        response["duplicate_group"] = [
+            {
+                "group_id": r.group_id,
+                "file_id": r.id,
+                "filename": r.filename,
+                "file_format": r.file_format,
+                "duplicate_status": r.duplicate_status,
+                "role": r.role,
+                "score": r.score,
+                "reason": r.reason,
+                "jpg_preview": r.jpg_preview,
+            }
+            for r in members
+        ]
+    job_rows = db.execute(text("""
+        SELECT j.id, j.type, j.status, j.created_at, j.started_at, j.finished_at,
+               ji.action, ji.status AS item_status, ji.message
+        FROM public.job_items ji
+        JOIN public.jobs j ON j.id = ji.job_id
+        WHERE j.schema_name = :schema_name
+          AND ji.file_id = :file_id
+        ORDER BY COALESCE(ji.finished_at, ji.started_at, j.created_at) DESC
+        LIMIT 20
+    """), {"schema_name": tenant["schema_name"], "file_id": file_id}).fetchall()
+    response["related_jobs"] = [
+        {
+            "id": r.id,
+            "type": r.type,
+            "status": r.status,
+            "action": r.action,
+            "item_status": r.item_status,
+            "message": r.message,
+            "created_at": r.created_at.isoformat() if r.created_at else None,
+            "started_at": r.started_at.isoformat() if r.started_at else None,
+            "finished_at": r.finished_at.isoformat() if r.finished_at else None,
+        }
+        for r in job_rows
+    ]
     if include_analysis:
         if not m["has_file_data"]:
             response["analysis"] = {
@@ -1060,6 +1237,9 @@ def download_file(
     if not row.file_data:
         raise HTTPException(status_code=404, detail="Bu dosya için indirme verisi mevcut değil.")
 
+    log_activity(db, "download", tenant.get("email", ""), filename=row.filename, file_id=file_id)
+    db.commit()
+
     ext = (row.file_format or "dwg").lower()
     mime_map = {
         "dwg": "application/acad",
@@ -1087,12 +1267,13 @@ def delete_file(
 ):
     apply_tenant_schema(tenant, db)
     existing = db.execute(
-        text("SELECT id FROM cad_files WHERE id = :id"),
+        text("SELECT id, filename FROM cad_files WHERE id = :id"),
         {"id": file_id},
     ).fetchone()
     if not existing:
         raise HTTPException(status_code=404, detail="Dosya bulunamadı")
     db.execute(text("DELETE FROM cad_files WHERE id = :id"), {"id": file_id})
+    log_activity(db, "delete", tenant.get("email", ""), filename=existing.filename, file_id=file_id)
     db.commit()
     return {"status": "deleted", "id": file_id}
 

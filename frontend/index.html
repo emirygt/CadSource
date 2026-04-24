@@ -1429,6 +1429,8 @@
             <option value="approved" data-i18n="nav.approved_catalog">Approved Catalog</option>
           </select>
           <button class="pg-btn" id="dbApplyStatusBtn" onclick="applyStatusToDbSelection()" disabled data-i18n="common.apply_status">Apply Status</button>
+          <button class="pg-btn" id="dbReindexBtn" onclick="enqueueSelectedReindex()" disabled>Re-index</button>
+          <button class="pg-btn" onclick="enqueueClipBackfill()">CLIP Backfill</button>
           <div class="fl-view-toggle">
             <button class="fl-view-btn" id="flViewGrid" onclick="setDbViewMode('grid')" data-i18n="common.grid">Grid</button>
             <button class="fl-view-btn active" id="flViewList" onclick="setDbViewMode('list')" data-i18n="common.list">List</button>
@@ -2037,7 +2039,7 @@
               <th data-i18n="dash.col_result">RESULT</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody id="analyticsRecentJobsBody">
             <tr>
               <td style="font-weight:500;">Engine Block v2.3 vs v2.4</td>
               <td><span style="color:#64748b;display:flex;align-items:center;gap:6px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="4"></circle><circle cx="16" cy="16" r="4"></circle><path d="M11 8H16M8 11V16"></path></svg>CAD Comparison</span></td>
@@ -2918,8 +2920,10 @@ function updateDbApprovalSelectionUi() {
   const selected = dbState.selectedIds.size;
   const info = document.getElementById('dbSelectedApproveInfo');
   const applyBtn = document.getElementById('dbApplyStatusBtn');
+  const reindexBtn = document.getElementById('dbReindexBtn');
   if (info) info.textContent = `${selected} ${t('common.selected')}`;
   if (applyBtn) applyBtn.disabled = selected === 0;
+  if (reindexBtn) reindexBtn.disabled = selected === 0;
 
   const allBox = document.getElementById('dbSelectAll');
   if (!allBox) return;
@@ -3618,6 +3622,89 @@ async function startDbUpload() {
   }
 }
 
+async function pollUploadJob(jobId) {
+  let last = null;
+  for (let i = 0; i < 720; i++) {
+    const r = await fetch(`${API}/jobs/${jobId}`, { headers: authH() });
+    if (r.status === 401) { logout(); return null; }
+    const data = await parseApiJsonResponse(r, 'Job durumu alinamadi');
+    const job = data.job || {};
+    last = data;
+    const total = job.total_items || 0;
+    const processed = job.processed_items || 0;
+    const pct = total ? Math.round(processed / total * 100) : 0;
+    document.getElementById('dbProgressBar').style.width = pct + '%';
+    document.getElementById('dbProgressLabel').textContent = `Job #${jobId}: ${processed} / ${total} işlendi (${job.status})`;
+    document.getElementById('dbOkCount').textContent = job.succeeded_items || 0;
+    document.getElementById('dbFailCount').textContent = job.failed_items || 0;
+    if (['succeeded', 'failed', 'cancelled'].includes(job.status)) return data;
+    await new Promise(resolve => setTimeout(resolve, 2000));
+  }
+  return last;
+}
+
+async function startDbUpload() {
+  if (!dbState.files.length || dbState.uploading) return;
+  dbState.uploading = true;
+  const btn = document.getElementById('dbUploadBtn');
+  const clearBtn = document.getElementById('dbClearBtn');
+  const input = document.getElementById('dbFileInput');
+  const drop = document.getElementById('dbDrop');
+  btn.disabled = true;
+  clearBtn.disabled = true;
+  input.disabled = true;
+  drop.style.pointerEvents = 'none';
+  drop.style.opacity = '0.7';
+  document.getElementById('dbProgress').style.display = 'block';
+  document.getElementById('dbErrorList').innerHTML = '';
+  document.getElementById('dbProgressBar').style.width = '0%';
+  document.getElementById('dbOkCount').textContent = '0';
+  document.getElementById('dbFailCount').textContent = '0';
+  setDbUploadStatus('loading', 'Dosyalar job kuyruğuna alınıyor...');
+  if (!dbState.uploadQueue.length) initDbUploadQueueFromSelection();
+  dbState.uploadQueue.forEach(item => { item.status = 'queued'; item.detail = 'job kuyruğunda'; });
+  renderDbUploadQueue();
+
+  try {
+    await ensureApiBase(true);
+    const fd = new FormData();
+    dbState.files.forEach(f => fd.append('files', f));
+    const qp = new URLSearchParams();
+    const catId = document.getElementById('dbCategorySelect').value;
+    if (catId) qp.set('category_id', catId);
+    qp.set('skip_clip', 'true');
+    const r = await fetch(`${API}/jobs/upload?${qp.toString()}`, { method: 'POST', headers: authH(), body: fd });
+    if (r.status === 401) { logout(); return; }
+    const created = await parseApiJsonResponse(r, 'Upload job baslatilamadi');
+    setDbUploadStatus('loading', `Upload job #${created.job_id} başladı. CLIP otomatik arkada tamamlanacak.`);
+    const finalData = await pollUploadJob(created.job_id);
+    const job = finalData?.job || {};
+    const items = finalData?.items || [];
+    items.forEach(item => {
+      const q = dbState.uploadQueue.find(x => x.filename === item.filename || x.name === item.filename || x.entryName === item.filename);
+      if (q) { q.status = item.status === 'succeeded' ? 'uploaded' : (item.status === 'failed' ? 'error' : item.status); q.detail = item.message || ''; }
+    });
+    renderDbUploadQueue();
+    if (job.status === 'succeeded') {
+      setDbUploadStatus('success', `Upload tamamlandı. ${job.succeeded_items || 0} dosya işlendi.`);
+    } else if (job.status === 'failed') {
+      setDbUploadStatus('warn', `Upload job tamamlandı: ${job.succeeded_items || 0} başarılı, ${job.failed_items || 0} hatalı.`);
+    } else {
+      setDbUploadStatus('warn', `Upload job durumu: ${job.status || 'bilinmiyor'}.`);
+    }
+    await Promise.all([loadStats(), loadDbFiles(), loadActivityLog()]);
+  } catch (e) {
+    setDbUploadStatus('error', e?.message || 'Upload job baslatilamadi.');
+  } finally {
+    dbState.uploading = false;
+    btn.disabled = dbState.files.length === 0;
+    clearBtn.disabled = false;
+    input.disabled = false;
+    drop.style.pointerEvents = '';
+    drop.style.opacity = '';
+  }
+}
+
 // Dosya listesi
 function dbSearchDebounce() {
   clearTimeout(dbState.searchTimer);
@@ -3838,6 +3925,43 @@ async function applyStatusToDbSelection() {
     await Promise.all([loadDbFiles(), loadApprovedFiles()]);
   } catch (err) {
     alert(err.message || 'Toplu durum işlemi başarısız.');
+  }
+}
+
+async function enqueueSelectedReindex() {
+  const ids = Array.from(dbState.selectedIds);
+  if (!ids.length) return;
+  try {
+    const r = await fetch(`${API}/jobs/reindex`, {
+      method: 'POST',
+      headers: { ...authH(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ file_ids: ids }),
+    });
+    if (r.status === 401) { logout(); return; }
+    const d = await parseApiJsonResponse(r, 'Re-index job baslatilamadi');
+    setDbUploadStatus('success', `Re-index job kuyruğa alındı (#${d.job_id}).`);
+    dbState.selectedIds.clear();
+    updateDbApprovalSelectionUi();
+    loadActivityLog();
+  } catch (err) {
+    setDbUploadStatus('error', err?.message || 'Re-index job baslatilamadi.');
+  }
+}
+
+async function enqueueClipBackfill() {
+  const ids = Array.from(dbState.selectedIds);
+  try {
+    const r = await fetch(`${API}/jobs/clip-backfill`, {
+      method: 'POST',
+      headers: { ...authH(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ file_ids: ids }),
+    });
+    if (r.status === 401) { logout(); return; }
+    const d = await parseApiJsonResponse(r, 'CLIP backfill job baslatilamadi');
+    setDbUploadStatus('success', `CLIP backfill kuyruğa alındı (#${d.job_id}, ${d.total_items || 0} dosya).`);
+    loadActivityLog();
+  } catch (err) {
+    setDbUploadStatus('error', err?.message || 'CLIP backfill job baslatilamadi.');
   }
 }
 
@@ -5083,6 +5207,63 @@ function renderEntityCards(entities) {
   }).join('') + `</div>`;
 }
 
+function duplicateStatusLabel(status) {
+  const labels = {
+    exact_duplicate: 'Exact duplicate',
+    revision_candidate: 'Revizyon adayi',
+    unique: 'Unique',
+  };
+  return labels[status] || status || 'Unique';
+}
+
+function renderDuplicateSection(f) {
+  const group = Array.isArray(f.duplicate_group) ? f.duplicate_group : [];
+  const jobs = Array.isArray(f.related_jobs) ? f.related_jobs : [];
+  const status = duplicateStatusLabel(f.duplicate_status);
+  const hashShort = f.content_hash ? `${String(f.content_hash).slice(0, 12)}...` : 'Yok';
+  const geomShort = f.geometry_hash ? `${String(f.geometry_hash).slice(0, 12)}...` : 'Yok';
+  const groupRows = group.length
+    ? group.map(m => `
+        <div class="entity-row">
+          <span>${escHtml(m.role || 'member')} · #${m.file_id}</span>
+          <span>${escHtml(m.filename || '')} ${m.score ? `(${Number(m.score).toFixed(3)})` : ''}</span>
+        </div>
+      `).join('')
+    : '<div class="detail-note">Bu dosya icin duplicate/revizyon grubu yok.</div>';
+  const jobRows = jobs.length
+    ? jobs.map(j => {
+        const when = j.finished_at || j.started_at || j.created_at;
+        const date = when ? new Date(when).toLocaleString('tr-TR') : '-';
+        return `
+          <div class="entity-row">
+            <span>#${j.id} · ${escHtml(j.type || j.action || 'job')}</span>
+            <span>${escHtml(j.item_status || j.status || '')} · ${escHtml(date)}</span>
+          </div>
+        `;
+      }).join('')
+    : '<div class="detail-note">Bu dosyayla iliskili job kaydi yok.</div>';
+
+  return `
+    <div>
+      <div class="detail-section-title">Duplicate / Revizyon</div>
+      <div class="detail-grid">
+        <div class="detail-stat"><div class="detail-stat-label">Durum</div><div class="detail-stat-val" style="font-size:12px">${escHtml(status)}</div></div>
+        <div class="detail-stat"><div class="detail-stat-label">Grup</div><div class="detail-stat-val" style="font-size:12px">${f.duplicate_group_id || '-'}</div></div>
+        <div class="detail-stat"><div class="detail-stat-label">Content Hash</div><div class="detail-stat-val" style="font-size:12px">${escHtml(hashShort)}</div></div>
+        <div class="detail-stat"><div class="detail-stat-label">Geometry Hash</div><div class="detail-stat-val" style="font-size:12px">${escHtml(geomShort)}</div></div>
+      </div>
+      <details style="margin-top:8px">
+        <summary>Ayni hash / revizyon adaylari (${group.length})</summary>
+        <div class="detail-json-wrap" style="margin-top:8px">${groupRows}</div>
+      </details>
+      <details style="margin-top:8px">
+        <summary>Bu dosyayla iliskili isler (${jobs.length})</summary>
+        <div class="detail-json-wrap" style="margin-top:8px">${jobRows}</div>
+      </details>
+    </div>
+  `;
+}
+
 async function showDetailModal(fileId) {
   const modal = document.getElementById('detailModal');
   const body = document.getElementById('detailModalBody');
@@ -5135,6 +5316,7 @@ async function showDetailModal(fileId) {
             <div style="background:#f1f5f9;border-radius:var(--radius);overflow:hidden;border:1px solid var(--border)">${f.svg_preview}</div>
            </div>`
         : '';
+    const duplicateSection = renderDuplicateSection(f);
 
     body.innerHTML = `
       <div class="detail-sections">
@@ -5176,6 +5358,7 @@ async function showDetailModal(fileId) {
             </div>
           </div>
         </div>
+        ${duplicateSection}
         ${etypeChips ? `<div>
           <div class="detail-section-title">Entity Tipleri</div>
           <div class="detail-chips">${etypeChips}</div>
@@ -5895,16 +6078,18 @@ async function loadAnalytics() {
   initChartDefaults();
 
   try {
-    const [ovRes, trendRes, searchRes] = await Promise.all([
+    const [ovRes, trendRes, searchRes, jobsRes] = await Promise.all([
       fetch(`${API}/analytics/overview`, { headers: authH() }),
       fetch(`${API}/analytics/uploads-trend?days=30`, { headers: authH() }),
       fetch(`${API}/analytics/search-stats?limit=10`, { headers: authH() }),
+      fetch(`${API}/jobs?per_page=4`, { headers: authH() }),
     ]);
 
     if (ovRes.status === 401) { logout(); return; }
     const ov = await ovRes.json();
     const trend = await trendRes.json();
     const search = await searchRes.json();
+    const jobs = await jobsRes.json().catch(() => ({ jobs: [] }));
 
     // Boş veri varsayılanları
     if (!ov.totals) ov.totals = { total_files:0, indexed_files:0, clip_files:0, total_entities:0, avg_entities:0, avg_layers:0 };
@@ -5922,6 +6107,7 @@ async function loadAnalytics() {
     renderUploadTrend(Array.isArray(trend) ? trend : []);
     renderSearchTrend(search.daily_searches);
     renderTopFiles(search.top_files);
+    renderRecentJobs(jobs.jobs || []);
 
     analyticsState.loaded = true;
   } catch (e) {
@@ -6102,6 +6288,34 @@ function renderTopFiles(files) {
   }).join('');
 }
 
+function renderRecentJobs(jobs) {
+  const body = document.getElementById('analyticsRecentJobsBody');
+  if (!body) return;
+  if (!jobs.length) {
+    body.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#94a3b8">Henüz job yok</td></tr>';
+    return;
+  }
+  const typeLabel = { upload: 'Upload', clip_backfill: 'CLIP Backfill', reindex: 'Re-index' };
+  const statusColor = {
+    succeeded: 'background:#dcfce7;color:#16a34a',
+    running: 'background:#e0f2fe;color:#0284c7',
+    queued: 'background:#fef9c3;color:#a16207',
+    failed: 'background:#fee2e2;color:#dc2626',
+    cancelled: 'background:#f1f5f9;color:#64748b',
+  };
+  body.innerHTML = jobs.map(job => {
+    const dt = job.created_at ? new Date(job.created_at).toLocaleString('tr-TR') : '-';
+    const style = statusColor[job.status] || statusColor.queued;
+    return `<tr>
+      <td style="font-weight:500;">Job #${job.id}</td>
+      <td><span style="color:#64748b">${typeLabel[job.type] || job.type}</span></td>
+      <td><span style="padding:4px 8px;border-radius:4px;${style};font-size:10px;font-weight:700;letter-spacing:0.05em">${String(job.status || '').toUpperCase()}</span></td>
+      <td>${dt}</td>
+      <td style="color:#0ea5e9;font-weight:600">${job.processed_items || 0}/${job.total_items || 0}</td>
+    </tr>`;
+  }).join('');
+}
+
 function fmtDay(iso) {
   if (!iso) return '';
   const d = new Date(iso);
@@ -6130,6 +6344,11 @@ function activityActionLabel(action) {
   if (action === 'draft') return '<span style="color:var(--amber);font-weight:600">Draft</span>';
   if (action === 'approved') return '<span style="color:var(--green);font-weight:600">Onayladi</span>';
   if (action === 'uploaded') return '<span style="color:var(--cyan);font-weight:600">Yuklendi</span>';
+  if (action === 'clip_backfill') return '<span style="color:#7c3aed;font-weight:600">CLIP Backfill</span>';
+  if (action === 'reindex') return '<span style="color:var(--amber);font-weight:600">Re-index</span>';
+  if (action === 'download') return '<span style="color:var(--blue);font-weight:600">Indirdi</span>';
+  if (action === 'delete') return '<span style="color:var(--red);font-weight:600">Sildi</span>';
+  if (action === 'search') return '<span style="color:var(--green);font-weight:600">Arama</span>';
   return '<span style="font-weight:600">' + (action || '-') + '</span>';
 }
 
@@ -6137,13 +6356,28 @@ async function loadActivityLog() {
   const tbody = document.getElementById('activityTableBody');
   tbody.innerHTML = '<tr><td colspan="5" class="db-empty">Yukleniyor...</td></tr>';
   try {
-    const res = await fetch(
-      API + '/activity?limit=' + ACTIVITY_PER_PAGE + '&offset=' + (activityPage * ACTIVITY_PER_PAGE),
-      { headers: authH() }
-    );
-    const data = await res.json();
-    const items = data.items || [];
-    const total = data.total || 0;
+    const [jobsRes, activityRes] = await Promise.all([
+      fetch(API + '/jobs?per_page=' + ACTIVITY_PER_PAGE + '&page=' + (activityPage + 1), { headers: authH() }),
+      fetch(API + '/activity?limit=' + ACTIVITY_PER_PAGE + '&offset=' + (activityPage * ACTIVITY_PER_PAGE), { headers: authH() }),
+    ]);
+    if (jobsRes.status === 401 || activityRes.status === 401) { logout(); return; }
+    const jobsData = await jobsRes.json();
+    const activityData = await activityRes.json();
+    const jobItems = (jobsData.jobs || []).map(job => ({
+      kind: 'job',
+      created_at: job.updated_at || job.created_at,
+      user_email: job.user_email,
+      action: job.type,
+      filename: `Job #${job.id}`,
+      details: `${job.status} · ${job.processed_items || 0}/${job.total_items || 0} · OK ${job.succeeded_items || 0} / Hata ${job.failed_items || 0}`,
+      status: job.status,
+      job_id: job.id,
+    }));
+    const logItems = (activityData.items || []).map(item => ({ ...item, kind: 'activity' }));
+    const items = jobItems.concat(logItems)
+      .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0))
+      .slice(0, ACTIVITY_PER_PAGE);
+    const total = (jobsData.total || 0) + (activityData.total || 0);
 
     if (!items.length) {
       tbody.innerHTML = '<tr><td colspan="5" class="db-empty">Henuz log yok</td></tr>';
@@ -6158,7 +6392,7 @@ async function loadActivityLog() {
         '<td class="td-date">' + dateStr + '</td>' +
         '<td>' + (item.user_email || '-') + '</td>' +
         '<td>' + activityActionLabel(item.action) + '</td>' +
-        '<td class="td-filename">' + (item.filename || '-') + '</td>' +
+        '<td class="td-filename">' + (item.kind === 'job' ? '<button class="pg-btn" onclick="showJobDetail(' + item.job_id + ')">' + item.filename + '</button>' : (item.filename || '-')) + '</td>' +
         '<td style="color:var(--text3);font-size:12px">' + (item.details || '') + '</td>' +
       '</tr>';
     }).join('');
@@ -6174,6 +6408,20 @@ async function loadActivityLog() {
     }
   } catch (e) {
     tbody.innerHTML = '<tr><td colspan="5" class="db-empty">Yuklenemedi: ' + e.message + '</td></tr>';
+  }
+}
+
+async function showJobDetail(jobId) {
+  try {
+    const r = await fetch(`${API}/jobs/${jobId}`, { headers: authH() });
+    if (r.status === 401) { logout(); return; }
+    const data = await parseApiJsonResponse(r, 'Job detayi alinamadi');
+    const job = data.job || {};
+    const items = data.items || [];
+    const lines = items.slice(0, 30).map(i => `${i.status}: ${i.filename || i.file_id || '-'} ${i.message ? '- ' + i.message : ''}`);
+    alert(`Job #${job.id} (${job.type})\nDurum: ${job.status}\nİlerleme: ${job.processed_items}/${job.total_items}\n\n${lines.join('\n')}`);
+  } catch (e) {
+    alert(e.message || 'Job detayi alinamadi.');
   }
 }
 
