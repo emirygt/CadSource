@@ -6,7 +6,7 @@
   <title>CAD Arama Motoru</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="theme.css" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -41,6 +41,9 @@
     }
     code, pre, .mono {
       font-family: var(--font-mono);
+    }
+    button, input, select, textarea {
+      font-family: inherit;
     }
 
     /* ── Left Header ── */
@@ -94,6 +97,7 @@
     }
     .brand-copy { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
     .brand-title {
+      font-family: var(--font-display);
       font-size: var(--text-md);
       line-height: 1.2;
       font-weight: 700;
@@ -105,8 +109,8 @@
     }
     .brand-sub {
       font-size: 10px;
-      font-family: var(--font-display);
-      font-weight: 600;
+      font-family: var(--font-ui);
+      font-weight: 700;
       letter-spacing: 0.08em;
       text-transform: uppercase;
       color: var(--nav-muted);
@@ -141,6 +145,7 @@
       background: var(--nav-surface);
     }
     .status-text {
+      font-family: var(--font-ui);
       font-size: 12px;
       color: var(--nav-muted);
       font-weight: 600;
@@ -163,8 +168,8 @@
       min-width: 90px;
       flex-shrink: 0;
     }
-    .tstat-val { font-size: 18px; font-weight: 700; line-height: 1; color: var(--nav-text); letter-spacing: -0.02em; font-family: var(--font-display); }
-    .tstat-lbl { font-size: 9px; color: var(--nav-muted); letter-spacing: 0.08em; text-transform: uppercase; font-family: var(--font-display); }
+    .tstat-val { font-size: 18px; font-weight: 700; line-height: 1; color: var(--nav-text); letter-spacing: -0.02em; font-family: var(--font-data); }
+    .tstat-lbl { font-size: 9px; color: var(--nav-muted); letter-spacing: 0.08em; text-transform: uppercase; font-family: var(--font-ui); }
     .logout-btn {
       display: inline-flex;
       align-items: center;
@@ -210,7 +215,7 @@
       align-items: center;
       gap: 10px;
       min-height: 46px;
-      font-family: var(--font-display);
+      font-family: var(--font-ui);
       font-size: 15.5px;
     }
     .tab:hover { color: var(--nav-text); background: rgba(255,255,255,0.09); }
@@ -350,13 +355,14 @@
     .empty-title { font-size: 15px; color: var(--text2); font-weight: 500; }
     .empty-sub { font-size: 13px; max-width: 280px; line-height: 1.6; }
     .results-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
-    .results-title { font-size: 15px; font-weight: 500; }
+    .results-title { font-family: var(--font-display); font-size: 15px; font-weight: 600; }
     .results-meta { font-size: 12px; color: var(--text3); }
     .view-toggle { display: flex; border: 1px solid var(--border2); border-radius: 8px; overflow: hidden; }
     .vbtn { padding: 5px 10px; background: transparent; border: none; color: var(--text3); cursor: pointer; font-size: 12px; }
     .vbtn.active { background: var(--bg3); color: var(--text); }
     .query-summary { display: block; }
     .query-compact-card {
+      font-family: var(--font-data);
       background: #ffffff;
       border: 1.5px solid #cfdeee;
       border-radius: 12px;
@@ -375,7 +381,7 @@
       display: flex;
       aspect-ratio: 1 / 1;
     }
-    .query-match-pill { font-size: 11px; font-weight: 700; color: #0ea5e9; background: rgba(14, 165, 233, 0.12); border: 1px solid rgba(14, 165, 233, 0.24); border-radius: 999px; padding: 2px 8px; white-space: nowrap; }
+    .query-match-pill { font-family: var(--font-data); font-size: 11px; font-weight: 700; color: #0ea5e9; background: rgba(14, 165, 233, 0.12); border: 1px solid rgba(14, 165, 233, 0.24); border-radius: 999px; padding: 2px 8px; white-space: nowrap; }
     .query-preview-media { width: 100%; height: 100%; background: #e8eef5; display: flex; align-items: center; justify-content: center; padding: 8px; }
     .query-preview-media img { width: 100%; height: 100%; object-fit: contain; display: block; }
     .query-preview-fallback { color: #7a808d; font-size: 12px; }
@@ -392,12 +398,13 @@
     }
     .query-info-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
     .query-title-wrap { min-width: 0; display: flex; flex-direction: column; gap: 7px; }
-    .query-info-title { font-size: 11px; font-weight: 700; color: #64748b; letter-spacing: 0.07em; text-transform: uppercase; }
+    .query-info-title { font-family: var(--font-ui); font-size: 11px; font-weight: 700; color: #64748b; letter-spacing: 0.07em; text-transform: uppercase; }
     .query-head-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-    .query-file-name { font-size: 20px; font-weight: 800; color: #172033; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .query-file-ext { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; color: #0ea5e9; background: rgba(14, 165, 233, 0.12); border: 1px solid rgba(14, 165, 233, 0.24); border-radius: 999px; padding: 3px 8px; flex-shrink: 0; }
+    .query-file-name { font-family: var(--font-data); font-size: 20px; font-weight: 800; color: #172033; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .query-file-ext { font-family: var(--font-data); font-size: 10px; font-weight: 700; letter-spacing: 0.08em; color: #0ea5e9; background: rgba(14, 165, 233, 0.12); border: 1px solid rgba(14, 165, 233, 0.24); border-radius: 999px; padding: 3px 8px; flex-shrink: 0; }
     .qstat-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
     .qstat {
+      font-family: var(--font-data);
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -420,15 +427,15 @@
     .result-card:hover { border-color: var(--border2); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
     .result-card.selected { border-color: var(--blue); }
     .card-preview { background: var(--bg3); height: 130px; display: flex; align-items: center; justify-content: center; position: relative; border-bottom: 1px solid var(--border); overflow: hidden; }
-    .card-badge { position: absolute; top: 8px; right: 8px; font-size: 13px; font-weight: 700; padding: 4px 11px; border-radius: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.12); }
+    .card-badge { position: absolute; top: 8px; right: 8px; font-family: var(--font-data); font-size: 13px; font-weight: 700; padding: 4px 11px; border-radius: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.12); }
     .badge-high { background: rgba(34,197,94,0.15); color: var(--green); }
     .badge-med { background: rgba(245,158,11,0.15); color: var(--amber); }
     .badge-low { background: rgba(239,68,68,0.15); color: var(--red); }
     .card-body { padding: 10px 12px; }
-    .card-name { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; }
-    .card-path { font-size: 10px; color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 8px; }
+    .card-name { font-family: var(--font-data); font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; }
+    .card-path { font-family: var(--font-data); font-size: 10px; color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 8px; }
     .card-stats { display: flex; gap: 10px; flex-wrap: wrap; }
-    .cstat { font-size: 10px; color: var(--text3); }
+    .cstat { font-family: var(--font-data); font-size: 10px; color: var(--text3); }
     .cstat span { color: var(--text2); font-weight: 500; }
     .sim-bar-wrap { margin-top: 8px; }
     .sim-bar-label { display: flex; justify-content: space-between; font-size: 10px; color: var(--text3); margin-bottom: 4px; }
@@ -463,7 +470,7 @@
     .lstat { text-align: right; }
     .lstat-val { font-size: 13px; font-weight: 500; }
     .lstat-lbl { font-size: 10px; color: var(--text3); }
-    .sim-pill { font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 20px; flex-shrink: 0; }
+    .sim-pill { font-family: var(--font-data); font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 20px; flex-shrink: 0; }
     .loading { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 60px; color: var(--text3); }
     .spinner { width: 32px; height: 32px; border: 2px solid var(--border2); border-top-color: var(--blue); border-radius: 50%; animation: spin 0.8s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
@@ -567,12 +574,12 @@
     .db-search-box::placeholder { color: var(--text3); }
 
     .db-table-wrap { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; }
+    table { width: 100%; border-collapse: collapse; font-family: var(--font-data); }
     th { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; padding: 10px 16px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
     td { padding: 10px 16px; font-size: 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
     tr:last-child td { border-bottom: none; }
     tr:hover td { background: var(--bg3); }
-    .td-filename { font-weight: 500; color: var(--text); max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .td-filename { font-family: var(--font-data); font-weight: 600; color: var(--text); max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .td-format { font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 4px; display: inline-block; }
     .td-date { color: var(--text3); font-size: 11px; white-space: nowrap; }
     .del-btn { background: transparent; border: 1px solid transparent; color: var(--text3); cursor: pointer; padding: 4px 8px; border-radius: 6px; font-size: 12px; transition: all 0.15s; }
@@ -756,6 +763,7 @@
       gap: 12px;
     }
     .dashboard-total-label {
+      font-family: var(--font-ui);
       font-size: 11px;
       font-weight: 600;
       color: var(--text3);
@@ -767,27 +775,27 @@
       line-height: 1;
       font-weight: 700;
       color: var(--blue2);
-      font-family: var(--font-display);
+      font-family: var(--font-data);
       letter-spacing: -0.02em;
     }
     .analytics-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
     .kpi-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 4px; transition: box-shadow 0.15s; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
     .kpi-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-    .kpi-label { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.07em; }
-    .kpi-value { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; line-height: 1.1; }
-    .kpi-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
+    .kpi-label { font-family: var(--font-ui); font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.07em; }
+    .kpi-value { font-family: var(--font-data); font-size: 28px; font-weight: 700; letter-spacing: -0.5px; line-height: 1.1; }
+    .kpi-sub { font-family: var(--font-ui); font-size: 11px; color: var(--text3); margin-top: 2px; }
     .kpi-bar { height: 3px; border-radius: 2px; margin-top: 10px; background: var(--bg3); overflow: hidden; }
     .kpi-bar-fill { height: 100%; border-radius: 2px; transition: width 0.6s ease; }
     .chart-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
-    .chart-title { font-size: 13px; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
-    .chart-badge { font-size: 10px; padding: 2px 7px; border-radius: 20px; font-weight: 600; }
+    .chart-title { font-family: var(--font-display); font-size: 13px; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+    .chart-badge { font-family: var(--font-data); font-size: 10px; padding: 2px 7px; border-radius: 20px; font-weight: 600; }
     .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
     .charts-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
     .chart-wrap { position: relative; width: 100%; }
     .chart-wrap canvas { display: block; max-height: 220px; }
     .top-files-list { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
     .top-file-row { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--bg3); border-radius: 7px; border: 1px solid var(--border); }
-    .top-file-rank { font-size: 11px; font-weight: 700; color: var(--text3); min-width: 20px; }
+    .top-file-rank { font-family: var(--font-data); font-size: 11px; font-weight: 700; color: var(--text3); min-width: 20px; }
     .top-file-name { flex: 1; font-size: 12px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .top-file-count { font-size: 12px; font-weight: 600; color: var(--blue); background: rgba(59,130,246,0.12); padding: 2px 8px; border-radius: 12px; white-space: nowrap; }
     .analytics-empty { padding: 60px; text-align: center; color: var(--text3); font-size: 13px; }
@@ -898,7 +906,7 @@
     .scan-canvas-wrap canvas { display: block; }
     .scan-canvas-empty { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: var(--text3); font-size: 12px; pointer-events: none; }
     .scan-status-bar { display: flex; gap: 16px; font-size: 10px; color: var(--text3); padding: 4px 2px 0; flex-wrap: wrap; }
-    .scan-status-bar span { font-family: monospace; }
+    .scan-status-bar span { font-family: var(--font-mono); }
 
     /* ═══════════════ AutoCAD tarzı CAD Pro editor ═══════════════ */
     .acad-overlay { position: fixed; inset: 0; background: #1e2023; z-index: 9000; display: flex; flex-direction: column; color: #d7d9dc; font-family: "Segoe UI", -apple-system, sans-serif; }
@@ -1007,11 +1015,11 @@
     /* Recent Activity tablosu */
     .analytics-table-section { margin-bottom: 28px; }
     .analytics-table-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
-    .analytics-table-head h2 { font-size: 18px; font-weight: 700; color: #0f172a; letter-spacing: -0.02em; }
-    .analytics-link-btn { background: transparent; border: none; color: #0ea5e9; font-size: 13px; font-weight: 600; cursor: pointer; padding: 4px 0; }
+    .analytics-table-head h2 { font-family: var(--font-display); font-size: 18px; font-weight: 700; color: #0f172a; letter-spacing: -0.02em; }
+    .analytics-link-btn { font-family: var(--font-ui); background: transparent; border: none; color: #0ea5e9; font-size: 13px; font-weight: 600; cursor: pointer; padding: 4px 0; }
     .analytics-link-btn:hover { text-decoration: underline; }
     .analytics-table-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; box-shadow: 0 1px 3px rgba(15,23,42,0.04); }
-    .analytics-preview-table { width: 100%; border-collapse: collapse; }
+    .analytics-preview-table { width: 100%; border-collapse: collapse; font-family: var(--font-data); }
     .analytics-preview-table thead th { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; padding: 12px 20px; border-bottom: 1px solid #e2e8f0; text-align: left; background: #f8fafc; }
     .analytics-preview-table tbody td { padding: 14px 20px; font-size: 13px; color: #334155; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
     .analytics-preview-table tbody tr:last-child td { border-bottom: none; }
@@ -1019,26 +1027,26 @@
 
     /* Analytics insights başlık */
     .analytics-insights-head { margin: 10px 0 20px; }
-    .analytics-insights-head h2 { font-size: 18px; font-weight: 700; color: #0f172a; margin-bottom: 4px; letter-spacing: -0.02em; }
+    .analytics-insights-head h2 { font-family: var(--font-display); font-size: 18px; font-weight: 700; color: #0f172a; margin-bottom: 4px; letter-spacing: -0.02em; }
     .analytics-insights-head p { font-size: 13px; color: #64748b; }
 
     /* Page Header Unified Styles */
     .page-header { display: flex; justify-content: center; align-items: center; padding: 24px 32px; background: var(--nav-bg); border-bottom: 1px solid #1C3248; width: 100% !important; max-width: none !important; margin: 0 !important; flex-shrink: 0; position: relative; }
     .page-header > div:first-child { text-align: center; }
     .ph-actions { position: absolute; right: 32px; display: flex; align-items: center; gap: 8px; }
-    .ph-title { font-size: 24px; font-weight: 700; color: var(--nav-text); margin-bottom: 4px; margin-top: 0; }
-    .ph-sub { font-size: 13px; color: var(--nav-muted); margin: 0; }
+    .ph-title { font-family: var(--font-display); font-size: 24px; font-weight: 700; color: var(--nav-text); margin-bottom: 4px; margin-top: 0; }
+    .ph-sub { font-family: var(--font-ui); font-size: 13px; color: var(--nav-muted); margin: 0; }
     .ph-actions { display: flex; gap: 12px; align-items: center; }
 
     /* ── File Library Figma Layout ── */
-    .fl-layout { display:flex; flex:1; overflow:hidden; min-height:0; }
+    .fl-layout { display:flex; flex:1; overflow:hidden; min-height:0; font-family: var(--font-ui); }
     .fl-sidebar { width:232px; background:#fff; border-right:1px solid #e2e8f0; display:flex; flex-direction:column; overflow-y:auto; flex-shrink:0; }
-    .fl-section-label { font-size:11px; font-weight:700; color:#64748b; letter-spacing:0.06em; padding:16px 16px 8px; text-transform:uppercase; }
-    .fl-folder-btn { display:flex; align-items:center; gap:8px; width:calc(100% - 8px); margin:0 4px; padding:8px 10px; border:none; background:transparent; cursor:pointer; border-radius:8px; text-align:left; font-size:13px; color:#334155; transition:all 0.15s; font-family:var(--font-body); }
+    .fl-section-label { font-family: var(--font-ui); font-size:11px; font-weight:700; color:#64748b; letter-spacing:0.06em; padding:16px 16px 8px; text-transform:uppercase; }
+    .fl-folder-btn { display:flex; align-items:center; gap:8px; width:calc(100% - 8px); margin:0 4px; padding:8px 10px; border:none; background:transparent; cursor:pointer; border-radius:8px; text-align:left; font-size:13px; color:#334155; transition:all 0.15s; font-family:var(--font-ui); }
     .fl-folder-btn:hover { background:#f1f5f9; }
     .fl-folder-btn.active { background:rgba(14,165,233,0.1); color:#0ea5e9; font-weight:500; }
     .fl-folder-btn svg { width:15px; height:15px; flex-shrink:0; stroke:currentColor; fill:none; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; }
-    .fl-folder-count { margin-left:auto; font-size:11px; font-family:monospace; color:inherit; opacity:0.8; }
+    .fl-folder-count { margin-left:auto; font-size:11px; font-family:var(--font-data); color:inherit; opacity:0.8; }
     .fl-storage { padding:14px 16px 16px; border-top:1px solid #e2e8f0; margin-top:auto; }
     .fl-storage-bar-wrap { height:6px; background:#e2e8f0; border-radius:99px; overflow:hidden; margin-top:8px; }
     .fl-storage-bar { height:100%; background:#0ea5e9; border-radius:99px; width:0%; transition:width 0.3s; }
@@ -1059,13 +1067,13 @@
     .fl-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:16px; padding:4px 2px; }
     .fl-card { background:#fff; border:1.5px solid #e2e8f0; border-radius:12px; padding:16px; cursor:pointer; transition:border-color 0.15s,box-shadow 0.15s; position:relative; display:flex; flex-direction:column; gap:10px; }
     .fl-card:hover { border-color:#0ea5e9; box-shadow:0 4px 16px rgba(14,165,233,0.12); }
-    .fl-card-badge { display:inline-flex; align-items:center; justify-content:center; padding:3px 8px; border-radius:6px; font-size:11px; font-weight:700; letter-spacing:0.04em; width:fit-content; }
+    .fl-card-badge { display:inline-flex; align-items:center; justify-content:center; padding:3px 8px; border-radius:6px; font-family:var(--font-data); font-size:11px; font-weight:700; letter-spacing:0.04em; width:fit-content; }
     .fl-card-icon { display:flex; align-items:center; justify-content:center; height:72px; }
     .fl-card-icon svg { width:52px; height:52px; }
-    .fl-card-name { font-size:13px; font-weight:500; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .fl-card-meta { font-size:11px; color:#94a3b8; }
+    .fl-card-name { font-family:var(--font-data); font-size:13px; font-weight:600; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .fl-card-meta { font-family:var(--font-data); font-size:11px; color:#94a3b8; }
     .fl-card-tags { display:flex; flex-wrap:wrap; gap:4px; min-height:20px; }
-    .fl-card-tag { font-size:11px; font-weight:500; padding:2px 8px; border-radius:20px; white-space:nowrap; }
+    .fl-card-tag { font-family:var(--font-data); font-size:11px; font-weight:500; padding:2px 8px; border-radius:20px; white-space:nowrap; }
     .fl-card-menu { position:absolute; top:10px; right:10px; opacity:0; transition:opacity 0.15s; }
     .fl-card:hover .fl-card-menu { opacity:1; }
     .fl-card-menu button { background:#f1f5f9; border:none; border-radius:6px; padding:4px 6px; cursor:pointer; color:#475569; font-size:16px; line-height:1; }
@@ -1498,7 +1506,7 @@
     <div class="fl-sidebar">
       <!-- Upload butonu sidebar'da -->
       <div style="padding:12px 8px 4px">
-        <button onclick="toggleDbUploadPanel()" style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 12px;background:#0ea5e9;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:background 0.15s;font-family:var(--font-body)" onmouseover="this.style.background='#0284c7'" onmouseout="this.style.background='#0ea5e9'">
+        <button onclick="toggleDbUploadPanel()" style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 12px;background:#0ea5e9;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:background 0.15s;font-family:var(--font-ui)" onmouseover="this.style.background='#0284c7'" onmouseout="this.style.background='#0ea5e9'">
           <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
           <span data-i18n="common.upload_files">Upload Files</span>
         </button>
@@ -1530,7 +1538,7 @@
         <div style="font-size:11px;font-weight:700;color:#64748b;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:10px" data-i18n="common.storage">STORAGE</div>
         <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px">
           <span style="color:#475569" data-i18n="common.total_files">Total files</span>
-          <span style="font-family:monospace;font-weight:600;color:#0f172a" id="flStorageFiles">—</span>
+          <span style="font-family:var(--font-data);font-weight:600;color:#0f172a" id="flStorageFiles">—</span>
         </div>
         <div class="fl-storage-bar-wrap"><div class="fl-storage-bar" id="flStorageBar"></div></div>
       </div>
@@ -1639,7 +1647,7 @@
     <!-- Left sidebar (same structure, folder active state set by JS) -->
     <div class="fl-sidebar">
       <div style="padding:12px 8px 4px">
-        <button onclick="navGo('db', document.getElementById('nav-library')); setTimeout(()=>{ const p=document.getElementById('dbUploadPanel'); if(p&&p.style.display==='none') toggleDbUploadPanel(); },100)" style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 12px;background:#0ea5e9;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:background 0.15s;font-family:var(--font-body)" onmouseover="this.style.background='#0284c7'" onmouseout="this.style.background='#0ea5e9'">
+        <button onclick="navGo('db', document.getElementById('nav-library')); setTimeout(()=>{ const p=document.getElementById('dbUploadPanel'); if(p&&p.style.display==='none') toggleDbUploadPanel(); },100)" style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 12px;background:#0ea5e9;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:background 0.15s;font-family:var(--font-ui)" onmouseover="this.style.background='#0284c7'" onmouseout="this.style.background='#0ea5e9'">
           <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
           <span data-i18n="common.upload_files">Upload Files</span>
         </button>
@@ -1669,7 +1677,7 @@
         <div style="font-size:11px;font-weight:700;color:#64748b;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:10px" data-i18n="common.storage">STORAGE</div>
         <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px">
           <span style="color:#475569" data-i18n="common.total_files">Total files</span>
-          <span style="font-family:monospace;font-weight:600;color:#0f172a" id="apStorageFiles">—</span>
+          <span style="font-family:var(--font-data);font-weight:600;color:#0f172a" id="apStorageFiles">—</span>
         </div>
         <div class="fl-storage-bar-wrap"><div class="fl-storage-bar" id="apStorageBar"></div></div>
       </div>
@@ -6523,7 +6531,7 @@ function initChartDefaults() {
   if (typeof Chart === 'undefined') return;
   Chart.defaults.color = '#8b93a8';
   Chart.defaults.borderColor = 'rgba(255,255,255,0.06)';
-  Chart.defaults.font.family = "-apple-system,'Segoe UI',sans-serif";
+  Chart.defaults.font.family = "'Manrope','IBM Plex Sans',sans-serif";
   Chart.defaults.font.size = 11;
 }
 

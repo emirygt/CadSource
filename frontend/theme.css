@@ -11,8 +11,10 @@
   --border: #e2e8f0;
 
   /* Typography */
-  --font-display: 'Plus Jakarta Sans', sans-serif;
-  --font-body: 'Plus Jakarta Sans', sans-serif;
+  --font-display: 'Space Grotesk', 'Manrope', sans-serif;
+  --font-body: 'Manrope', 'IBM Plex Sans', sans-serif;
+  --font-ui: 'Manrope', 'IBM Plex Sans', sans-serif;
+  --font-data: 'IBM Plex Sans', 'Manrope', sans-serif;
   --font-mono: 'JetBrains Mono', 'Courier New', monospace;
 
   /* Font sizes */
