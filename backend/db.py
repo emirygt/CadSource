@@ -44,6 +44,7 @@ class CadFile(Base):
     approved      = Column(Boolean, default=False)
     approved_at   = Column(DateTime, nullable=True)
     approval_status = Column(String, default="uploaded")
+    is_favorite   = Column(Boolean, default=False)
 
     # --- Özellik vektörleri (pgvector) ---
     # 128 boyutlu birleşik özellik vektörü
@@ -176,6 +177,11 @@ def init_db():
                 ALTER TABLE cad_files ADD COLUMN IF NOT EXISTS duplicate_group_id INTEGER;
             EXCEPTION WHEN others THEN NULL; END $$;
         """))
+        conn.execute(text("""
+            DO $$ BEGIN
+                ALTER TABLE cad_files ADD COLUMN IF NOT EXISTS is_favorite BOOLEAN DEFAULT FALSE;
+            EXCEPTION WHEN others THEN NULL; END $$;
+        """))
         conn.execute(text("CREATE INDEX IF NOT EXISTS cad_files_content_hash_idx ON cad_files (content_hash)"))
         conn.execute(text("CREATE INDEX IF NOT EXISTS cad_files_geometry_hash_idx ON cad_files (geometry_hash)"))
         conn.execute(text("CREATE INDEX IF NOT EXISTS cad_files_duplicate_status_idx ON cad_files (duplicate_status)"))
@@ -300,6 +306,11 @@ def init_db():
             conn.execute(text(f"""
                 DO $$ BEGIN
                     ALTER TABLE {schema}.cad_files ADD COLUMN IF NOT EXISTS duplicate_group_id INTEGER;
+                EXCEPTION WHEN others THEN NULL; END $$;
+            """))
+            conn.execute(text(f"""
+                DO $$ BEGIN
+                    ALTER TABLE {schema}.cad_files ADD COLUMN IF NOT EXISTS is_favorite BOOLEAN DEFAULT FALSE;
                 EXCEPTION WHEN others THEN NULL; END $$;
             """))
             conn.execute(text(f"""

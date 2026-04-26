@@ -51,6 +51,7 @@ CREATE TABLE IF NOT EXISTS {schema}.cad_files (
     geometry_hash   VARCHAR(64),
     duplicate_status VARCHAR(32) DEFAULT 'unique',
     duplicate_group_id INTEGER,
+    is_favorite     BOOLEAN DEFAULT FALSE,
     category_id     INTEGER REFERENCES {schema}.categories(id) ON DELETE SET NULL,
     approved        BOOLEAN DEFAULT FALSE,
     approved_at     TIMESTAMP,

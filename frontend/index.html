@@ -1298,6 +1298,11 @@
     .fl-card-meta { font-family:var(--font-data); font-size:12px; color:#94a3b8; }
     .fl-card-tags { display:flex; flex-wrap:wrap; gap:4px; min-height:20px; }
     .fl-card-tag { font-family:var(--font-data); font-size:12px; font-weight:500; padding:2px 8px; border-radius:20px; white-space:nowrap; }
+    .file-fav-btn { width:28px; height:28px; display:inline-flex; align-items:center; justify-content:center; border:1px solid #cbd5e1; border-radius:9px; background:#fff; color:#94a3b8; cursor:pointer; transition:all 0.15s; }
+    .file-fav-btn:hover { color:#f59e0b; border-color:#fbbf24; background:#fffbeb; }
+    .file-fav-btn.active { color:#f59e0b; border-color:#fbbf24; background:#fffbeb; box-shadow:0 3px 10px rgba(245,158,11,0.18); }
+    .file-fav-btn svg { width:15px; height:15px; fill:currentColor; stroke:currentColor; stroke-width:1.5; }
+    .fl-card-favorite { position:absolute; top:10px; left:10px; z-index:2; }
     .fl-card-menu { position:absolute; top:10px; right:10px; opacity:0; transition:opacity 0.15s; }
     .fl-card:hover .fl-card-menu { opacity:1; }
     .fl-card-menu button { background:#f1f5f9; border:none; border-radius:6px; padding:4px 6px; cursor:pointer; color:#475569; font-size:16px; line-height:1; }
@@ -3304,6 +3309,7 @@ function renderGridCard(r) {
       </div>
       ${reasonBlock}
       <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap" onclick="event.stopPropagation()">
+        ${favoriteButton(r)}
         <button class="cmp-btn ${cmpActive?'active':''}" onclick="toggleCompare(${r.id})">${cmpActive?'✓ Seçildi':'+ Karşılaştır'}</button>
         ${compareState.items.length===2&&compareState.items.every(c=>c)?`<button class="cmp-btn" style="border-color:var(--amber);color:var(--amber)" onclick="openCompareModal()">Karşılaştır →</button>`:''}
         <button class="cmp-btn" style="border-color:rgba(16,185,129,0.5);color:#10b981" onclick="openDiffModal(${r.id})" title="Aranan dosya ile farkı yeşil/kırmızı göster">◐ Fark</button>
@@ -3335,6 +3341,7 @@ function renderListCard(r, i) {
       <div class="lstat"><div class="lstat-val">${r.file_format.toUpperCase()}</div><div class="lstat-lbl">format</div></div>
     </div>
     <div class="sim-pill ${badgeClass(r.similarity)}">${r.similarity}%</div>
+    ${favoriteButton(r)}
     <button class="cmp-btn ${cmpActive?'active':''}" onclick="event.stopPropagation();toggleCompare(${r.id})">${cmpActive?'✓':'+ Kıyas'}</button>
     <button class="cmp-btn" style="border-color:rgba(16,185,129,0.5);color:#10b981" onclick="event.stopPropagation();openDiffModal(${r.id})" title="Fark">◐ Fark</button>
   </div>`;
@@ -4314,6 +4321,28 @@ async function loadDbFiles() {
   }
 }
 
+async function toggleFileFavorite(event, fileId) {
+  event?.stopPropagation();
+  try {
+    const r = await fetch(`${API}/files/${fileId}/favorite`, { method: 'POST', headers: authH() });
+    if (r.status === 401) { logout(); return; }
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(d.detail || 'Favori güncellenemedi');
+    const isFavorite = !!d.is_favorite;
+    const dbHasFile = dbLastFiles.some(f => Number(f.id) === Number(fileId));
+    if (dbHasFile) {
+      dbLastFiles = dbLastFiles.map(f => Number(f.id) === Number(fileId) ? { ...f, is_favorite: isFavorite } : f);
+      renderDbTable(dbLastFiles);
+    }
+    if (searchState.results?.results?.some(f => Number(f.id) === Number(fileId))) {
+      searchState.results.results = searchState.results.results.map(f => Number(f.id) === Number(fileId) ? { ...f, is_favorite: isFavorite } : f);
+      renderResults(searchState.results);
+    }
+  } catch (err) {
+    alert(err.message || 'Favori güncellenemedi');
+  }
+}
+
 let dbViewMode = 'list';
 let dbLastFiles = [];
 
@@ -4334,6 +4363,16 @@ const fmtBadgeStyle = {
   jpeg:'background:#fef9c3;color:#a16207',
   png: 'background:#f0fdf4;color:#166534',
 };
+
+function favoriteIcon() {
+  return `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.7l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 17l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8L12 3.7z"></path></svg>`;
+}
+
+function favoriteButton(file, extraClass = '') {
+  const active = file?.is_favorite ? ' active' : '';
+  const title = file?.is_favorite ? 'Favorilerden çıkar' : 'Favorilere ekle';
+  return `<button class="file-fav-btn${extraClass ? ' '+extraClass : ''}${active}" title="${title}" onclick="toggleFileFavorite(event, ${file.id})">${favoriteIcon()}</button>`;
+}
 
 function renderDbTable(files) {
   dbLastFiles = files;
@@ -4359,6 +4398,7 @@ function renderDbTable(files) {
         ? `<img src="${f.jpg_preview}" style="max-width:100%;max-height:72px;object-fit:contain;border-radius:6px">`
         : docIcon;
       return `<div class="fl-card" onclick="showDetailModal(${f.id})">
+        ${favoriteButton(f, 'fl-card-favorite')}
         <span class="fl-card-badge" style="${badgeStyle}">${fmt.toUpperCase()}</span>
         <div class="fl-card-menu" onclick="event.stopPropagation()">
           <button title="Download" onclick="downloadFile(${f.id},'${f.filename.replace(/'/g,"\\'")}')">↓</button>
@@ -4401,6 +4441,7 @@ function renderDbTable(files) {
       <td>${approvedBadge}</td>
       <td class="td-date">${date}</td>
       <td style="display:flex;gap:6px;align-items:center" onclick="event.stopPropagation()">
+        ${favoriteButton(f)}
         <button class="del-btn" style="background:rgba(59,130,246,0.12);color:var(--blue);border-color:rgba(59,130,246,0.3)" onclick="downloadFile(${f.id},'${f.filename.replace(/'/g,"\\'")}')">↓</button>
         <button class="del-btn" onclick="deleteFile(${f.id},'${f.filename.replace(/'/g,"\\'")}')">Sil</button>
       </td>

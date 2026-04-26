@@ -42,6 +42,28 @@ class BulkApprovePayload(BaseModel):
     status: Optional[str] = None
 
 
+def _csv_items(value: Optional[str], *, uppercase: bool = False) -> List[str]:
+    if not value:
+        return []
+    items = []
+    for raw in str(value).split(","):
+        item = raw.strip()
+        if item:
+            items.append(item.upper() if uppercase else item)
+    return list(dict.fromkeys(items))
+
+
+def _add_json_key_filter(column: str, values: List[str], prefix: str, clauses: list, params: dict) -> None:
+    if not values:
+        return
+    parts = []
+    for idx, value in enumerate(values):
+        key = f"{prefix}_{idx}"
+        params[key] = value
+        parts.append(f"{column}::jsonb ? :{key}")
+    clauses.append("(" + " OR ".join(parts) + ")")
+
+
 def _normalize_status(status: Optional[str], approved: Optional[bool] = None) -> str:
     if status is not None:
         s = str(status).strip().lower()
@@ -732,6 +754,7 @@ async def search_similar(
                 f.entity_count, f.layer_count, f.layers, f.entity_types,
                 f.bbox_width, f.bbox_height, f.bbox_area,
                 f.jpg_preview,
+                COALESCE(f.is_favorite, FALSE) AS is_favorite,
                 f.category_id, c.name AS category_name, c.color AS category_color,
                 {clip_similarity_select}
                 ({similarity_expr}) AS similarity
@@ -793,6 +816,7 @@ async def search_similar(
             "category_id": row.category_id,
             "category_name": row.category_name,
             "category_color": row.category_color,
+            "is_favorite": bool(row.is_favorite),
             "jpg_preview": row.jpg_preview,
             "clip_similarity": round(float(row.clip_similarity) * 100, 1) if row.clip_similarity is not None else None,
             "visual_similarity": round(float(visual_similarity) * 100, 1) if visual_similarity is not None else None,
@@ -841,6 +865,7 @@ def list_files(
     status: Optional[str] = Query(default=None),
     category_id: Optional[int] = Query(default=None),
     file_format: Optional[str] = Query(default=None),
+    favorite: Optional[bool] = Query(default=None),
     has_preview: Optional[bool] = Query(default=None),
     has_clip: Optional[bool] = Query(default=None),
     has_file_data: Optional[bool] = Query(default=None),
@@ -852,12 +877,18 @@ def list_files(
     bbox_width_max: Optional[float] = Query(default=None),
     bbox_height_min: Optional[float] = Query(default=None),
     bbox_height_max: Optional[float] = Query(default=None),
+    min_width: Optional[float] = Query(default=None),
+    max_width: Optional[float] = Query(default=None),
+    min_height: Optional[float] = Query(default=None),
+    max_height: Optional[float] = Query(default=None),
     aspect_min: Optional[float] = Query(default=None),
     aspect_max: Optional[float] = Query(default=None),
     indexed_from: Optional[str] = Query(default=None),
     indexed_to: Optional[str] = Query(default=None),
     layer: Optional[str] = Query(default=None),
+    layers: Optional[str] = Query(default=None),
     entity_type: Optional[str] = Query(default=None),
+    entity_types: Optional[str] = Query(default=None),
     duplicate_status: Optional[str] = Query(default=None),
     group_id: Optional[int] = Query(default=None),
     sort_by: str = Query(default="indexed_at"),
@@ -896,6 +927,10 @@ def list_files(
             params["formats"] = formats
             count_clauses.append("LOWER(f.file_format) IN :formats")
             list_clauses.append("LOWER(f.file_format) IN :formats")
+    if favorite is not None:
+        params["favorite"] = favorite
+        count_clauses.append("COALESCE(f.is_favorite, FALSE) = :favorite")
+        list_clauses.append("COALESCE(f.is_favorite, FALSE) = :favorite")
     if has_preview is not None:
         clause = "(f.jpg_preview IS NOT NULL OR f.svg_preview IS NOT NULL)" if has_preview else "(f.jpg_preview IS NULL AND f.svg_preview IS NULL)"
         count_clauses.append(clause)
@@ -908,15 +943,19 @@ def list_files(
         clause = "f.file_data IS NOT NULL" if has_file_data else "f.file_data IS NULL"
         count_clauses.append(clause)
         list_clauses.append(clause)
+    effective_min_width = min_width if min_width is not None else bbox_width_min
+    effective_max_width = max_width if max_width is not None else bbox_width_max
+    effective_min_height = min_height if min_height is not None else bbox_height_min
+    effective_max_height = max_height if max_height is not None else bbox_height_max
     for key, value, clause in [
         ("entity_min", entity_min, "f.entity_count >= :entity_min"),
         ("entity_max", entity_max, "f.entity_count <= :entity_max"),
         ("layer_min", layer_min, "f.layer_count >= :layer_min"),
         ("layer_max", layer_max, "f.layer_count <= :layer_max"),
-        ("bbox_width_min", bbox_width_min, "f.bbox_width >= :bbox_width_min"),
-        ("bbox_width_max", bbox_width_max, "f.bbox_width <= :bbox_width_max"),
-        ("bbox_height_min", bbox_height_min, "f.bbox_height >= :bbox_height_min"),
-        ("bbox_height_max", bbox_height_max, "f.bbox_height <= :bbox_height_max"),
+        ("min_width", effective_min_width, "f.bbox_width >= :min_width"),
+        ("max_width", effective_max_width, "f.bbox_width <= :max_width"),
+        ("min_height", effective_min_height, "f.bbox_height >= :min_height"),
+        ("max_height", effective_max_height, "f.bbox_height <= :max_height"),
         ("aspect_min", aspect_min, "(f.bbox_width / NULLIF(f.bbox_height, 0)) >= :aspect_min"),
         ("aspect_max", aspect_max, "(f.bbox_width / NULLIF(f.bbox_height, 0)) <= :aspect_max"),
     ]:
@@ -939,11 +978,19 @@ def list_files(
         clause = "f.layers::jsonb ? :layer"
         count_clauses.append(clause)
         list_clauses.append(clause)
+    layer_values = _csv_items(layers)
+    if layer_values:
+        _add_json_key_filter("f.layers", layer_values, "layer_filter", count_clauses, params)
+        _add_json_key_filter("f.layers", layer_values, "layer_filter_list", list_clauses, params)
     if entity_type:
         params["entity_type"] = entity_type.upper()
         clause = "f.entity_types::jsonb ? :entity_type"
         count_clauses.append(clause)
         list_clauses.append(clause)
+    entity_type_values = _csv_items(entity_types, uppercase=True)
+    if entity_type_values:
+        _add_json_key_filter("f.entity_types", entity_type_values, "entity_filter", count_clauses, params)
+        _add_json_key_filter("f.entity_types", entity_type_values, "entity_filter_list", list_clauses, params)
     if duplicate_status:
         params["duplicate_status"] = duplicate_status
         count_clauses.append("f.duplicate_status = :duplicate_status")
@@ -970,6 +1017,7 @@ def list_files(
                f.entity_count, f.layer_count, f.bbox_width, f.bbox_height, f.bbox_area,
                f.indexed_at, f.svg_preview, f.jpg_preview,
                f.approved, f.approved_at, f.approval_status,
+               COALESCE(f.is_favorite, FALSE) AS is_favorite,
                (f.file_data IS NOT NULL) AS has_file_data,
                (f.clip_vector IS NOT NULL) AS has_clip,
                f.content_hash, f.geometry_hash, f.duplicate_status, f.duplicate_group_id,
@@ -1022,6 +1070,7 @@ def list_files(
                 "approved": bool(f.approved),
                 "approved_at": f.approved_at.isoformat() if f.approved_at else None,
                 "approval_status": f.approval_status or ("approved" if f.approved else "uploaded"),
+                "is_favorite": bool(f.is_favorite),
                 "has_file_data": f.has_file_data,
                 "has_clip": bool(f.has_clip),
                 "content_hash": f.content_hash,
@@ -1035,6 +1084,36 @@ def list_files(
             for f in files
         ],
     }
+
+
+@router.post("/files/{file_id}/favorite")
+def toggle_file_favorite(
+    file_id: int,
+    tenant: dict = Depends(get_current_tenant),
+    db: Session = Depends(get_db),
+):
+    apply_tenant_schema(tenant, db)
+    row = db.execute(
+        text("""
+            UPDATE cad_files
+            SET is_favorite = NOT COALESCE(is_favorite, FALSE)
+            WHERE id = :id
+            RETURNING id, filename, is_favorite
+        """),
+        {"id": file_id},
+    ).fetchone()
+    if not row:
+        raise HTTPException(status_code=404, detail="Dosya bulunamadı")
+    log_activity(
+        db,
+        "favorite",
+        tenant.get("email", ""),
+        filename=row.filename,
+        file_id=file_id,
+        details="favori" if row.is_favorite else "favoriden çıkarıldı",
+    )
+    db.commit()
+    return {"id": row.id, "is_favorite": bool(row.is_favorite)}
 
 
 @router.post("/files/approve/bulk")
@@ -1110,6 +1189,7 @@ def get_file(
                 f.entity_count, f.layer_count, f.layers, f.entity_types,
                 f.bbox_width, f.bbox_height, f.bbox_area,
                 f.approved, f.approved_at, f.approval_status,
+                COALESCE(f.is_favorite, FALSE) AS is_favorite,
                 f.svg_preview, f.jpg_preview, f.category_id,
                 f.content_hash, f.geometry_hash, f.duplicate_status, f.duplicate_group_id,
                 c.name AS category_name, c.color AS category_color,
@@ -1142,6 +1222,7 @@ def get_file(
         "approved": bool(m["approved"]),
         "approved_at": m["approved_at"].isoformat() if m["approved_at"] else None,
         "approval_status": m["approval_status"] or ("approved" if m["approved"] else "uploaded"),
+        "is_favorite": bool(m["is_favorite"]),
         "svg_preview": m["svg_preview"],
         "jpg_preview": m["jpg_preview"],
         "category_id": m["category_id"],
