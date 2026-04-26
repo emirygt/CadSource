@@ -1335,6 +1335,15 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
   <!-- i18n -->
   <script src="i18n.js"></script>
+  <!-- Three.js importmap (3D viewer için) -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.min.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/"
+    }
+  }
+  </script>
 </head>
 <body>
 
@@ -5954,6 +5963,7 @@ async function showDetailModal(fileId) {
         <button class="detail-tab-btn" onclick="switchDetailTab('analysis',this)">Analiz</button>
         <button class="detail-tab-btn" onclick="switchDetailTab('duplicate',this)">Duplicate</button>
         <button class="detail-tab-btn" onclick="switchDetailTab('jobs',this)">Job Geçmişi</button>
+        <button class="detail-tab-btn" onclick="switchDetailTab('model3d',this);ensure3DViewer(${f.id})">3D Görünüm</button>
       </div>
       <div class="detail-sections" style="padding:0">
       <!-- ÖNIZLEME TAB -->
@@ -6121,6 +6131,13 @@ async function showDetailModal(fileId) {
         <div style="font-size:12px;font-weight:600;color:#475569;margin-bottom:8px">Bu dosyayla ilgili işlemler</div>
         <div class="job-items-list" id="dtJobsList" style="max-height:none"><div style="padding:20px;text-align:center;color:#94a3b8">Yükleniyor...</div></div>
       </div>
+      <!-- 3D GÖRÜNÜM TAB -->
+      <div id="dtModel3d" class="detail-tab-panel">
+        <div id="viewer3dContainer" style="width:100%;height:440px;background:#f1f5f9;border-radius:10px;overflow:hidden;position:relative;border:1px solid var(--border)">
+          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:13px">3D Görünüm sekmesine tıklayın</div>
+        </div>
+        <div style="margin-top:8px;font-size:11px;color:#94a3b8;text-align:center">Sol tık: döndür · Sağ tık / 2 parmak: kaydır · Tekerlek: zoom</div>
+      </div>
       </div>`;
     _initDetailZoomPan();
   } catch (err) {
@@ -6177,6 +6194,117 @@ function resetDetailZoom() {
 function closeDetailModal() {
   document.getElementById('detailModal').classList.add('hidden');
   document.body.style.overflow = '';
+  dispose3D();
+}
+
+// ── 3D Viewer ────────────────────────────────────────────────────────────────
+let _viewer3d = null;
+
+async function ensure3DViewer(fileId) {
+  const container = document.getElementById('viewer3dContainer');
+  if (!container) return;
+  if (_viewer3d && _viewer3d.fileId === fileId) return;
+  dispose3D();
+
+  container.innerHTML = `
+    <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:#94a3b8">
+      <div class="spinner"></div>
+      <div style="font-size:12px">3D model hazırlanıyor…</div>
+    </div>`;
+
+  try {
+    const THREE = await import('three');
+    const { OrbitControls } = await import('three/addons/controls/OrbitControls.js');
+    const { GLTFLoader } = await import('three/addons/loaders/GLTFLoader.js');
+
+    const resp = await fetch(`${API}/files/${fileId}/model3d`, { headers: authH() });
+    if (!resp.ok) throw new Error('3D model oluşturulamadı (' + resp.status + ')');
+    const glbBuffer = await resp.arrayBuffer();
+
+    container.innerHTML = '';
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setClearColor(0xf1f5f9);
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.shadowMap.enabled = true;
+    container.appendChild(renderer.domElement);
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xf1f5f9);
+
+    scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+    const d1 = new THREE.DirectionalLight(0xffffff, 1.2);
+    d1.position.set(5, 10, 8);
+    scene.add(d1);
+    const d2 = new THREE.DirectionalLight(0x6699ff, 0.35);
+    d2.position.set(-4, -2, -6);
+    scene.add(d2);
+
+    const camera = new THREE.PerspectiveCamera(38, container.clientWidth / container.clientHeight, 0.01, 50000);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.08;
+    controls.autoRotate = true;
+    controls.autoRotateSpeed = 1.8;
+    controls.addEventListener('start', () => { controls.autoRotate = false; });
+
+    await new Promise((resolve, reject) => {
+      new GLTFLoader().parse(glbBuffer, '', (gltf) => {
+        const model = gltf.scene;
+        scene.add(model);
+
+        const box = new THREE.Box3().setFromObject(model);
+        const center = box.getCenter(new THREE.Vector3());
+        const size = box.getSize(new THREE.Vector3());
+        model.position.sub(center);
+
+        const maxDim = Math.max(size.x, size.y, size.z);
+        const dist = (maxDim / 2) / Math.tan((camera.fov * Math.PI / 180) / 2) * 2.4;
+        camera.position.set(dist * 0.6, dist * 0.45, dist * 0.9);
+        camera.lookAt(0, 0, 0);
+        controls.target.set(0, 0, 0);
+        controls.update();
+        resolve();
+      }, reject);
+    });
+
+    const ro = new ResizeObserver(() => {
+      const w = container.clientWidth, h = container.clientHeight;
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h);
+    });
+    ro.observe(container);
+
+    let animId;
+    (function animate() {
+      animId = requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    })();
+
+    _viewer3d = { fileId, renderer, controls, animId, ro };
+
+  } catch (err) {
+    container.innerHTML = `
+      <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px">
+        <div style="color:#ef4444;font-size:13px">3D model yüklenemedi</div>
+        <div style="color:#94a3b8;font-size:11px">${err.message || ''}</div>
+      </div>`;
+  }
+}
+
+function dispose3D() {
+  if (!_viewer3d) return;
+  cancelAnimationFrame(_viewer3d.animId);
+  _viewer3d.controls.dispose();
+  _viewer3d.renderer.dispose();
+  _viewer3d.ro.disconnect();
+  const c = _viewer3d.renderer.domElement;
+  if (c.parentNode) c.parentNode.removeChild(c);
+  _viewer3d = null;
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
