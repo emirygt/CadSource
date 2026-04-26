@@ -18,7 +18,7 @@
       --amber: #f59e0b; --red: #ef4444; --radius: 10px; --radius-lg: 14px;
       --violet: #8b5cf6; --cyan: #0ea5e9; --pink: #db2777;
       --nav-bg: var(--ds-bg-base); --nav-bg2: var(--ds-bg-base); --nav-border: var(--ds-border);
-      --nav-text: #ffffff; --nav-muted: #d9e7f6;
+      --nav-text: #ffffff; --nav-muted: #edf6ff;
       --nav-active: var(--ds-bg-active); --nav-surface: var(--ds-bg-surface);
       --nav-icon-badge: var(--ds-bg-icon-badge); --nav-accent: var(--ds-accent-blue);
     }
@@ -199,7 +199,7 @@
     .tab {
       padding: 10px 12px;
       font-size: 14px;
-      font-weight: 600;
+      font-weight: 700;
       color: var(--nav-muted);
       cursor: pointer;
       border-radius: 8px;
@@ -209,11 +209,11 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      min-height: 42px;
+      min-height: 46px;
       font-family: var(--font-display);
-      font-size: var(--text-base);
+      font-size: 15.5px;
     }
-    .tab:hover { color: var(--nav-text); background: rgba(255,255,255,0.06); }
+    .tab:hover { color: var(--nav-text); background: rgba(255,255,255,0.09); }
     .tab.active {
       color: #ffffff;
       background: var(--nav-active);
@@ -221,8 +221,8 @@
       box-shadow: 0 1px 3px rgba(14,165,233,0.3);
     }
     .nav-ic {
-      width: 22px;
-      height: 22px;
+      width: 24px;
+      height: 24px;
       color: var(--nav-muted);
       flex-shrink: 0;
       display: inline-flex;
@@ -230,11 +230,11 @@
       justify-content: center;
     }
     .nav-ic svg {
-      width: 20px;
-      height: 20px;
+      width: 22px;
+      height: 22px;
       stroke: currentColor;
       fill: none;
-      stroke-width: 1.5;
+      stroke-width: 1.75;
       stroke-linecap: round;
       stroke-linejoin: round;
     }
