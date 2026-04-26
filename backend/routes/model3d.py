@@ -112,20 +112,26 @@ def _extract_rings(dxf_bytes: bytes) -> Tuple[Optional[List], List[List]]:
 
     msp = doc.modelspace()
     rings = []
+    etype_counts: dict = {}
 
     for ent in msp:
         etype = ent.dxftype()
+        etype_counts[etype] = etype_counts.get(etype, 0) + 1
         pts = None
 
         if etype == "LWPOLYLINE":
-            if not ent.closed and not (ent.dxf.flags & 1):
-                continue
-            pts = _lwpoly_points(ent)
+            flag_closed = bool(getattr(ent, 'closed', False)) or bool(ent.dxf.get('flags', 0) & 1)
+            raw_pts = list(ent.get_points("xy"))
+            geo_closed = (len(raw_pts) >= 3 and
+                          math.hypot(raw_pts[0][0] - raw_pts[-1][0],
+                                     raw_pts[0][1] - raw_pts[-1][1]) < 1e-3)
+            if flag_closed or geo_closed:
+                pts = _lwpoly_points(ent)
 
         elif etype == "POLYLINE":
             closed = False
             try:
-                closed = ent.is_closed
+                closed = bool(ent.is_closed)
             except Exception:
                 pass
             try:
@@ -133,8 +139,14 @@ def _extract_rings(dxf_bytes: bytes) -> Tuple[Optional[List], List[List]]:
             except Exception:
                 pass
             if not closed:
-                continue
-            pts = _poly_points(ent)
+                raw_v = list(ent.vertices)
+                if len(raw_v) >= 3:
+                    p0 = raw_v[0].dxf.location
+                    p1 = raw_v[-1].dxf.location
+                    if math.hypot(p0.x - p1.x, p0.y - p1.y) < 1e-3:
+                        closed = True
+            if closed:
+                pts = _poly_points(ent)
 
         elif etype == "CIRCLE":
             try:
@@ -146,6 +158,8 @@ def _extract_rings(dxf_bytes: bytes) -> Tuple[Optional[List], List[List]]:
 
         if pts and len(pts) >= 3:
             rings.append(pts)
+
+    _log.info("[3D] entity tipleri: %s | bulunan ring: %d", etype_counts, len(rings))
 
     if not rings:
         return None, []
