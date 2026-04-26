@@ -76,25 +76,27 @@
       box-shadow: none;
     }
     .brand-icon {
-      width: 40px;
-      height: 40px;
-      border-radius: 10px;
-      background: linear-gradient(135deg, #0ea5e9, #0284c7);
+      width: 46px;
+      height: 46px;
+      border-radius: 13px;
+      background: linear-gradient(145deg, rgba(255,255,255,0.08), rgba(255,255,255,0.025));
+      border: 1px solid rgba(32, 215, 160, 0.24);
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 2px 8px rgba(14,165,233,0.35);
+      box-shadow: 0 10px 24px rgba(13, 207, 153, 0.14), inset 0 1px 0 rgba(255,255,255,0.12);
       flex-shrink: 0;
     }
     .brand-icon svg {
-      width: 20px;
-      height: 20px;
-      stroke: #ffffff;
+      width: 32px;
+      height: 32px;
       fill: none;
-      stroke-width: 1.5;
       stroke-linecap: round;
       stroke-linejoin: round;
     }
+    .brand-mark-frame { stroke: rgba(255,255,255,0.9); stroke-width: 1.85; filter: drop-shadow(0 1px 2px rgba(255,255,255,0.12)); }
+    .brand-mark-axis { stroke: #19d49b; stroke-width: 2.1; filter: drop-shadow(0 0 5px rgba(25,212,155,0.36)); }
+    .brand-mark-dot { fill: #19d49b; filter: drop-shadow(0 0 7px rgba(25,212,155,0.42)); }
     .brand-copy { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
     .brand-title {
       font-family: var(--font-display);
@@ -107,6 +109,7 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
+    .brand-title-axis { color: #19d49b; letter-spacing: -0.45px; }
     .brand-sub {
       font-size: 10px;
       font-family: var(--font-ui);
@@ -1409,15 +1412,16 @@
 <div class="topbar">
   <div class="brand">
     <div class="brand-icon">
-      <svg viewBox="0 0 24 24">
-        <circle cx="7" cy="7" r="2.5"></circle>
-        <circle cx="17" cy="17" r="2.5"></circle>
-        <path d="M9 7H17M7 9V17"></path>
-        <path d="M9.5 14.5L14.5 9.5"></path>
+      <svg viewBox="0 0 40 40" aria-label="Profile Axis logo">
+        <path class="brand-mark-frame" d="M6 15V7h8M26 7h8v8M34 25v8h-8M14 33H6v-8" />
+        <path class="brand-mark-frame" d="M9.5 9.5l7.2 7.2M30.5 9.5l-7.2 7.2M30.5 30.5l-7.2-7.2M9.5 30.5l7.2-7.2" />
+        <path class="brand-mark-axis" d="M20 6.5v9M20 24.5v9M6.5 20h9M24.5 20h9" />
+        <path class="brand-mark-axis" d="M12.5 20a7.5 7.5 0 0 1 15 0M27.5 20a7.5 7.5 0 0 1-15 0" />
+        <circle class="brand-mark-dot" cx="20" cy="20" r="5.7" />
       </svg>
     </div>
     <div class="brand-copy">
-      <div class="brand-title">CAD Analysis</div>
+      <div class="brand-title">Profile <span class="brand-title-axis">Axis</span></div>
       <div class="brand-sub">ENTERPRISE</div>
     </div>
   </div>
