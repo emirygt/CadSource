@@ -1,7 +1,7 @@
 :root {
   /* ── New Design System (Clean Light Theme) ── */
-  --bg-base: #0f172a;
-  --bg-surface: #162238;
+  --bg-base: #000e28;
+  --bg-surface: #061a36;
   --bg-active: #0ea5e9;
   --bg-icon-badge: #0284c7;
   --text-primary: #ffffff;
