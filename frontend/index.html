@@ -355,16 +355,19 @@
     .view-toggle { display: flex; border: 1px solid var(--border2); border-radius: 8px; overflow: hidden; }
     .vbtn { padding: 5px 10px; background: transparent; border: none; color: var(--text3); cursor: pointer; font-size: 12px; }
     .vbtn.active { background: var(--bg3); color: var(--text); }
-    .query-bar { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 16px; display: flex; gap: 24px; flex-wrap: wrap; }
-    .query-summary { display: grid; grid-template-columns: 220px 1fr; gap: 12px; align-items: start; }
-    .query-preview-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; width: 220px; }
-    .query-preview-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; padding: 6px 10px; border-bottom: 1px solid var(--border); }
-    .query-preview-media { height: 130px; background: #f1f5f9; display: flex; align-items: center; justify-content: center; }
+    .query-summary { background: var(--bg2); border: 1.5px solid var(--border2); border-radius: var(--radius-lg); overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .query-summary-header { font-size: 10px; font-weight: 600; color: var(--blue); text-transform: uppercase; letter-spacing: 0.08em; padding: 8px 16px; background: rgba(14,165,233,0.06); border-bottom: 1px solid var(--border); }
+    .query-summary-body { display: flex; flex-direction: row; }
+    .query-preview-card { flex: 0 0 160px; width: 160px; border-right: 1px solid var(--border); display: flex; align-items: center; justify-content: center; background: #f1f5f9; min-height: 120px; }
+    .query-preview-media { width: 160px; height: 120px; display: flex; align-items: center; justify-content: center; }
     .query-preview-media img { width: 100%; height: 100%; object-fit: contain; display: block; }
-    .query-preview-fallback { color: #7a808d; font-size: 12px; }
-    .qstat { display: flex; flex-direction: column; gap: 2px; }
-    .qstat-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; }
-    .qstat-val { font-size: 14px; font-weight: 500; }
+    .query-preview-fallback { color: #7a808d; font-size: 11px; text-align: center; padding: 8px; }
+    .query-bar { flex: 1; display: flex; align-items: center; gap: 0; padding: 0; }
+    .qstat { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 4px; padding: 16px 20px; border-right: 1px solid var(--border); }
+    .qstat:last-child { border-right: none; }
+    .qstat-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; }
+    .qstat-val { font-size: 15px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
+    .qstat:first-child .qstat-val { font-size: 13px; font-weight: 500; }
     .results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
     .results-list { display: flex; flex-direction: column; gap: 8px; }
     .result-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
@@ -419,8 +422,10 @@
     .spinner { width: 32px; height: 32px; border: 2px solid var(--border2); border-top-color: var(--blue); border-radius: 50%; animation: spin 0.8s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
     @media (max-width: 920px) {
-      .query-summary { grid-template-columns: 1fr; }
-      .query-preview-card { max-width: 420px; }
+      .query-summary-body { flex-direction: column; }
+      .query-preview-card { flex: none; width: 100%; height: 140px; border-right: none; border-bottom: 1px solid var(--border); }
+      .query-preview-media { width: 100%; height: 140px; }
+      .qstat { border-right: none; border-bottom: 1px solid var(--border); }
     }
 
     /* ══════════════════════════════════════════
@@ -2937,16 +2942,18 @@ function renderResults(data) {
       </div>
     </div>
     <div class="query-summary">
-      <div class="query-preview-card">
-        <div class="query-preview-label">Aranan Dosya</div>
-        <div class="query-preview-media">${queryPreviewHtml}</div>
-      </div>
-      <div class="query-bar">
-        <div class="qstat"><div class="qstat-label">Dosya</div><div class="qstat-val">${data.query_file}</div></div>
-        <div class="qstat"><div class="qstat-label">Entity</div><div class="qstat-val">${Number(qs.entity_count || 0).toLocaleString('tr')}</div></div>
-        <div class="qstat"><div class="qstat-label">Katman</div><div class="qstat-val">${Number(qs.layer_count || 0)}</div></div>
-        <div class="qstat"><div class="qstat-label">Genişlik</div><div class="qstat-val">${Number(qs.bbox_width || 0).toFixed(0)}</div></div>
-        <div class="qstat"><div class="qstat-label">Yükseklik</div><div class="qstat-val">${Number(qs.bbox_height || 0).toFixed(0)}</div></div>
+      <div class="query-summary-header">Aranan Dosya</div>
+      <div class="query-summary-body">
+        <div class="query-preview-card">
+          <div class="query-preview-media">${queryPreviewHtml}</div>
+        </div>
+        <div class="query-bar">
+          <div class="qstat"><div class="qstat-label">Dosya</div><div class="qstat-val">${data.query_file}</div></div>
+          <div class="qstat"><div class="qstat-label">Entity</div><div class="qstat-val">${Number(qs.entity_count || 0).toLocaleString('tr')}</div></div>
+          <div class="qstat"><div class="qstat-label">Katman</div><div class="qstat-val">${Number(qs.layer_count || 0)}</div></div>
+          <div class="qstat"><div class="qstat-label">Genişlik</div><div class="qstat-val">${Number(qs.bbox_width || 0).toFixed(0)}</div></div>
+          <div class="qstat"><div class="qstat-label">Yükseklik</div><div class="qstat-val">${Number(qs.bbox_height || 0).toFixed(0)}</div></div>
+        </div>
       </div>
     </div>
     <div class="${isGrid ? 'results-grid' : 'results-list'}" id="resultsContainer">
