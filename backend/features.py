@@ -986,7 +986,9 @@ def _remove_interior_holes(edge_mask: np.ndarray, interior: np.ndarray, outside:
 
     seeds = interior & outer_edge_d
     if not seeds.any():
-        return interior
+        # Interior'a komşu outer-face edge yok → tüm interior aslında iç delik
+        # (örn. HATCH solid fill durumu). Hiç dolgu yapma.
+        return np.zeros_like(interior, dtype=bool)
 
     reachable = _flood_from_seeds(interior, seeds)
     return interior & reachable
