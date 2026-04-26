@@ -6,14 +6,23 @@
 - Operasyon akışı: `git pull` + backend process restart (`uvicorn`/`pm2`/`systemd`) + `nginx reload`.
 
 ---
-## ⚡ Aktif Görev
-Faza 3.1 ✅ TAMAMLANDI — CLIP embedding + hibrit arama bitti.
-- clip_encoder.py: DXF → PNG → 512-D CLIP vektör
-- index.py: clip_vector DB'ye yazılıyor (upsert destekli)
-- search.py: 0.4*geo + 0.6*clip hibrit skor, CLIP yoksa sadece geo
-- HNSW index: clip_vector için schema_manager + db.py migration loop'a eklendi
+## ⚡ Son Tamamlanan Görevler
+- ✅ Faza 3.1 — CLIP embedding + hibrit arama (0.4*geo + 0.6*clip)
+- ✅ 3-seviyeli Excel kategori import (category_1/2/3, template download, dedup)
+- ✅ categories.parent_id migration (schema_manager + db.py loop)
+- ✅ Min. benzerlik slider adımı 5→1
+- ✅ Page header sidebar bg rengiyle eşleştirildi
+- ✅ Scan → CAD nav tab geri getirildi (yanlışlıkla display:none yapılmıştı)
 
-Sıradaki: Faza 3.3 — Autodesk Vault / SharePoint entegrasyonu (veya 3.4 API key)
+## VPS Bilgisi
+- Host: 3.79.98.10 — ec2-user@ip-172-31-22-74
+- Backend: PM2 ile `venv/bin/uvicorn main:app --host 0.0.0.0 --port 8000 --name cadsearch`
+- Deploy: `git pull` → sadece frontend değişmişse restart gerekmez
+- Backend değişmişse: `pm2 restart cadsearch`
+- VPS'te venv yoksa: `python3 -m venv venv && venv/bin/pip install -r requirements.txt`
+
+## Sıradaki
+Faza 3.3 — Autodesk Vault / SharePoint entegrasyonu (veya 3.4 API key)
 ---
 
 ## Proje Nedir

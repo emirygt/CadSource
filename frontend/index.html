@@ -358,13 +358,13 @@
     .query-summary { display: grid; grid-template-columns: minmax(250px, 290px) minmax(0, 1fr); gap: 12px; align-items: stretch; }
     .query-preview-card {
       background: linear-gradient(180deg, #f8fbff 0%, #f2f7fc 100%);
-      border: 1px solid #cfe0f4;
+      border: 1.5px solid #bdd3ed;
       border-radius: 12px;
       overflow: hidden;
       display: flex;
       flex-direction: column;
       min-height: 220px;
-      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+      box-shadow: 0 10px 24px rgba(15, 54, 92, 0.10), 0 1px 3px rgba(15, 23, 42, 0.06);
     }
     .query-preview-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px; border-bottom: 1px solid #d7e4f4; background: rgba(255, 255, 255, 0.66); }
     .query-preview-label { font-size: 10px; color: #4f6b8f; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; }
@@ -374,13 +374,13 @@
     .query-preview-fallback { color: #7a808d; font-size: 12px; }
     .query-info-card {
       background: var(--bg2);
-      border: 1px solid var(--border);
+      border: 1.5px solid #d5e1ef;
       border-radius: 12px;
       padding: 12px;
       display: flex;
       flex-direction: column;
       gap: 10px;
-      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+      box-shadow: 0 10px 24px rgba(15, 54, 92, 0.08), 0 1px 3px rgba(15, 23, 42, 0.04);
     }
     .query-info-head { display: flex; flex-direction: column; gap: 2px; }
     .query-info-title { font-size: 13px; font-weight: 700; color: var(--text2); letter-spacing: 0.01em; text-transform: uppercase; }
@@ -412,6 +412,9 @@
     }
     .qstat-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; }
     .qstat-val { font-size: 17px; font-weight: 700; color: #1f334d; line-height: 1.1; }
+    .results-divider { display: flex; align-items: center; gap: 12px; margin: 4px 0 -4px; color: #5b6f8d; }
+    .results-divider-label { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap; }
+    .results-divider-line { height: 1px; flex: 1; background: linear-gradient(90deg, #cbd8e8 0%, rgba(203, 216, 232, 0) 100%); }
     .results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
     .results-list { display: flex; flex-direction: column; gap: 8px; }
     .result-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
@@ -3015,6 +3018,10 @@ function renderResults(data) {
         <div class="qstat"><div class="qstat-label">Format</div><div class="qstat-val">${queryFormat}</div></div>
         </div>
       </div>
+    </div>
+    <div class="results-divider">
+      <div class="results-divider-label">Eşleşen Sonuçlar</div>
+      <div class="results-divider-line"></div>
     </div>
     <div class="${isGrid ? 'results-grid' : 'results-list'}" id="resultsContainer">
       ${data.results.map((r,i) => isGrid ? renderGridCard(r,i) : renderListCard(r,i)).join('')}
