@@ -90,6 +90,75 @@ def _poly_points(entity) -> Optional[List[Tuple[float, float]]]:
         return None
 
 
+# ── LINE + ARC zinciri → kapalı halkalar ─────────────────────────────────────
+
+def _chain_line_arc(msp) -> List[List[Tuple[float, float]]]:
+    """
+    Birbirinin ucuna bağlanan LINE ve ARC entity'lerinden kapalı halkalar üret.
+    Tolerance: 0.01 birim (mm ölçeği için yeterli).
+    """
+    TOL = 0.01
+
+    # Her segmentin (start_pt, end_pt, tessellated_pts) listesi
+    segs: List[Tuple[tuple, tuple, List]] = []
+
+    for ent in msp:
+        etype = ent.dxftype()
+        try:
+            if etype == "LINE":
+                s = ent.dxf.start
+                e = ent.dxf.end
+                segs.append(((s.x, s.y), (e.x, e.y), [(s.x, s.y), (e.x, e.y)]))
+            elif etype == "ARC":
+                c = ent.dxf.center
+                r = ent.dxf.radius
+                sa = ent.dxf.start_angle
+                ea = ent.dxf.end_angle
+                pts = _arc_points(c.x, c.y, r, sa, ea)
+                segs.append((pts[0], pts[-1], pts))
+        except Exception:
+            pass
+
+    if not segs:
+        return []
+
+    used = [False] * len(segs)
+
+    def find_next(pt: tuple):
+        for i, (sp, ep, _) in enumerate(segs):
+            if used[i]:
+                continue
+            if math.hypot(sp[0] - pt[0], sp[1] - pt[1]) < TOL:
+                return i, False
+            if math.hypot(ep[0] - pt[0], ep[1] - pt[1]) < TOL:
+                return i, True
+        return None, None
+
+    rings = []
+    for start_i in range(len(segs)):
+        if used[start_i]:
+            continue
+        sp0, ep0, pts0 = segs[start_i]
+        ring = list(pts0)
+        used[start_i] = True
+        cur = ep0
+
+        for _ in range(len(segs)):
+            if math.hypot(cur[0] - sp0[0], cur[1] - sp0[1]) < TOL:
+                if len(ring) >= 3:
+                    rings.append(ring)
+                break
+            ni, rev = find_next(cur)
+            if ni is None:
+                break
+            used[ni] = True
+            npts = segs[ni][2] if not rev else segs[ni][2][::-1]
+            ring.extend(npts[1:])
+            cur = npts[-1]
+
+    return rings
+
+
 # ── Ana polygon çıkarıcı ──────────────────────────────────────────────────────
 
 def _extract_rings(dxf_bytes: bytes) -> Tuple[Optional[List], List[List]]:
@@ -158,6 +227,10 @@ def _extract_rings(dxf_bytes: bytes) -> Tuple[Optional[List], List[List]]:
 
         if pts and len(pts) >= 3:
             rings.append(pts)
+
+    # LINE + ARC entity'lerden kapalı halka oluştur (LWPOLYLINE yoksa)
+    if not rings:
+        rings = _chain_line_arc(msp)
 
     _log.info("[3D] entity tipleri: %s | bulunan ring: %d", etype_counts, len(rings))
 
