@@ -938,6 +938,60 @@ def _flood_outside(open_mask: np.ndarray) -> np.ndarray:
     return outside
 
 
+def _flood_from_seeds(open_mask: np.ndarray, seeds: np.ndarray) -> np.ndarray:
+    """Belirtilen seed piksellerinden open_mask içinde flood fill yap."""
+    h, w = open_mask.shape
+    reached = np.zeros_like(open_mask, dtype=bool)
+    q = deque()
+    ys, xs = np.where(seeds & open_mask)
+    for y, x in zip(ys.tolist(), xs.tolist()):
+        if not reached[y, x]:
+            reached[y, x] = True
+            q.append((y, x))
+    while q:
+        y, x = q.popleft()
+        for dy, dx in ((-1, 0), (1, 0), (0, -1), (0, 1)):
+            ny, nx = y + dy, x + dx
+            if 0 <= ny < h and 0 <= nx < w and open_mask[ny, nx] and not reached[ny, nx]:
+                reached[ny, nx] = True
+                q.append((ny, nx))
+    return reached
+
+
+def _remove_interior_holes(edge_mask: np.ndarray, interior: np.ndarray, outside: np.ndarray) -> np.ndarray:
+    """
+    interior içindeki iç delikleri (inner hole) tespit edip çıkar.
+    Yöntem: dış konturun iç yüzüne değen interior piksellerinden flood yap;
+    erişilemeyen interior pikseller = delik.
+    """
+    if not interior.any():
+        return interior
+
+    # Dış bölgeyi 1 piksel genişlet → dış kontur kenarlarını bul
+    outside_d = outside.copy()
+    outside_d[1:] |= outside[:-1]
+    outside_d[:-1] |= outside[1:]
+    outside_d[:, 1:] |= outside[:, :-1]
+    outside_d[:, :-1] |= outside[:, 1:]
+
+    # Dış konturun dış yüzündeki edge pikseller
+    outer_edge = edge_mask & outside_d
+
+    # Bu outer_edge'e komşu interior pikseller = "gerçek interior" tohumları
+    outer_edge_d = outer_edge.copy()
+    outer_edge_d[1:] |= outer_edge[:-1]
+    outer_edge_d[:-1] |= outer_edge[1:]
+    outer_edge_d[:, 1:] |= outer_edge[:, :-1]
+    outer_edge_d[:, :-1] |= outer_edge[:, 1:]
+
+    seeds = interior & outer_edge_d
+    if not seeds.any():
+        return interior
+
+    reachable = _flood_from_seeds(interior, seeds)
+    return interior & reachable
+
+
 def _resolve_preview_bbox(data: dict, entities: list) -> tuple:
     """Önizleme için bbox hesapla; bozuk/şişkin bbox'larda entity noktalarına düş."""
     bbox = data.get("bbox", {}) or {}
@@ -1084,6 +1138,7 @@ def generate_jpg_preview_from_bytes(content: Optional[bytes], filename: str = ""
     open_mask = ~edge_mask
     outside = _flood_outside(open_mask)
     interior = open_mask & ~outside
+    interior = _remove_interior_holes(edge_mask, interior, outside)
     interior_ratio = float(interior.sum()) / float(interior.size)
 
     # Çok az dolgu çıkarsa kontur bırak; makulse siluet yap.
@@ -1240,6 +1295,7 @@ def generate_jpg_preview(data: dict, size: int = 400) -> Optional[bytes]:
         open_mask = ~edge_mask
         outside = _flood_outside(open_mask)
         interior = open_mask & ~outside
+        interior = _remove_interior_holes(edge_mask, interior, outside)
         interior_ratio = float(interior.sum()) / float(interior.size)
         if 0.001 <= interior_ratio <= 0.60:
             shape_mask = edge_mask | interior
