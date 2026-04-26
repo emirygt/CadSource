@@ -355,46 +355,45 @@
     .view-toggle { display: flex; border: 1px solid var(--border2); border-radius: 8px; overflow: hidden; }
     .vbtn { padding: 5px 10px; background: transparent; border: none; color: var(--text3); cursor: pointer; font-size: 12px; }
     .vbtn.active { background: var(--bg3); color: var(--text); }
-    .query-summary { display: grid; grid-template-columns: minmax(250px, 290px) minmax(0, 1fr); gap: 12px; align-items: stretch; }
-    .query-preview-card {
-      background: linear-gradient(180deg, #f8fbff 0%, #f2f7fc 100%);
-      border: 1.5px solid #bdd3ed;
+    .query-summary { display: block; }
+    .query-compact-card {
+      background: #ffffff;
+      border: 1px solid #d7e3f1;
       border-radius: 12px;
+      box-shadow: 0 8px 22px rgba(15, 54, 92, 0.08);
+      display: grid;
+      grid-template-columns: 164px minmax(0, 1fr);
+      gap: 16px;
+      align-items: center;
+      padding: 14px;
+    }
+    .query-preview-card {
+      background: #eef3f8;
+      border: 1px solid #d7e3f1;
+      border-radius: 10px;
       overflow: hidden;
       display: flex;
-      flex-direction: column;
-      min-height: 220px;
-      box-shadow: 0 10px 24px rgba(15, 54, 92, 0.10), 0 1px 3px rgba(15, 23, 42, 0.06);
+      aspect-ratio: 1 / 1;
     }
-    .query-preview-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px; border-bottom: 1px solid #d7e4f4; background: rgba(255, 255, 255, 0.66); }
-    .query-preview-label { font-size: 10px; color: #4f6b8f; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; }
     .query-match-pill { font-size: 11px; font-weight: 700; color: #0ea5e9; background: rgba(14, 165, 233, 0.12); border: 1px solid rgba(14, 165, 233, 0.24); border-radius: 999px; padding: 2px 8px; white-space: nowrap; }
-    .query-preview-media { flex: 1; min-height: 170px; background: #e8eef5; display: flex; align-items: center; justify-content: center; padding: 10px; }
+    .query-preview-media { width: 100%; height: 100%; background: #e8eef5; display: flex; align-items: center; justify-content: center; padding: 8px; }
     .query-preview-media img { width: 100%; height: 100%; object-fit: contain; display: block; }
     .query-preview-fallback { color: #7a808d; font-size: 12px; }
     .query-info-card {
-      background: var(--bg2);
-      border: 1.5px solid #d5e1ef;
-      border-radius: 12px;
-      padding: 12px;
+      background: transparent;
+      border: 0;
+      border-radius: 0;
+      padding: 0;
       display: flex;
       flex-direction: column;
-      gap: 10px;
-      box-shadow: 0 10px 24px rgba(15, 54, 92, 0.08), 0 1px 3px rgba(15, 23, 42, 0.04);
+      gap: 12px;
+      min-width: 0;
+      box-shadow: none;
     }
-    .query-info-head { display: flex; flex-direction: column; gap: 2px; }
+    .query-info-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
+    .query-title-wrap { min-width: 0; display: flex; flex-direction: column; gap: 5px; }
     .query-info-title { font-size: 13px; font-weight: 700; color: var(--text2); letter-spacing: 0.01em; text-transform: uppercase; }
-    .query-info-sub { font-size: 11px; color: var(--text3); }
-    .query-file-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      padding: 10px 12px;
-      border: 1px solid #d8e2ee;
-      border-radius: 10px;
-      background: #f7fafd;
-    }
+    .query-head-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
     .query-file-name { font-size: 16px; font-weight: 700; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .query-file-ext { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; color: #0ea5e9; background: rgba(14, 165, 233, 0.12); border: 1px solid rgba(14, 165, 233, 0.24); border-radius: 999px; padding: 3px 8px; flex-shrink: 0; }
     .qstat-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
@@ -403,7 +402,7 @@
       flex-direction: column;
       justify-content: center;
       gap: 4px;
-      min-height: 72px;
+      min-height: 58px;
       padding: 8px 6px;
       border: 1px solid #d8e2ee;
       border-radius: 9px;
@@ -411,8 +410,8 @@
       text-align: center;
     }
     .qstat-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; }
-    .qstat-val { font-size: 17px; font-weight: 700; color: #1f334d; line-height: 1.1; }
-    .results-divider { display: flex; align-items: center; gap: 12px; margin: 4px 0 -4px; color: #5b6f8d; }
+    .qstat-val { font-size: 16px; font-weight: 700; color: #1f334d; line-height: 1.1; }
+    .results-divider { display: flex; align-items: center; gap: 12px; margin: 0 0 -4px; color: #5b6f8d; }
     .results-divider-label { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap; }
     .results-divider-line { height: 1px; flex: 1; background: linear-gradient(90deg, #cbd8e8 0%, rgba(203, 216, 232, 0) 100%); }
     .results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
@@ -470,8 +469,8 @@
     @keyframes spin { to { transform: rotate(360deg); } }
     @media (max-width: 1260px) { .qstat-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
     @media (max-width: 920px) {
-      .query-summary { grid-template-columns: 1fr; }
-      .query-preview-card { min-height: 205px; }
+      .query-compact-card { grid-template-columns: 1fr; }
+      .query-preview-card { max-width: 240px; width: 100%; justify-self: center; }
       .qstat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
 
@@ -2994,28 +2993,28 @@ function renderResults(data) {
       </div>
     </div>
     <div class="query-summary">
-      <div class="query-preview-card">
-        <div class="query-preview-head">
-          <div class="query-preview-label">Aranan Dosya</div>
-          <div class="query-match-pill">${data.total_matches} eşleşme</div>
+      <div class="query-compact-card">
+        <div class="query-preview-card">
+          <div class="query-preview-media">${queryPreviewHtml}</div>
         </div>
-        <div class="query-preview-media">${queryPreviewHtml}</div>
-      </div>
-      <div class="query-info-card">
-        <div class="query-info-head">
-          <div class="query-info-title">Arama Özeti</div>
-          <div class="query-info-sub">Karşılaştırma bu dosya üzerinden yapılıyor</div>
-        </div>
-        <div class="query-file-row">
-          <div class="query-file-name" title="${data.query_file}">${data.query_file}</div>
-          <div class="query-file-ext">${queryFormat}</div>
-        </div>
-        <div class="qstat-grid">
-        <div class="qstat"><div class="qstat-label">Entity</div><div class="qstat-val">${Number(qs.entity_count || 0).toLocaleString('tr')}</div></div>
-        <div class="qstat"><div class="qstat-label">Katman</div><div class="qstat-val">${Number(qs.layer_count || 0)}</div></div>
-        <div class="qstat"><div class="qstat-label">Genişlik</div><div class="qstat-val">${Number(qs.bbox_width || 0).toFixed(0)}</div></div>
-        <div class="qstat"><div class="qstat-label">Yükseklik</div><div class="qstat-val">${Number(qs.bbox_height || 0).toFixed(0)}</div></div>
-        <div class="qstat"><div class="qstat-label">Format</div><div class="qstat-val">${queryFormat}</div></div>
+        <div class="query-info-card">
+          <div class="query-info-head">
+            <div class="query-title-wrap">
+              <div class="query-info-title">Aranan Dosya</div>
+              <div class="query-file-name" title="${data.query_file}">${data.query_file}</div>
+            </div>
+            <div class="query-head-actions">
+              <div class="query-match-pill">${data.total_matches} eşleşme</div>
+              <div class="query-file-ext">${queryFormat}</div>
+            </div>
+          </div>
+          <div class="qstat-grid">
+            <div class="qstat"><div class="qstat-label">Entity</div><div class="qstat-val">${Number(qs.entity_count || 0).toLocaleString('tr')}</div></div>
+            <div class="qstat"><div class="qstat-label">Katman</div><div class="qstat-val">${Number(qs.layer_count || 0)}</div></div>
+            <div class="qstat"><div class="qstat-label">Genişlik</div><div class="qstat-val">${Number(qs.bbox_width || 0).toFixed(0)}</div></div>
+            <div class="qstat"><div class="qstat-label">Yükseklik</div><div class="qstat-val">${Number(qs.bbox_height || 0).toFixed(0)}</div></div>
+            <div class="qstat"><div class="qstat-label">Format</div><div class="qstat-val">${queryFormat}</div></div>
+          </div>
         </div>
       </div>
     </div>
