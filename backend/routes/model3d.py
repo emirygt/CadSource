@@ -120,13 +120,18 @@ def _chain_line_arc(msp) -> List[List[Tuple[float, float]]]:
         except Exception:
             pass
 
+    _log.info("[3D] chain: %d line_string üretildi", len(line_strings))
     if not line_strings:
         return []
 
-    # Uç nokta boşluklarını kapatmak için çok küçük buffer
-    buf = 0.02
-    buffered = unary_union([ls.buffer(buf, cap_style=2, join_style=2)
-                            for ls in line_strings])
+    try:
+        buf = 0.02
+        buffered = unary_union([ls.buffer(buf, cap_style=2, join_style=2)
+                                for ls in line_strings])
+        _log.info("[3D] buffer union tipi: %s", buffered.geom_type)
+    except Exception as e:
+        _log.warning("[3D] buffer hatası: %s", e)
+        return []
 
     rings = []
     geoms = list(buffered.geoms) if buffered.geom_type == 'MultiPolygon' else [buffered]
