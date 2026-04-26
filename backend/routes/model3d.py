@@ -94,68 +94,41 @@ def _poly_points(entity) -> Optional[List[Tuple[float, float]]]:
 
 def _chain_line_arc(msp) -> List[List[Tuple[float, float]]]:
     """
-    Birbirinin ucuna bağlanan LINE ve ARC entity'lerinden kapalı halkalar üret.
-    Tolerance: 0.01 birim (mm ölçeği için yeterli).
+    LINE ve ARC entity'lerini shapely polygonize ile kapalı halkalara çevir.
     """
-    TOL = 0.01
+    from shapely.geometry import LineString
+    from shapely.ops import unary_union, polygonize
 
-    # Her segmentin (start_pt, end_pt, tessellated_pts) listesi
-    segs: List[Tuple[tuple, tuple, List]] = []
-
+    line_strings = []
     for ent in msp:
         etype = ent.dxftype()
         try:
             if etype == "LINE":
                 s = ent.dxf.start
                 e = ent.dxf.end
-                segs.append(((s.x, s.y), (e.x, e.y), [(s.x, s.y), (e.x, e.y)]))
+                if math.hypot(s.x - e.x, s.y - e.y) > 1e-9:
+                    line_strings.append(LineString([(s.x, s.y), (e.x, e.y)]))
             elif etype == "ARC":
                 c = ent.dxf.center
                 r = ent.dxf.radius
                 sa = ent.dxf.start_angle
                 ea = ent.dxf.end_angle
                 pts = _arc_points(c.x, c.y, r, sa, ea)
-                segs.append((pts[0], pts[-1], pts))
+                if len(pts) >= 2:
+                    line_strings.append(LineString(pts))
         except Exception:
             pass
 
-    if not segs:
+    if not line_strings:
         return []
 
-    used = [False] * len(segs)
-
-    def find_next(pt: tuple):
-        for i, (sp, ep, _) in enumerate(segs):
-            if used[i]:
-                continue
-            if math.hypot(sp[0] - pt[0], sp[1] - pt[1]) < TOL:
-                return i, False
-            if math.hypot(ep[0] - pt[0], ep[1] - pt[1]) < TOL:
-                return i, True
-        return None, None
-
+    merged = unary_union(line_strings)
+    polys = list(polygonize(merged))
     rings = []
-    for start_i in range(len(segs)):
-        if used[start_i]:
-            continue
-        sp0, ep0, pts0 = segs[start_i]
-        ring = list(pts0)
-        used[start_i] = True
-        cur = ep0
-
-        for _ in range(len(segs)):
-            if math.hypot(cur[0] - sp0[0], cur[1] - sp0[1]) < TOL:
-                if len(ring) >= 3:
-                    rings.append(ring)
-                break
-            ni, rev = find_next(cur)
-            if ni is None:
-                break
-            used[ni] = True
-            npts = segs[ni][2] if not rev else segs[ni][2][::-1]
-            ring.extend(npts[1:])
-            cur = npts[-1]
-
+    for poly in polys:
+        coords = list(poly.exterior.coords)
+        if len(coords) >= 3:
+            rings.append([(x, y) for x, y in coords])
     return rings
 
 
