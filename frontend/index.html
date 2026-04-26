@@ -355,16 +355,63 @@
     .view-toggle { display: flex; border: 1px solid var(--border2); border-radius: 8px; overflow: hidden; }
     .vbtn { padding: 5px 10px; background: transparent; border: none; color: var(--text3); cursor: pointer; font-size: 12px; }
     .vbtn.active { background: var(--bg3); color: var(--text); }
-    .query-bar { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 16px; display: flex; gap: 24px; flex-wrap: wrap; }
-    .query-summary { display: grid; grid-template-columns: 220px 1fr; gap: 12px; align-items: start; }
-    .query-preview-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; width: 220px; }
-    .query-preview-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; padding: 6px 10px; border-bottom: 1px solid var(--border); }
-    .query-preview-media { height: 130px; background: #f1f5f9; display: flex; align-items: center; justify-content: center; }
+    .query-summary { display: grid; grid-template-columns: minmax(250px, 290px) minmax(0, 1fr); gap: 12px; align-items: stretch; }
+    .query-preview-card {
+      background: linear-gradient(180deg, #f8fbff 0%, #f2f7fc 100%);
+      border: 1px solid #cfe0f4;
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      min-height: 220px;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+    }
+    .query-preview-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px; border-bottom: 1px solid #d7e4f4; background: rgba(255, 255, 255, 0.66); }
+    .query-preview-label { font-size: 10px; color: #4f6b8f; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; }
+    .query-match-pill { font-size: 11px; font-weight: 700; color: #0ea5e9; background: rgba(14, 165, 233, 0.12); border: 1px solid rgba(14, 165, 233, 0.24); border-radius: 999px; padding: 2px 8px; white-space: nowrap; }
+    .query-preview-media { flex: 1; min-height: 170px; background: #e8eef5; display: flex; align-items: center; justify-content: center; padding: 10px; }
     .query-preview-media img { width: 100%; height: 100%; object-fit: contain; display: block; }
     .query-preview-fallback { color: #7a808d; font-size: 12px; }
-    .qstat { display: flex; flex-direction: column; gap: 2px; }
+    .query-info-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+    }
+    .query-info-head { display: flex; flex-direction: column; gap: 2px; }
+    .query-info-title { font-size: 13px; font-weight: 700; color: var(--text2); letter-spacing: 0.01em; text-transform: uppercase; }
+    .query-info-sub { font-size: 11px; color: var(--text3); }
+    .query-file-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 12px;
+      border: 1px solid #d8e2ee;
+      border-radius: 10px;
+      background: #f7fafd;
+    }
+    .query-file-name { font-size: 16px; font-weight: 700; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .query-file-ext { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; color: #0ea5e9; background: rgba(14, 165, 233, 0.12); border: 1px solid rgba(14, 165, 233, 0.24); border-radius: 999px; padding: 3px 8px; flex-shrink: 0; }
+    .qstat-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+    .qstat {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 4px;
+      min-height: 72px;
+      padding: 8px 6px;
+      border: 1px solid #d8e2ee;
+      border-radius: 9px;
+      background: #f8fafc;
+      text-align: center;
+    }
     .qstat-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; }
-    .qstat-val { font-size: 14px; font-weight: 500; }
+    .qstat-val { font-size: 17px; font-weight: 700; color: #1f334d; line-height: 1.1; }
     .results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
     .results-list { display: flex; flex-direction: column; gap: 8px; }
     .result-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
@@ -418,9 +465,11 @@
     .loading { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 60px; color: var(--text3); }
     .spinner { width: 32px; height: 32px; border: 2px solid var(--border2); border-top-color: var(--blue); border-radius: 50%; animation: spin 0.8s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
+    @media (max-width: 1260px) { .qstat-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
     @media (max-width: 920px) {
       .query-summary { grid-template-columns: 1fr; }
-      .query-preview-card { max-width: 420px; }
+      .query-preview-card { min-height: 205px; }
+      .qstat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
 
     /* ══════════════════════════════════════════
@@ -2927,6 +2976,11 @@ function renderResults(data) {
   const queryPreviewHtml = data.query_preview
     ? `<img src="${data.query_preview}" alt="Aranan dosya görseli">`
     : `<div class="query-preview-fallback">Önizleme üretilemedi</div>`;
+  const queryFormat = String(
+    qs.file_format ||
+    ((data.query_file || '').includes('.') ? data.query_file.split('.').pop() : '') ||
+    'N/A'
+  ).toUpperCase();
   const isGrid = searchState.view === 'grid';
   main.innerHTML = `
     <div class="results-header">
@@ -2938,15 +2992,28 @@ function renderResults(data) {
     </div>
     <div class="query-summary">
       <div class="query-preview-card">
-        <div class="query-preview-label">Aranan Dosya</div>
+        <div class="query-preview-head">
+          <div class="query-preview-label">Aranan Dosya</div>
+          <div class="query-match-pill">${data.total_matches} eşleşme</div>
+        </div>
         <div class="query-preview-media">${queryPreviewHtml}</div>
       </div>
-      <div class="query-bar">
-        <div class="qstat"><div class="qstat-label">Dosya</div><div class="qstat-val">${data.query_file}</div></div>
+      <div class="query-info-card">
+        <div class="query-info-head">
+          <div class="query-info-title">Arama Özeti</div>
+          <div class="query-info-sub">Karşılaştırma bu dosya üzerinden yapılıyor</div>
+        </div>
+        <div class="query-file-row">
+          <div class="query-file-name" title="${data.query_file}">${data.query_file}</div>
+          <div class="query-file-ext">${queryFormat}</div>
+        </div>
+        <div class="qstat-grid">
         <div class="qstat"><div class="qstat-label">Entity</div><div class="qstat-val">${Number(qs.entity_count || 0).toLocaleString('tr')}</div></div>
         <div class="qstat"><div class="qstat-label">Katman</div><div class="qstat-val">${Number(qs.layer_count || 0)}</div></div>
         <div class="qstat"><div class="qstat-label">Genişlik</div><div class="qstat-val">${Number(qs.bbox_width || 0).toFixed(0)}</div></div>
         <div class="qstat"><div class="qstat-label">Yükseklik</div><div class="qstat-val">${Number(qs.bbox_height || 0).toFixed(0)}</div></div>
+        <div class="qstat"><div class="qstat-label">Format</div><div class="qstat-val">${queryFormat}</div></div>
+        </div>
       </div>
     </div>
     <div class="${isGrid ? 'results-grid' : 'results-list'}" id="resultsContainer">
