@@ -1,6 +1,8 @@
 """
 index.py — Dosya indexleme endpoint'leri (tek dosya + bulk upload + ZIP)
 """
+from logger import get_logger as _get_logger
+_log = _get_logger("routes.index")
 from typing import List, Optional
 from fastapi import APIRouter, UploadFile, File, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
@@ -28,6 +30,7 @@ from features import (
     generate_jpg_preview,
     generate_jpg_preview_from_bytes,
     DWG2DXF_BIN,
+    UnsupportedDWGVersionError,
 )
 from middleware.tenant import get_current_tenant, apply_tenant_schema
 from clip_encoder import extract_clip_vector, extract_clip_vector_from_bytes
@@ -133,8 +136,7 @@ def _upsert_file(db, stored_path, filename, ext, data, category_id, skip_clip: b
             )
             clip_vec_str = str(clip_vec.tolist()) if clip_vec is not None else None
         except Exception as e:
-            # CLIP başarısız olursa indexleme durmamalı.
-            print(f"[CLIP] '{filename}' için vektör üretilemedi: {e}")
+            _log.warning("CLIP vektörü üretilemedi ('%s'): %s", filename, e)
             clip_vec_str = None
 
     params = {
@@ -248,7 +250,10 @@ async def index_file(
     ext = filename.lower().rsplit(".", 1)[-1] if "." in filename else "dxf"
     stored_path = filepath or f"/uploads/{tenant['schema_name']}/{filename}"
 
-    data = parse_dxf_bytes(content, filename)
+    try:
+        data = parse_dxf_bytes(content, filename)
+    except UnsupportedDWGVersionError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     if data is None:
         raise HTTPException(
             status_code=_parse_error_status(ext),
@@ -295,7 +300,10 @@ async def bulk_index(
             base_path = f"/uploads/{tenant['schema_name']}/{filename}"
             stored_path = _unique_stored_path(base_path, db)
 
-            data = parse_dxf_bytes(content, filename)
+            try:
+                data = parse_dxf_bytes(content, filename)
+            except UnsupportedDWGVersionError as e:
+                raise ValueError(str(e))
             if data is None:
                 raise ValueError(_parse_error_detail(filename, ext))
 
@@ -368,8 +376,8 @@ def _iter_archive(content: bytes, filename: str):
             if tmp_rar_path and os.path.exists(tmp_rar_path):
                 try:
                     os.remove(tmp_rar_path)
-                except OSError:
-                    pass
+                except OSError as _e:
+                    _log.warning("Geçici RAR dosyası silinemedi (%s): %s", tmp_rar_path, _e)
     else:
         raise ValueError(f"Desteklenmeyen arşiv formatı: .{ext} (ZIP veya RAR bekleniyor)")
 
@@ -438,8 +446,8 @@ def _list_archive_entries(content: bytes, filename: str):
             if tmp_rar_path and os.path.exists(tmp_rar_path):
                 try:
                     os.remove(tmp_rar_path)
-                except OSError:
-                    pass
+                except OSError as _e:
+                    _log.warning("Geçici RAR dosyası silinemedi (%s): %s", tmp_rar_path, _e)
     else:
         raise ValueError(f"Desteklenmeyen arşiv formatı: .{ext} (ZIP veya RAR bekleniyor)")
 
@@ -514,7 +522,10 @@ async def bulk_index_zip(
             if len(file_bytes) > MAX_SINGLE_BYTES:
                 raise ValueError(f"Dosya çok büyük (maks {MAX_SINGLE_FILE_MB} MB)")
 
-            data = parse_dxf_bytes(file_bytes, filename)
+            try:
+                data = parse_dxf_bytes(file_bytes, filename)
+            except UnsupportedDWGVersionError as e:
+                raise ValueError(str(e))
             if data is None:
                 raise ValueError(_parse_error_detail(filename, ext))
 

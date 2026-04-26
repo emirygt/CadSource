@@ -24,10 +24,14 @@ from features import (
     _is_binary_dwg,
     _extract_from_doc,
     DWG2DXF_BIN,
+    UnsupportedDWGVersionError,
 )
 from middleware.tenant import get_current_tenant, apply_tenant_schema
 from clip_encoder import extract_clip_vector, extract_clip_vector_from_bytes
 from routes.activity import log_activity
+from logger import get_logger as _get_logger
+
+_log = _get_logger("routes.search")
 
 router = APIRouter(tags=["search"])
 
@@ -58,7 +62,7 @@ def _parse_error_detail(filename: str, is_dwg: bool) -> str:
         if DWG2DXF_BIN is None:
             return (
                 f"'{filename}' okunamadı. Sunucuda DWG dönüştürücü (dwg2dxf) kurulu değil. "
-                "VPS/backend imajına LibreDWG kurup `dwg2dxf` komutunu erişilebilir yapın."
+                "Sunucuya LibreDWG kurup `dwg2dxf` komutunu erişilebilir yapın."
             )
         return (
             f"'{filename}' okunamadı. DWG dosyası bozuk olabilir veya sürümü desteklenmiyor "
@@ -513,7 +517,11 @@ def _parse_quality_score(data: Optional[dict]) -> int:
 
 
 def _parse_for_analysis(content: bytes, filename: str) -> Tuple[Optional[dict], dict]:
-    primary = parse_dxf_bytes(content, filename)
+    try:
+        primary = parse_dxf_bytes(content, filename)
+    except UnsupportedDWGVersionError as e:
+        _log.warning("Analiz parse edilemedi ('%s'): %s", filename, e)
+        return None, {"error": str(e), "parser_used": "parse_dxf_bytes"}
     primary_score = _parse_quality_score(primary)
 
     recover_data, recover_meta = _try_parse_with_recover(content, filename)
@@ -663,7 +671,11 @@ async def search_similar(
     ext = filename.lower().rsplit(".", 1)[-1] if "." in filename else ""
     is_dwg = ext == "dwg" or _is_binary_dwg(content)
 
-    data = parse_dxf_bytes(content, filename)
+    try:
+        data = parse_dxf_bytes(content, filename)
+    except UnsupportedDWGVersionError as e:
+        _log.warning("Arama dosyası reddedildi ('%s'): %s", filename, e)
+        raise HTTPException(status_code=400, detail=str(e))
     if data is None:
         raise HTTPException(
             status_code=500 if (is_dwg and DWG2DXF_BIN is None) else 400,

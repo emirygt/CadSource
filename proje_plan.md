@@ -1,5 +1,5 @@
 # CAD-Search — Proje Planı
-> Son güncelleme: 2026-04-19
+> Son güncelleme: 2026-04-26
 
 ---
 
@@ -109,10 +109,10 @@
 
 ## Bilinen Açık Buglar
 
-| Dosya | Bug | Öncelik |
+| Dosya | Bug | Durum |
 |-------|-----|---------|
-| `scripts/bulk_index.py` | `init_db_engine()` undefined | Düşük (UI upload yeterli) |
-| `features.py` | ezdxf eski DWG versiyonlarını sessiz fail ediyor | Düşük (hata mesajı artık net) |
+| `scripts/bulk_index.py` | `init_db_engine()` undefined | ✅ Düzeltildi |
+| `features.py` | ezdxf eski DWG versiyonlarını sessiz fail ediyor | ✅ R12 öncesi DWG için net hata mesajı |
 | `backend/.env` | Port 5433 hardcode — VPS'te 5432 olacak | VPS deploy'da düzelt |
 
 ## MVP Olarak Tamamlananlar (bu oturumda)
@@ -131,6 +131,9 @@
 - Search skorunda görsel karşılaştırma + geometri guard ile daha güvenli sıralama
 - NO_DOCKER operasyon politikası dökümana işlendi (AI ajanlar Docker önermez/kurmaz)
 - Docker'sız local DWG upload için `scripts/setup-dwg2dxf.sh` eklendi
+- `scripts/bulk_index.py` `init_db_engine()` hatası düzeltildi
+- Merkezi logging eklendi; hedef backend modüllerindeki `print()` ve silent exception noktaları logging'e taşındı
+- R12 öncesi DWG dosyaları için kullanıcıya net hata mesajı döndürülüyor
 
 ---
 

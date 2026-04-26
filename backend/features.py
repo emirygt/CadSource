@@ -15,6 +15,9 @@ from collections import Counter, deque
 from typing import Optional
 import numpy as np
 
+from logger import get_logger as _get_logger
+_log = _get_logger("features")
+
 try:
     import ezdxf
     EZDXF_AVAILABLE = True
@@ -63,11 +66,71 @@ COMMON_LAYERS = [
 ]
 
 
+class UnsupportedDWGVersionError(ValueError):
+    """Raised when a binary DWG version is known to be unsupported."""
+
+
+_DWG_VERSION_LABELS = {
+    "AC1002": "AutoCAD R2.5",
+    "AC1003": "AutoCAD R2.6",
+    "AC1004": "AutoCAD R9",
+    "AC1006": "AutoCAD R10",
+    "AC1009": "AutoCAD R11/R12",
+    "AC1012": "AutoCAD R13",
+    "AC1014": "AutoCAD R14",
+    "AC1015": "AutoCAD 2000",
+    "AC1018": "AutoCAD 2004",
+    "AC1021": "AutoCAD 2007",
+    "AC1024": "AutoCAD 2010",
+    "AC1027": "AutoCAD 2013",
+    "AC1032": "AutoCAD 2018",
+}
+
+
+def _dwg_version_code(content: bytes) -> Optional[str]:
+    if len(content) < 6 or content[:2] != b"AC":
+        return None
+    try:
+        return content[:6].decode("ascii", errors="ignore")
+    except Exception:
+        return None
+
+
+def _raise_if_unsupported_dwg(content: bytes, filename: str = "") -> None:
+    code = _dwg_version_code(content)
+    if not code or not code.startswith("AC"):
+        return
+    try:
+        version_num = int(code[2:])
+    except ValueError:
+        return
+
+    # AC1009 is AutoCAD R11/R12. Anything below that is pre-R12 and unsupported.
+    if version_num < 1009:
+        version_label = _DWG_VERSION_LABELS.get(code, code)
+        prefix = f"'{filename}' okunamadı. " if filename else ""
+        message = (
+            f"{prefix}Bu DWG versiyonu desteklenmiyor (R12 öncesi). "
+            f"Tespit edilen sürüm: {version_label} ({code})."
+        )
+        _log.warning("[DWG] %s", message)
+        raise UnsupportedDWGVersionError(message)
+
+
 def parse_dxf_file(filepath: str) -> Optional[dict]:
     """
     DXF dosyasını okuyup ham veri sözlüğü döndür.
     DWG için ezdxf otomatik dönüştürmeyi dener (ODA yoksa None döner).
     """
+    if filepath.lower().endswith(".dwg"):
+        try:
+            with open(filepath, "rb") as f:
+                _raise_if_unsupported_dwg(f.read(6), filepath)
+        except UnsupportedDWGVersionError:
+            raise
+        except OSError as e:
+            _log.warning("[DWG] sürüm başlığı okunamadı ('%s'): %s", filepath, e)
+
     if not EZDXF_AVAILABLE:
         return _parse_dxf_manual(filepath)
 
@@ -129,7 +192,7 @@ def parse_pdf_bytes(content: bytes) -> Optional[dict]:
 
 def _is_binary_dwg(content: bytes) -> bool:
     """İlk 6 byte AC1xxx magic → binary DWG."""
-    return content[:2] == b"AC" and len(content) > 6
+    return content[:2] == b"AC" and len(content) >= 6
 
 
 def _dwg_to_dxf_bytes(dwg_content: bytes, filename: str) -> Optional[bytes]:
@@ -161,7 +224,7 @@ def _dwg_to_dxf_bytes(dwg_content: bytes, filename: str) -> Optional[bytes]:
                 return f.read()
         return None
     except Exception as e:
-        print(f"[DWG2DXF] hata: {e}")
+        _log.error("[DWG2DXF] dönüştürme hatası: %s", e)
         return None
     finally:
         # Temizlik
@@ -218,7 +281,7 @@ def parse_image_bytes(content: bytes, filename: str = "") -> Optional[dict]:
             "bbox": {"min_x": 0.0, "max_x": float(w), "min_y": 0.0, "max_y": float(h)},
         }
     except Exception as e:
-        print(f"[IMAGE] parse hatası: {e}")
+        _log.warning("[IMAGE] parse hatası: %s", e)
         return None
 
 
@@ -234,6 +297,7 @@ def parse_dxf_bytes(content: bytes, filename: str = "") -> Optional[dict]:
 
     # Binary DWG → dwg2dxf ile DXF'e çevir
     if _is_binary_dwg(content):
+        _raise_if_unsupported_dwg(content, filename)
         dxf_bytes = _dwg_to_dxf_bytes(content, filename)
         if dxf_bytes is not None:
             # Önce ezdxf ile dene, olmadı manual parse
@@ -242,7 +306,7 @@ def parse_dxf_bytes(content: bytes, filename: str = "") -> Optional[dict]:
                 return result
             return _parse_dxf_manual_bytes(dxf_bytes)
         # dwg2dxf yoksa veya başarısız — None döndür
-        print(f"[DWG] '{filename}' binary DWG, dwg2dxf bulunamadı veya dönüştürme başarısız.")
+        _log.warning("[DWG] '%s' binary DWG, dwg2dxf bulunamadı veya dönüştürme başarısız.", filename)
         return None
 
     # DXF text
@@ -999,7 +1063,7 @@ def generate_jpg_preview_from_bytes(content: Optional[bytes], filename: str = ""
         line_img = Image.open(tmp_png).convert("L")
 
     except Exception as e:
-        print(f"[JPG_PREVIEW_REAL] render hatası: {e}")
+        _log.warning("[JPG_PREVIEW_REAL] render hatası: %s", e)
         return None
 
     # Kontur + dolgu (küçük açıklıkları kapatıp iç bölgeleri doldur)
@@ -1200,7 +1264,7 @@ def generate_jpg_preview(data: dict, size: int = 400) -> Optional[bytes]:
         return buf.read()
 
     except Exception as e:
-        print(f"[JPG_PREVIEW] hata: {e}")
+        _log.warning("[JPG_PREVIEW] render hatası: %s", e)
         return None
 
 

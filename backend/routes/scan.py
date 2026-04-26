@@ -6,6 +6,8 @@ editlenebilir entity listesi olarak döner.
 Pipeline: görsel → Sauvola binarize → potrace SVG → path analiz → DXF entity
 Desteklenen girişler: JPG, PNG, BMP, TIFF, PDF, DXF, DWG
 """
+from logger import get_logger as _get_logger
+_log = _get_logger("routes.scan")
 import io
 import base64
 import tempfile
@@ -35,7 +37,12 @@ except ImportError:
 import ezdxf
 from ezdxf.enums import TextEntityAlignment
 
-from features import parse_dxf_bytes, DWG2DXF_BIN
+from features import (
+    parse_dxf_bytes,
+    DWG2DXF_BIN,
+    UnsupportedDWGVersionError,
+    _raise_if_unsupported_dwg,
+)
 
 router = APIRouter(prefix="/scan", tags=["scan"])
 
@@ -51,6 +58,10 @@ def _to_image(content: bytes, filename: str):
     if ext in ("dxf", "dwg"):
         dxf_bytes = content
         if ext == "dwg":
+            try:
+                _raise_if_unsupported_dwg(content, filename)
+            except UnsupportedDWGVersionError as e:
+                raise HTTPException(400, str(e))
             if DWG2DXF_BIN is None:
                 raise HTTPException(400, "DWG dönüştürücü (dwg2dxf) kurulu değil.")
             import subprocess, shutil
@@ -67,7 +78,10 @@ def _to_image(content: bytes, filename: str):
         # DXF → matplotlib render
         try:
             from features import parse_dxf_bytes, generate_jpg_preview_from_bytes
-            data = parse_dxf_bytes(dxf_bytes, filename)
+            try:
+                data = parse_dxf_bytes(dxf_bytes, filename)
+            except UnsupportedDWGVersionError as e:
+                raise HTTPException(400, str(e))
             if data is None:
                 raise HTTPException(400, "DXF parse edilemedi.")
             from features import generate_jpg_preview
@@ -191,8 +205,8 @@ def _svg_to_entities(svg_content: str, img_h: int) -> dict:
     try:
         parts = [float(x) for x in vb.split()]
         svg_h = parts[3] if len(parts) >= 4 else img_h
-    except Exception:
-        pass
+    except Exception as e:
+        _log.debug("SVG viewBox ayrıştırılamadı, varsayılan yükseklik kullanılıyor: %s", e)
 
     lines, splines = [], []
 
@@ -304,8 +318,8 @@ def _dxf_entities_from_file(dxf_bytes: bytes) -> dict:
                     texts.append({"type":"TEXT",
                         "x":round(ins.x,2),"y":round(ins.y,2),
                         "text":txt,"height":round(getattr(e.dxf,"height",2.5),2)})
-                except Exception:
-                    pass
+                except Exception as e:
+                    _log.debug("TEXT entity atlandı: %s", e)
         except Exception:
             continue
 
@@ -411,8 +425,8 @@ async def scan_convert(
                         (124, 58, 237), 1)
             _, buf = cv2.imencode(".jpg", canvas, [cv2.IMWRITE_JPEG_QUALITY, 85])
             preview_b64 = "data:image/jpeg;base64," + base64.b64encode(buf.tobytes()).decode()
-    except Exception:
-        pass
+    except Exception as e:
+        _log.warning("Scan önizleme üretilemedi ('%s'): %s", filename, e)
 
     total = (len(entities["lines"]) + len(entities["circles"]) +
              len(entities.get("arcs", [])) + len(entities.get("splines", [])))

@@ -14,6 +14,9 @@ from typing import Optional
 from sqlalchemy import text
 
 from db import SessionLocal, init_db
+from logger import get_logger
+
+log = get_logger("worker")
 from middleware.tenant import apply_tenant_schema
 from routes.index import (
     MAX_SINGLE_BYTES,
@@ -309,8 +312,8 @@ def heartbeat(db, job_id: int):
     try:
         db.execute(text("UPDATE public.jobs SET updated_at=NOW() WHERE id=:id"), {"id": job_id})
         db.commit()
-    except Exception:
-        pass
+    except Exception as e:
+        log.warning("heartbeat başarısız (job_id=%s): %s", job_id, e)
 
 
 def recover_stuck_jobs(db):
@@ -323,8 +326,8 @@ def recover_stuck_jobs(db):
             WHERE status='running' AND updated_at < NOW() - INTERVAL '1 hour'
         """))
         db.commit()
-    except Exception:
-        pass
+    except Exception as e:
+        log.error("recover_stuck_jobs başarısız: %s", e)
 
 
 def process_gen_preview(db, job):
@@ -488,7 +491,7 @@ def main():
     init_db()
     with SessionLocal() as db:
         recover_stuck_jobs(db)
-    print("CAD-Search worker hazir.")
+    log.info("CAD-Search worker hazır.")
     while not STOP:
         worked = run_once()
         if not worked:

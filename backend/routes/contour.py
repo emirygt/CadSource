@@ -3,6 +3,9 @@ contour.py — AI kullanmadan görselden teknik kontur ve DXF üretir.
 """
 from __future__ import annotations
 
+from logger import get_logger as _get_logger
+_log = _get_logger("routes.contour")
+
 import asyncio
 import base64
 import io
@@ -1021,8 +1024,8 @@ def _build_dxf_bytes(
             ]
             try:
                 hatch.paths.add_polyline_path(hatch_poly, is_closed=True)
-            except Exception:
-                pass
+            except Exception as e:
+                _log.debug("Hatch polyline path eklenemedi, şekil atlandı: %s", e)
 
         if shape.is_circle and shape.circle_center_px and shape.circle_radius_px and isotropic_scale:
             cx, cy = _to_cad_xy(
@@ -1727,8 +1730,8 @@ async def vectorize_to_dxf(
             pil_net = pil_net.filter(ImageFilter.GaussianBlur(radius=1.1))
             pil_net = pil_net.filter(ImageFilter.ModeFilter(size=13))
             m_net = np.array(pil_net, dtype=np.uint8) > 127
-        except Exception:
-            pass
+        except Exception as e:
+            _log.warning("Net netlestirme filtresi uygulanamadı, ham maske kullanılıyor: %s", e)
 
         # Net DXF tarafında "nokta nokta" görünümü azaltmak için,
         # net kontur sadeleştirmeyi daha agresif bir tabanla uygula.

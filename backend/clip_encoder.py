@@ -10,6 +10,9 @@ import io
 from typing import Optional
 import numpy as np
 from features import generate_jpg_preview, generate_jpg_preview_from_bytes
+from logger import get_logger as _get_logger
+
+_log = _get_logger("clip_encoder")
 
 # Lazy globals — ilk çağrıda yüklenir
 _processor = None
@@ -26,11 +29,11 @@ def _load_model():
     from transformers import CLIPProcessor, CLIPModel
 
     _device = "cuda" if torch.cuda.is_available() else "cpu"
-    print(f"[CLIP] Model yükleniyor (device={_device})...")
+    _log.info("[CLIP] Model yükleniyor (device=%s)...", _device)
     _model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32").to(_device)
     _model.eval()
     _processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
-    print("[CLIP] Model hazır.")
+    _log.info("[CLIP] Model hazır.")
 
 
 def render_dxf_to_png(data: dict, size: int = 224) -> Optional[bytes]:
@@ -61,7 +64,7 @@ def render_dxf_to_png(data: dict, size: int = 224) -> Optional[bytes]:
         return buf.read()
 
     except Exception as e:
-        print(f"[CLIP] render hatası: {e}")
+        _log.warning("[CLIP] render hatası: %s", e)
         return None
 
 
@@ -85,7 +88,7 @@ def encode_image_bytes(image_bytes: bytes) -> Optional[np.ndarray]:
         return vec
 
     except Exception as e:
-        print(f"[CLIP] encode hatası: {e}")
+        _log.warning("[CLIP] encode hatası: %s", e)
         return None
 
 

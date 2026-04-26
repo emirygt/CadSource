@@ -23,8 +23,8 @@ from pathlib import Path
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from datetime import datetime
 
-# PostgreSQL bağlantısı için
-sys.path.insert(0, os.path.dirname(__file__))
+# backend/ modüllerine (db, features) erişim için
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "backend"))
 
 logging.basicConfig(
     level=logging.INFO,
@@ -122,8 +122,6 @@ def main():
 
     # Veritabanını başlat
     from sqlalchemy import create_engine
-    from db import init_db, CadFile
-    from sqlalchemy.orm import sessionmaker
     engine = create_engine(args.db)
     init_db_engine(engine)
 

@@ -8,6 +8,9 @@ from sqlalchemy import text
 
 from db import get_db
 from middleware.tenant import get_current_tenant, apply_tenant_schema
+from logger import get_logger as _get_logger
+
+_log = _get_logger("routes.activity")
 
 router = APIRouter(tags=["activity"])
 
@@ -47,7 +50,7 @@ def log_activity(db: Session, action: str, user_email: str,
                 "details": details,
             })
     except Exception as e:
-        print(f"[activity_log] kayıt atılamadı (ana işlem devam ediyor): {e}")
+        _log.warning("activity_log kaydı atılamadı (ana işlem devam ediyor): %s", e)
 
 
 @router.get("/activity")
