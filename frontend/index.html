@@ -1107,6 +1107,161 @@
     #page-analytics .analytics-preview-table thead th { font-size: 12px; }
     #page-analytics .analytics-preview-table tbody td { font-size: 14px; }
 
+    #page-search .sidebar {
+      padding: 20px;
+      gap: 20px;
+    }
+    #page-search .upload-zone { padding: 32px 18px; gap: 12px; }
+    #page-search .upload-icon { width: 48px; height: 48px; border-radius: 12px; }
+    #page-search .upload-icon svg { width: 24px; height: 24px; }
+    #page-search .upload-title { font-size: 18px; font-weight: 700; }
+    #page-search .upload-sub { font-size: 15px; }
+    #page-search .upload-fname { font-size: 14px; }
+    #page-search .section-label { font-size: 15px; font-weight: 800; }
+    #page-search .filter-row label,
+    #page-search .filter-val { font-size: 16px; }
+    #page-search select { font-size: 16px; padding: 10px 14px; border-radius: 9px; }
+    #page-search .search-btn { font-size: 16px; font-weight: 700; padding: 13px; border-radius: 12px; }
+    #page-search #historyList { gap: 10px !important; }
+    #page-search #historyList > div { padding: 11px 14px !important; border-radius: 9px !important; }
+    #page-search #historyList > div div { font-size: 14px !important; }
+    #page-search #historyList > div > div + div { font-size: 13px !important; }
+    #page-search #historyList button { font-size: 20px !important; }
+    #page-search [data-i18n="search.history_clear"] { font-size: 14px !important; }
+
+    #page-contour .contour-head h2 { font-size: 22px; }
+    #page-contour .contour-head p { font-size: 15px; line-height: 1.6; }
+    #page-contour .contour-drop-title { font-size: 16.5px; font-weight: 700; }
+    #page-contour .contour-drop-sub,
+    #page-contour .contour-fname { font-size: 14px; }
+    #page-contour .contour-field label,
+    #page-contour .section-label { font-size: 14px; font-weight: 800; }
+    #page-contour .contour-field input,
+    #page-contour .contour-field select {
+      font-size: 15px;
+      padding: 10px 12px;
+      min-height: 42px;
+    }
+    #page-contour .contour-check { font-size: 14.5px; line-height: 1.45; }
+    #page-contour .contour-check input { width: 16px; height: 16px; }
+    #page-contour .contour-btn { font-size: 14px; padding: 10px 14px; }
+    #page-contour .contour-mini-note,
+    #page-contour .contour-calib-info,
+    #page-contour .contour-quality-item,
+    #page-contour .contour-warning,
+    #page-contour .contour-msg { font-size: 14px; }
+    #page-contour .contour-empty { font-size: 15px; font-weight: 600; }
+    #page-contour .contour-stat .lbl { font-size: 12px; }
+    #page-contour .contour-stat .val { font-size: 16px; }
+
+    #page-cat .cat-add-card h2,
+    #page-cat .cat-list-header { font-size: 20px; }
+    #page-cat .cat-name-input { font-size: 16px; padding: 11px 14px; }
+    #page-cat .cat-color-wrap label { font-size: 15px; }
+    #page-cat .cat-name { font-size: 16px; font-weight: 700; }
+    #page-cat .cat-count { font-size: 13.5px; }
+    #page-cat .cat-btn,
+    #page-cat .btn-primary,
+    #page-cat .btn-secondary { font-size: 14px; padding: 9px 16px; }
+    #page-cat .cat-edit-input { font-size: 15px; padding: 8px 10px; }
+    #page-cat .cat-empty,
+    #page-cat #catAddMsg { font-size: 15px !important; }
+
+    #page-activity .db-files-header h2 { font-size: 22px; }
+    #page-activity table th { font-size: 14px; }
+    #page-activity table td { font-size: 15.5px; }
+    #page-activity .td-filename { font-size: 15.5px; }
+    #page-activity .pg-btn,
+    #page-activity .db-pagination span { font-size: 14px; }
+
+    #page-duplicates .dup-filter-btn {
+      font-size: 14px !important;
+      padding: 7px 15px !important;
+    }
+    #page-duplicates #dupSelectInfo,
+    #page-duplicates #dupPageInfo,
+    #page-duplicates #dupSelectedFiles { font-size: 14px !important; }
+    .dup-group-card {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 20px;
+    }
+    .dup-group-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .dup-type-badge {
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 800;
+    }
+    .dup-group-title { font-size: 15.5px; font-weight: 700; color: #334155; }
+    .dup-group-count { font-size: 14px; color: #94a3b8; }
+    .dup-group-action {
+      padding: 7px 14px;
+      border: 1px solid #e2e8f0;
+      border-radius: 9px;
+      font-size: 14px;
+      color: #dc2626;
+      background: #fff;
+      cursor: pointer;
+    }
+    .dup-thumbs { display: flex; gap: 10px; flex-wrap: wrap; }
+    .dup-thumb {
+      position: relative;
+      cursor: pointer;
+      border: 2px solid #e2e8f0;
+      border-radius: 9px;
+      overflow: hidden;
+      width: 112px;
+      height: 90px;
+      flex-shrink: 0;
+    }
+    .dup-thumb.selected { border-color: #0ea5e9; }
+    .dup-thumb img { width: 100%; height: 100%; object-fit: contain; }
+    .dup-thumb-fallback {
+      width: 100%;
+      height: 100%;
+      background: #f8fafc;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      color: #94a3b8;
+    }
+    .dup-thumb-name {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0,0,0,0.6);
+      color: #fff;
+      font-size: 10.5px;
+      padding: 3px 5px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .dup-thumb-check {
+      position: absolute;
+      top: 5px;
+      left: 5px;
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+      border: 1.5px solid #fff;
+      background: rgba(0,0,0,0.3);
+    }
+    .dup-thumb.selected .dup-thumb-check {
+      border-color: #0ea5e9;
+      background: #0ea5e9;
+    }
+    .dup-more { font-size: 13px; color: #94a3b8; margin-top: 8px; }
+
     /* ── File Library Figma Layout ── */
     .fl-layout { display:flex; flex:1; overflow:hidden; min-height:0; font-family: var(--font-ui); }
     .fl-sidebar { width:232px; background:#fff; border-right:1px solid #e2e8f0; display:flex; flex-direction:column; overflow-y:auto; flex-shrink:0; }
@@ -7134,23 +7289,23 @@ async function loadDuplicatePage() {
       const info = DUP_TYPE[g.group_type] || { label: g.group_type, color:'#f1f5f9', text:'#475569' };
       const thumbs = g.members.slice(0,4).map(m => {
         const sel = dupState.selectedFiles.has(m.file_id);
-        return `<div style="position:relative;cursor:pointer;border:2px solid ${sel?'#0ea5e9':'#e2e8f0'};border-radius:8px;overflow:hidden;width:100px;height:80px;flex-shrink:0" onclick="toggleDupFileSelect(${m.file_id},this)" title="${m.filename}">
-          ${m.jpg_preview ? `<img src="${m.jpg_preview}" style="width:100%;height:100%;object-fit:contain">` : `<div style="width:100%;height:100%;background:#f8fafc;display:flex;align-items:center;justify-content:center;font-size:10px;color:#94a3b8">${m.file_format||'?'}</div>`}
-          <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.6);color:#fff;font-size:9px;padding:2px 4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.filename}</div>
-          <div style="position:absolute;top:4px;left:4px;width:14px;height:14px;border-radius:3px;border:1.5px solid ${sel?'#0ea5e9':'#fff'};background:${sel?'#0ea5e9':'rgba(0,0,0,0.3)'}"></div>
+        return `<div class="dup-thumb ${sel ? 'selected' : ''}" onclick="toggleDupFileSelect(${m.file_id},this)" title="${m.filename}">
+          ${m.jpg_preview ? `<img src="${m.jpg_preview}">` : `<div class="dup-thumb-fallback">${m.file_format||'?'}</div>`}
+          <div class="dup-thumb-name">${m.filename}</div>
+          <div class="dup-thumb-check"></div>
         </div>`;
       }).join('');
-      return `<div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
-          <span style="padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:${info.color};color:${info.text}">${info.label}</span>
-          ${g.title ? `<span style="font-size:13px;font-weight:600;color:#334155">${g.title}</span>` : ''}
-          <span style="font-size:12px;color:#94a3b8">${g.member_count} dosya</span>
+      return `<div class="dup-group-card">
+        <div class="dup-group-head">
+          <span class="dup-type-badge" style="background:${info.color};color:${info.text}">${info.label}</span>
+          ${g.title ? `<span class="dup-group-title">${g.title}</span>` : ''}
+          <span class="dup-group-count">${g.member_count} dosya</span>
           <div style="margin-left:auto;display:flex;gap:6px">
-            <button onclick="dissolveGroup(${g.id})" style="padding:5px 12px;border:1px solid #e2e8f0;border-radius:8px;font-size:12px;color:#dc2626;background:#fff;cursor:pointer">Grubu Dağıt</button>
+            <button class="dup-group-action" onclick="dissolveGroup(${g.id})">Grubu Dağıt</button>
           </div>
         </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">${thumbs}</div>
-        ${g.member_count > 4 ? `<div style="font-size:11px;color:#94a3b8;margin-top:6px">+${g.member_count-4} dosya daha</div>` : ''}
+        <div class="dup-thumbs">${thumbs}</div>
+        ${g.member_count > 4 ? `<div class="dup-more">+${g.member_count-4} dosya daha</div>` : ''}
       </div>`;
     }).join('');
     const totalPages = Math.ceil(dupState.total / dupState.perPage);
@@ -7170,14 +7325,10 @@ async function loadDuplicatePage() {
 function toggleDupFileSelect(fileId, el) {
   if (dupState.selectedFiles.has(fileId)) {
     dupState.selectedFiles.delete(fileId);
-    el.style.borderColor = '#e2e8f0';
-    el.querySelector('div:last-child').style.background = 'rgba(0,0,0,0.3)';
-    el.querySelector('div:last-child').style.borderColor = '#fff';
+    el.classList.remove('selected');
   } else {
     dupState.selectedFiles.add(fileId);
-    el.style.borderColor = '#0ea5e9';
-    el.querySelector('div:last-child').style.background = '#0ea5e9';
-    el.querySelector('div:last-child').style.borderColor = '#0ea5e9';
+    el.classList.add('selected');
   }
   const cnt = dupState.selectedFiles.size;
   const mergeBtn = document.getElementById('dupMergeBtn');
