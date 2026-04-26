@@ -94,10 +94,11 @@ def _poly_points(entity) -> Optional[List[Tuple[float, float]]]:
 
 def _chain_line_arc(msp) -> List[List[Tuple[float, float]]]:
     """
-    LINE ve ARC entity'lerini shapely polygonize ile kapalı halkalara çevir.
+    LINE ve ARC entity'lerini buffer+union ile kapalı halkalara çevir.
+    Küçük buffer (0.02 birim) uç nokta uyumsuzluklarını kapatır.
     """
     from shapely.geometry import LineString
-    from shapely.ops import unary_union, polygonize
+    from shapely.ops import unary_union
 
     line_strings = []
     for ent in msp:
@@ -122,13 +123,23 @@ def _chain_line_arc(msp) -> List[List[Tuple[float, float]]]:
     if not line_strings:
         return []
 
-    merged = unary_union(line_strings)
-    polys = list(polygonize(merged))
+    # Uç nokta boşluklarını kapatmak için çok küçük buffer
+    buf = 0.02
+    buffered = unary_union([ls.buffer(buf, cap_style=2, join_style=2)
+                            for ls in line_strings])
+
     rings = []
-    for poly in polys:
-        coords = list(poly.exterior.coords)
-        if len(coords) >= 3:
-            rings.append([(x, y) for x, y in coords])
+    geoms = list(buffered.geoms) if buffered.geom_type == 'MultiPolygon' else [buffered]
+    for geom in geoms:
+        if geom.geom_type != 'Polygon':
+            continue
+        ext = list(geom.exterior.coords)
+        if len(ext) >= 3:
+            rings.append([(x, y) for x, y in ext])
+        for interior in geom.interiors:
+            coords = list(interior.coords)
+            if len(coords) >= 3:
+                rings.append([(x, y) for x, y in coords])
     return rings
 
 
