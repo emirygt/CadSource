@@ -90,6 +90,11 @@ def _filter_small_components(mask: np.ndarray) -> np.ndarray:
     return keep if np.any(keep) else mask
 
 
+def _odd_kernel(value: int, minimum: int = 3, maximum: int = 21) -> int:
+    value = max(minimum, min(maximum, int(value)))
+    return value + 1 if value % 2 == 0 else value
+
+
 def _colored_masks(rgba: Image.Image) -> Tuple[np.ndarray, np.ndarray, float, float]:
     arr = np.array(rgba.convert("RGBA"), dtype=np.uint8)
     rgb = arr[:, :, :3].astype(np.int16)
@@ -113,6 +118,95 @@ def _colored_masks(rgba: Image.Image) -> Tuple[np.ndarray, np.ndarray, float, fl
     return red, colored, _ratio(red), _ratio(colored)
 
 
+def _select_bw_section_profile_mask(rgba: Image.Image) -> Tuple[Optional[np.ndarray], Optional[str]]:
+    """Best-effort section profile extraction for monochrome technical drawings."""
+    try:
+        import cv2
+    except Exception:
+        return None, "opencv kullanilamiyor."
+
+    gray = np.array(rgba.convert("L"), dtype=np.uint8)
+    image_h, image_w = gray.shape
+    if image_h <= 20 or image_w <= 20:
+        return None, "Gorsel boyutu cok kucuk."
+
+    _, binary = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+
+    # Technical sheets usually place notes/title blocks in the lower third.
+    # Hatch candidates in the upper drawing area are a stronger profile signal.
+    crop_h = max(20, int(image_h * 0.70))
+    drawing = binary[:crop_h, :]
+
+    lines = cv2.HoughLinesP(
+        drawing,
+        rho=1,
+        theta=np.pi / 180,
+        threshold=20,
+        minLineLength=10,
+        maxLineGap=2,
+    )
+    hatch_points = []
+    if lines is not None:
+        for raw in lines[:, 0, :]:
+            x1, y1, x2, y2 = [int(v) for v in raw]
+            length = float(np.hypot(x2 - x1, y2 - y1))
+            if length < 8.0 or length > 90.0:
+                continue
+            angle = abs(float(np.degrees(np.arctan2(y2 - y1, x2 - x1))))
+            if angle > 90.0:
+                angle = 180.0 - angle
+            if not (30.0 <= angle <= 75.0):
+                continue
+            mx = (x1 + x2) * 0.5
+            my = (y1 + y2) * 0.5
+            if not (image_w * 0.22 <= mx <= image_w * 0.80):
+                continue
+            if not (image_h * 0.08 <= my <= image_h * 0.60):
+                continue
+            hatch_points.append((x1, y1))
+            hatch_points.append((x2, y2))
+
+    if len(hatch_points) < 8:
+        return None, "Kesit tarama/hatch bolgesi tespit edilemedi."
+
+    xs = [p[0] for p in hatch_points]
+    ys = [p[1] for p in hatch_points]
+    pad_x = max(40, int(round(image_w * 0.055)))
+    pad_y = max(30, int(round(image_h * 0.030)))
+    x0 = max(0, min(xs) - pad_x)
+    x1 = min(image_w, max(xs) + pad_x)
+    y0 = max(0, min(ys) - pad_y)
+    y1 = min(crop_h, max(ys) + pad_y)
+    if x1 - x0 < 40 or y1 - y0 < 40:
+        return None, "Profil ilgi alani cok kucuk."
+
+    roi = binary[y0:y1, x0:x1]
+    close_k = _odd_kernel(round(min(roi.shape) * 0.022), minimum=7, maximum=15)
+    open_k = _odd_kernel(close_k - 4, minimum=5, maximum=7)
+    material = cv2.morphologyEx(roi, cv2.MORPH_CLOSE, np.ones((close_k, close_k), np.uint8), iterations=1)
+    material = cv2.morphologyEx(material, cv2.MORPH_OPEN, np.ones((open_k, open_k), np.uint8), iterations=1)
+
+    num, labels, stats, _ = cv2.connectedComponentsWithStats((material > 0).astype(np.uint8), 8)
+    if num <= 1:
+        return None, "Profil malzeme bolgesi bulunamadi."
+
+    areas = stats[1:, cv2.CC_STAT_AREA]
+    largest = int(areas.max())
+    min_area = max(500, int(largest * 0.10))
+    roi_mask = np.zeros_like(material, dtype=bool)
+    for idx in range(1, num):
+        area = int(stats[idx, cv2.CC_STAT_AREA])
+        if area >= min_area:
+            roi_mask |= labels == idx
+
+    if not np.any(roi_mask):
+        return None, "Profil malzeme maskesi bos kaldi."
+
+    full = np.zeros_like(binary, dtype=bool)
+    full[y0:y1, x0:x1] = roi_mask
+    return full, None
+
+
 def select_foreground_mask(
     image: Image.Image,
     mode: str = "all",
@@ -121,8 +215,8 @@ def select_foreground_mask(
     Return a boolean mask for the physical part contour when requested.
 
     - all: no mask, caller should use its existing behavior.
-    - part: prefer red technical contours, then saturated colored contours.
-    - auto: apply colored contour isolation only when a useful colored layer exists.
+    - part: prefer colored part contours, then monochrome section profiles.
+    - auto: apply profile isolation only when a useful layer/profile exists.
     """
     mode = _validate_mode(mode)
     if mode == "all":
@@ -131,28 +225,34 @@ def select_foreground_mask(
     rgba = image.convert("RGBA")
     red, colored, red_ratio, color_ratio = _colored_masks(rgba)
     min_pixels = max(20, int(red.size * 0.00025))
+    colored_min_pixels = max(min_pixels, int(red.size * 0.002))
 
     source = None
     mask = None
     if int(red.sum()) >= min_pixels:
         source = "red_contour"
         mask = red
-    elif int(colored.sum()) >= min_pixels:
+    elif int(colored.sum()) >= colored_min_pixels:
         source = "colored_contour"
         mask = colored
 
     if mask is None:
-        if mode == "auto":
+        bw_mask, bw_note = _select_bw_section_profile_mask(rgba)
+        if bw_mask is not None:
+            mask = bw_mask
+            source = "bw_section_profile"
+        elif mode == "auto":
             return None, ForegroundSelection(
                 mode, False, "legacy_fallback",
                 red_ratio=red_ratio, color_ratio=color_ratio,
-                note="Renkli parca konturu tespit edilemedi.",
+                note=bw_note or "Renkli parca konturu tespit edilemedi.",
             )
-        return None, ForegroundSelection(
-            mode, False, "no_colored_contour",
-            red_ratio=red_ratio, color_ratio=color_ratio,
-            note="Renkli parca konturu tespit edilemedi; tum cizgiler modunu deneyin.",
-        )
+        else:
+            return None, ForegroundSelection(
+                mode, False, "no_profile_contour",
+                red_ratio=red_ratio, color_ratio=color_ratio,
+                note=bw_note or "Parca konturu tespit edilemedi; tum cizgiler modunu deneyin.",
+            )
 
     mask = _filter_small_components(_morph_close(mask))
     mask_ratio = _ratio(mask)
