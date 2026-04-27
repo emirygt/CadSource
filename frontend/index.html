@@ -1034,6 +1034,9 @@
     .scan-drop-title { font-size: 13px; font-weight: 500; }
     .scan-drop-sub { font-size: 10px; color: var(--text3); }
     .scan-drop-fname { font-size: 11px; color: var(--green); word-break: break-all; }
+    .scan-field label { display: block; font-size: 10px; color: var(--text3); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .scan-field select { width: 100%; padding: 8px 9px; border: 1px solid var(--border2); border-radius: 7px; background: var(--bg); color: var(--text); font-size: 12px; font-family: inherit; }
+    .scan-field select:focus { border-color: var(--blue); outline: none; }
     .scan-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
     .scan-stat { background: var(--bg3); border: 1px solid var(--border); border-radius: 7px; padding: 7px 6px; text-align: center; }
     .scan-stat-lbl { font-size: 9px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; }
@@ -2716,6 +2719,18 @@
               </div>
             </div>
 
+            <div class="contour-field-row">
+              <div class="contour-field">
+                <label for="contourForegroundMode" data-i18n="contour.foreground_mode">Çizim Algılama</label>
+                <select id="contourForegroundMode">
+                  <option value="part" selected data-i18n="contour.foreground_part">Parça konturu (ölçüsüz)</option>
+                  <option value="all" data-i18n="contour.foreground_all">Tüm çizgiler</option>
+                  <option value="auto" data-i18n="contour.foreground_auto">Otomatik</option>
+                </select>
+              </div>
+              <div class="contour-field"></div>
+            </div>
+
             <div id="contourCalibFields" style="display:none">
               <div class="contour-field-row">
                 <div class="contour-field">
@@ -3238,6 +3253,15 @@
           <div class="scan-drop-fname" id="scanDropFname"></div>
         </div>
         <input type="file" id="scanFileInput" accept=".jpg,.jpeg,.png,.bmp,.tiff,.tif,.pdf,.dxf,.dwg" style="display:none" onchange="scanFileSelected(this)">
+
+        <div class="scan-field">
+          <label for="scanForegroundMode" data-i18n="scan.foreground_mode">Çizim Algılama</label>
+          <select id="scanForegroundMode">
+            <option value="part" selected data-i18n="scan.foreground_part">Parça konturu (ölçüsüz)</option>
+            <option value="all" data-i18n="scan.foreground_all">Tüm çizgiler</option>
+            <option value="auto" data-i18n="scan.foreground_auto">Otomatik</option>
+          </select>
+        </div>
 
         <div class="scan-stats" id="scanStats" style="display:none">
           <div class="scan-stat"><div class="scan-stat-lbl" data-i18n="scan.stat_lines">Çizgi</div><div class="scan-stat-val" id="sSLines">—</div></div>
@@ -5882,6 +5906,7 @@ async function runContourVectorize() {
   const originMode = document.getElementById('contourOriginMode').value || 'bottom_left';
   const flipX = document.getElementById('contourFlipX').checked;
   const flipY = document.getElementById('contourFlipY').checked;
+  const foregroundMode = document.getElementById('contourForegroundMode')?.value || 'part';
 
   if (!(scaleFactor > 0)) {
     runBtn.disabled = false;
@@ -5926,6 +5951,7 @@ async function runContourVectorize() {
   fd.append('origin_mode', originMode);
   fd.append('flip_x', String(flipX));
   fd.append('flip_y', String(flipY));
+  fd.append('foreground_mode', foregroundMode);
 
   if (calibrationMode === 'two_point') {
     const p1 = contourState.calibPoints[0];
@@ -8692,10 +8718,12 @@ async function scanConvert() {
 
   const fd = new FormData();
   fd.append('file', scanState.file);
+  const foregroundMode = document.getElementById('scanForegroundMode')?.value || 'part';
+  const params = new URLSearchParams({ foreground_mode: foregroundMode });
 
   try {
     await ensureApiBase();
-    const res = await fetch(`${API}/scan/convert`, {
+    const res = await fetch(`${API}/scan/convert?${params.toString()}`, {
       method: 'POST',
       headers: authH(),
       body: fd,
@@ -8727,7 +8755,9 @@ async function scanConvert() {
     document.getElementById('scanCanvasEmpty').style.display = 'none';
 
     scanFitView();
-    scanMsg(`${data.entity_count} entity tespit edildi.`, '#16a34a');
+    const fg = data.foreground || {};
+    const fgNote = fg.applied ? ' Parça konturu filtresi uygulandı.' : '';
+    scanMsg(`${data.entity_count} entity tespit edildi.${fgNote}`, '#16a34a');
   } catch(err) {
     scanMsg('Hata: ' + err.message, '#dc2626');
   } finally {
@@ -8744,10 +8774,12 @@ async function scanSmooth() {
 
   const fd = new FormData();
   fd.append('file', scanState.file);
+  const foregroundMode = document.getElementById('scanForegroundMode')?.value || 'part';
+  const params = new URLSearchParams({ smooth: 'true', foreground_mode: foregroundMode });
 
   try {
     await ensureApiBase();
-    const res = await fetch(`${API}/scan/convert?smooth=true`, {
+    const res = await fetch(`${API}/scan/convert?${params.toString()}`, {
       method: 'POST',
       headers: authH(),
       body: fd,

@@ -43,6 +43,10 @@ from features import (
     UnsupportedDWGVersionError,
     _raise_if_unsupported_dwg,
 )
+from services.scan_foreground import (
+    VALID_FOREGROUND_MODES,
+    isolate_foreground_grayscale_from_bytes,
+)
 
 router = APIRouter(prefix="/scan", tags=["scan"])
 
@@ -164,7 +168,9 @@ def _potrace_vectorize(binary: np.ndarray, img_h: int, smooth: bool = False) -> 
         bmp_path = os.path.join(td, "input.bmp")
         svg_path = os.path.join(td, "output.svg")
 
-        cv2.imwrite(bmp_path, binary)
+        # Potrace traces black pixels. Our binarizers mark drawing strokes as
+        # white foreground, so invert before writing the bitmap.
+        cv2.imwrite(bmp_path, 255 - binary)
 
         if smooth:
             args = [POTRACE_BIN, "-s",
@@ -193,11 +199,11 @@ def _svg_to_entities(svg_content: str, img_h: int) -> dict:
     potrace SVG'sindeki path'leri ayrıştır → LINE / ARC / SPLINE entity listesi.
     potrace cubic bezier (C komutu) ve doğrusal (L) segmentler üretir.
     """
+    import re
     import xml.etree.ElementTree as ET
     from svgpathtools import parse_path, Line, CubicBezier, QuadraticBezier
 
     root = ET.fromstring(svg_content)
-    ns = {"svg": "http://www.w3.org/2000/svg"}
 
     # SVG viewport boyutunu al
     vb = root.get("viewBox", "")
@@ -207,6 +213,28 @@ def _svg_to_entities(svg_content: str, img_h: int) -> dict:
         svg_h = parts[3] if len(parts) >= 4 else img_h
     except Exception as e:
         _log.debug("SVG viewBox ayrıştırılamadı, varsayılan yükseklik kullanılıyor: %s", e)
+
+    transform = ""
+    for elem in root.iter():
+        if elem.tag.split("}")[-1] == "g" and elem.get("transform"):
+            transform = elem.get("transform") or ""
+            break
+
+    translate_x, translate_y = 0.0, 0.0
+    scale_x, scale_y = 1.0, 1.0
+    m_translate = re.search(r"translate\(([^,\s)]+)[,\s]+([^)]+)\)", transform)
+    if m_translate:
+        translate_x = float(m_translate.group(1))
+        translate_y = float(m_translate.group(2))
+    m_scale = re.search(r"scale\(([^,\s)]+)(?:[,\s]+([^)]+))?\)", transform)
+    if m_scale:
+        scale_x = float(m_scale.group(1))
+        scale_y = float(m_scale.group(2)) if m_scale.group(2) is not None else scale_x
+
+    def _map_point(pt) -> tuple:
+        svg_x = translate_x + (pt.real * scale_x)
+        svg_y = translate_y + (pt.imag * scale_y)
+        return round(svg_x, 2), round(svg_h - svg_y, 2)
 
     lines, splines = [], []
 
@@ -224,8 +252,8 @@ def _svg_to_entities(svg_content: str, img_h: int) -> dict:
 
         for seg in path:
             if isinstance(seg, Line):
-                x1, y1 = seg.start.real, svg_h - seg.start.imag
-                x2, y2 = seg.end.real,   svg_h - seg.end.imag
+                x1, y1 = _map_point(seg.start)
+                x2, y2 = _map_point(seg.end)
                 # Çok kısa segmentleri atla (gürültü)
                 if math.hypot(x2 - x1, y2 - y1) < 2:
                     continue
@@ -240,7 +268,7 @@ def _svg_to_entities(svg_content: str, img_h: int) -> dict:
                     pts = [seg.start, seg.control1, seg.control2, seg.end]
                 else:
                     pts = [seg.start, seg.control, seg.end]
-                cp = [{"x": round(p.real, 2), "y": round(svg_h - p.imag, 2)} for p in pts]
+                cp = [{"x": x, "y": y} for x, y in (_map_point(p) for p in pts)]
                 splines.append({"type": "SPLINE", "points": cp})
 
     # Boyut hesapla
@@ -371,21 +399,28 @@ def _entities_to_dxf(entities: dict) -> bytes:
 async def scan_convert(
     file: UploadFile = File(...),
     smooth: bool = False,
+    foreground_mode: str = "all",
 ):
     """
     Dosyayı yükle → entity listesi + önizleme döner.
     smooth=false (varsayılan): ham vektör
     smooth=true: agresif temizleme + pürüzsüz bezier
+    foreground_mode=part: renkli parça konturunu ölçü/yazılardan ayırır
     Desteklenir: JPG, PNG, BMP, TIFF, PDF, DXF, DWG
     """
     if not CV2_OK:
         raise HTTPException(500, "opencv kurulu değil.")
+
+    foreground_mode = (foreground_mode or "all").strip().lower()
+    if foreground_mode not in VALID_FOREGROUND_MODES:
+        raise HTTPException(400, f"Geçersiz foreground_mode: {foreground_mode}")
 
     content = await file.read()
     filename = file.filename or "upload"
     ext = filename.lower().rsplit(".", 1)[-1] if "." in filename else ""
 
     # DXF/DWG → direkt entity çıkar, görsel vektörizasyona gerek yok
+    foreground_info = None
     if ext in ("dxf", "dwg"):
         dxf_bytes = content
         if ext == "dwg":
@@ -403,6 +438,16 @@ async def scan_convert(
         entities = _dxf_entities_from_file(dxf_bytes)
     else:
         img, dxf_bytes = _to_image(content, filename)
+        if foreground_mode != "all" and ext in ("jpg", "jpeg", "png", "bmp", "tiff", "tif", "webp"):
+            try:
+                isolated_img, selection = isolate_foreground_grayscale_from_bytes(content, foreground_mode)
+                foreground_info = selection.as_dict()
+                if isolated_img is not None:
+                    img = isolated_img
+            except ValueError as e:
+                raise HTTPException(400, str(e))
+            except Exception as e:
+                _log.warning("Foreground izolasyonu uygulanamadı ('%s'): %s", filename, e)
         entities = _vectorize(img, smooth=smooth)
 
     # Önizleme: beyaz zemin üzerine mavi vektör çizgiler
@@ -436,6 +481,7 @@ async def scan_convert(
         "entity_count": total,
         "entities": entities,
         "preview": preview_b64,
+        "foreground": foreground_info,
     }
 
 

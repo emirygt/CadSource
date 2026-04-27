@@ -21,6 +21,7 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from PIL import Image, ImageDraw, ImageFilter
 
 from middleware.tenant import get_current_tenant
+from services.scan_foreground import VALID_FOREGROUND_MODES, select_foreground_mask
 
 router = APIRouter(prefix="/contour", tags=["contour"])
 
@@ -1670,6 +1671,7 @@ async def vectorize_to_dxf(
     calib_p2_x: Optional[float] = Form(default=None),
     calib_p2_y: Optional[float] = Form(default=None),
     calib_distance: Optional[float] = Form(default=None),
+    foreground_mode: str = Form(default="all"),
     _tenant: dict = Depends(get_current_tenant),
 ):
     if unit not in UNIT_CODES:
@@ -1678,6 +1680,9 @@ async def vectorize_to_dxf(
         raise HTTPException(status_code=400, detail=f"Gecersiz origin_mode: {origin_mode}")
     if calibration_mode not in CALIBRATION_MODES:
         raise HTTPException(status_code=400, detail=f"Gecersiz calibration_mode: {calibration_mode}")
+    foreground_mode = (foreground_mode or "all").strip().lower()
+    if foreground_mode not in VALID_FOREGROUND_MODES:
+        raise HTTPException(status_code=400, detail=f"Gecersiz foreground_mode: {foreground_mode}")
     if not (0.000001 <= float(scale_factor) <= 1000000):
         raise HTTPException(status_code=400, detail="scale_factor 0'dan buyuk olmali")
     if not (0 <= int(min_area_px) <= 5_000_000):
@@ -1707,13 +1712,32 @@ async def vectorize_to_dxf(
 
     rgba = image.convert("RGBA")
 
-    def _cpu_bound_processing() -> Tuple[List[ContourShape], List[ContourShape], np.ndarray, np.ndarray]:
+    def _cpu_bound_processing() -> Tuple[List[ContourShape], List[ContourShape], np.ndarray, np.ndarray, Optional[Dict[str, object]]]:
         gray = np.array(rgba.convert("L"), dtype=np.uint8)
         alpha_ch = np.array(rgba.getchannel("A"), dtype=np.uint8)
-        m = _pick_foreground_mask(gray, alpha_ch, blur_sigma=float(blur_sigma))
-        m = _clean_mask(m)
+        foreground_info: Optional[Dict[str, object]] = None
+        m = None
+        used_color_mask = False
+        if foreground_mode != "all":
+            try:
+                color_mask, selection = select_foreground_mask(rgba, mode=foreground_mode)
+                foreground_info = selection.as_dict()
+                if color_mask is not None:
+                    m = color_mask
+                    used_color_mask = True
+            except Exception as e:
+                foreground_info = {
+                    "requested_mode": foreground_mode,
+                    "applied": False,
+                    "source": "error_fallback",
+                    "note": str(e),
+                }
+        if m is None:
+            m = _pick_foreground_mask(gray, alpha_ch, blur_sigma=float(blur_sigma))
+        if not used_color_mask:
+            m = _clean_mask(m)
         if not np.any(m):
-            return [], [], gray, alpha_ch
+            return [], [], gray, alpha_ch, foreground_info
         cpts = _extract_contours(
             m, int(min_area_px), float(simplify_px), min_area_pct=float(min_area_pct),
         )
@@ -1747,10 +1771,10 @@ async def vectorize_to_dxf(
         _assign_hierarchy_and_layers(sh_net)
         _classify_circles(sh_net, detect_circles=True, circle_tolerance=max(float(circle_tolerance), 0.15))
 
-        return sh, sh_net, gray, alpha_ch
+        return sh, sh_net, gray, alpha_ch, foreground_info
 
     loop = asyncio.get_event_loop()
-    shapes, shapes_net, gray, alpha = await loop.run_in_executor(None, _cpu_bound_processing)
+    shapes, shapes_net, gray, alpha, foreground_info = await loop.run_in_executor(None, _cpu_bound_processing)
 
     if not shapes:
         raise HTTPException(status_code=422, detail="Kontur cikarilacak foreground bulunamadi veya kontur cikarilamadi")
@@ -1913,6 +1937,10 @@ async def vectorize_to_dxf(
         quality["warnings"].append(
             "Otomatik kalibrasyon guveni dusuk; kritik olculer icin manuel referans onerilir."
         )
+    if foreground_info and foreground_info.get("requested_mode") != "all" and not foreground_info.get("applied"):
+        quality["warnings"].append(
+            "Renkli parca konturu tespit edilemedi; mevcut gri esikleme ile devam edildi."
+        )
 
     area_total_px = float(sum(shape.area_px for shape in shapes))
     area_total_unit = area_total_px * (scale_x * scale_y)
@@ -1929,6 +1957,7 @@ async def vectorize_to_dxf(
         "preview_net": preview_net,
         "calibration": calibration_info,
         "quality": quality,
+        "foreground": foreground_info,
         "dimensions": {
             "bbox_width": dimension_summary["bbox_width"] if dimension_summary else None,
             "bbox_height": dimension_summary["bbox_height"] if dimension_summary else None,
