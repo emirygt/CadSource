@@ -1186,15 +1186,13 @@
     .analytics-insights-head p { font-size: 13px; color: #64748b; }
 
     /* Page Header Unified Styles */
-    .page-header { display: flex; justify-content: center; align-items: center; padding: 24px 32px; background: var(--nav-bg); border-bottom: 1px solid #1C3248; width: 100% !important; max-width: none !important; margin: 0 !important; flex-shrink: 0; position: relative; }
-    .page-header > div:first-child { text-align: center; }
+    .page-header { display: flex; justify-content: flex-start; align-items: center; padding: 24px 32px; background: var(--nav-bg); border-bottom: 1px solid #1C3248; width: 100% !important; max-width: none !important; margin: 0 !important; flex-shrink: 0; position: relative; }
+    .page-header > div:first-child { text-align: left; }
     .ph-actions { position: absolute; right: 32px; display: flex; align-items: center; gap: 8px; }
     .ph-title { font-family: var(--font-display); font-size: 27px; font-weight: 700; color: var(--nav-text); margin-bottom: 4px; margin-top: 0; }
     .ph-sub { font-family: var(--font-ui); font-size: 14.5px; color: var(--nav-muted); margin: 0; }
     .ph-actions { display: flex; gap: 12px; align-items: center; }
-    #page-analytics .page-header { justify-content: flex-start; }
-    #page-analytics .page-header > div:first-child { text-align: left; }
-    #page-analytics .enterprise-badge {
+    .enterprise-badge {
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -2168,13 +2166,7 @@
       <p class="ph-sub" data-i18n="search.sub">DWG/DXF profillerini yükleyerek benzer çizimleri saniyeler içinde bulun</p>
     </div>
     <div class="ph-actions">
-      <button class="analytics-primary-btn" onclick="resetSearchPage()">
-        <span class="btn-ic"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></span>
-        <span>Yeni Arama</span>
-      </button>
-      <button class="analytics-icon-btn" aria-label="Help">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-      </button>
+      <span class="enterprise-badge">Enterprise</span>
     </div>
   </div>
   <div class="search-figma-shell" id="searchStartShell">
@@ -2298,17 +2290,7 @@
       <p class="ph-sub" data-i18n="db.sub">Manage and organize your CAD files and technical drawings</p>
     </div>
     <div class="ph-actions">
-      <button class="analytics-primary-btn" onclick="toggleDbUploadPanel()">
-        <span class="btn-ic"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></span>
-        <span data-i18n="common.upload_files">Upload Files</span>
-      </button>
-      <label class="analytics-searchbox">
-        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-        <input type="text" data-i18n-placeholder="common.search_placeholder" placeholder="Search...">
-      </label>
-      <button class="analytics-icon-btn" aria-label="Help">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-      </button>
+      <span class="enterprise-badge">Enterprise</span>
     </div>
   </div>
 
@@ -2551,20 +2533,7 @@
       <p class="ph-sub" id="approvedPageSub" data-i18n="approved.review_sub">Review and approve pending CAD files</p>
     </div>
     <div class="ph-actions">
-      <button class="analytics-primary-btn" onclick="navGo('db', document.getElementById('nav-library')); setTimeout(()=>{ const p=document.getElementById('dbUploadPanel'); if(p&&p.style.display==='none') toggleDbUploadPanel(); },100)">
-        <span class="btn-ic"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></span>
-        <span data-i18n="common.upload_files">Upload Files</span>
-      </button>
-      <label class="analytics-searchbox">
-        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-        <input type="text" data-i18n-placeholder="common.search_placeholder" placeholder="Search...">
-      </label>
-      <button class="analytics-icon-btn" aria-label="Help">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-      </button>
-      <button class="analytics-icon-btn has-dot" aria-label="Notifications">
-        <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-      </button>
+      <span class="enterprise-badge">Enterprise</span>
     </div>
   </div>
 
@@ -2711,20 +2680,7 @@
       <p class="ph-sub" data-i18n="contour.sub">Generate outline drawings</p>
     </div>
     <div class="ph-actions">
-      <button class="analytics-primary-btn" onclick="navGo('search', document.getElementById('nav-search'))">
-        <span class="btn-ic"><svg viewBox="0 0 24 24"><path d="M5 12h14M12 5v14"></path></svg></span>
-        <span data-i18n="common.new_comparison">New Comparison</span>
-      </button>
-      <label class="analytics-searchbox">
-        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-        <input type="text" data-i18n-placeholder="common.search_placeholder" placeholder="Search...">
-      </label>
-      <button class="analytics-icon-btn" aria-label="Help">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-      </button>
-      <button class="analytics-icon-btn has-dot" aria-label="Notifications">
-        <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-      </button>
+      <span class="enterprise-badge">Enterprise</span>
     </div>
   </div>
   <div class="contour-layout" style="padding:32px; max-width:1400px; width:100%; margin:0 auto;">
@@ -2918,20 +2874,7 @@
       <p class="ph-sub" data-i18n="cat.sub">Manage file categories</p>
     </div>
     <div class="ph-actions">
-      <button class="analytics-primary-btn" onclick="navGo('search', document.getElementById('nav-search'))">
-        <span class="btn-ic"><svg viewBox="0 0 24 24"><path d="M5 12h14M12 5v14"></path></svg></span>
-        New Comparison
-      </button>
-      <label class="analytics-searchbox">
-        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-        <input type="text" placeholder="Search...">
-      </label>
-      <button class="analytics-icon-btn" aria-label="Help">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-      </button>
-      <button class="analytics-icon-btn has-dot" aria-label="Notifications">
-        <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-      </button>
+      <span class="enterprise-badge">Enterprise</span>
     </div>
   </div>
   <div class="cat-layout" style="padding:32px; max-width:1400px; width:100%; margin:0 auto;">
@@ -3195,20 +3138,7 @@
       <p class="ph-sub" data-i18n="activity.sub">View your recent activity</p>
     </div>
     <div class="ph-actions">
-      <button class="analytics-primary-btn" onclick="navGo('search', document.getElementById('nav-search'))">
-        <span class="btn-ic"><svg viewBox="0 0 24 24"><path d="M5 12h14M12 5v14"></path></svg></span>
-        New Comparison
-      </button>
-      <label class="analytics-searchbox">
-        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-        <input type="text" placeholder="Search...">
-      </label>
-      <button class="analytics-icon-btn" aria-label="Help">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-      </button>
-      <button class="analytics-icon-btn has-dot" aria-label="Notifications">
-        <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-      </button>
+      <span class="enterprise-badge">Enterprise</span>
     </div>
   </div>
   <div class="db-layout" style="padding:32px; max-width:1400px; width:100%; margin:0 auto;">
@@ -3252,13 +3182,7 @@
       <p class="ph-sub">Tam kopyaları ve revizyon adaylarını yönetin</p>
     </div>
     <div class="ph-actions">
-      <button class="analytics-primary-btn" id="dupMergeBtn" onclick="duplicateMergeSelected()" disabled style="opacity:0.5">
-        <span class="btn-ic"><svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3m10 0h3a2 2 0 0 0 2-2v-3"/></svg></span>
-        Revizyon Grubu Oluştur
-      </button>
-      <button class="analytics-icon-btn" onclick="loadDuplicatePage()">
-        <svg viewBox="0 0 24 24"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-      </button>
+      <span class="enterprise-badge">Enterprise</span>
     </div>
   </div>
   <!-- Filter bar -->
@@ -3268,6 +3192,10 @@
     <button id="dupFilterExact" onclick="setDupFilter('exact_duplicate')" class="dup-filter-btn" style="padding:5px 12px;border:1px solid #e2e8f0;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;background:#fff;color:#475569">Tam Kopya</button>
     <button id="dupFilterRevision" onclick="setDupFilter('revision_candidate')" class="dup-filter-btn" style="padding:5px 12px;border:1px solid #e2e8f0;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;background:#fff;color:#475569">Revizyon Adayı</button>
     <span id="dupSelectInfo" style="font-size:12px;color:#64748b;margin-left:auto"></span>
+    <button class="analytics-primary-btn" id="dupMergeBtn" onclick="duplicateMergeSelected()" disabled style="opacity:0.5;height:34px;font-size:12px">
+      <span class="btn-ic"><svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3m10 0h3a2 2 0 0 0 2-2v-3"/></svg></span>
+      Revizyon Grubu Oluştur
+    </button>
   </div>
   <!-- Content -->
   <div style="flex:1;overflow-y:auto;padding:24px 32px">
@@ -3292,20 +3220,7 @@
       <p class="ph-sub" data-i18n="scan.sub">Digitize physical parts</p>
     </div>
     <div class="ph-actions">
-      <button class="analytics-primary-btn" onclick="navGo('search', document.getElementById('nav-search'))">
-        <span class="btn-ic"><svg viewBox="0 0 24 24"><path d="M5 12h14M12 5v14"></path></svg></span>
-        New Comparison
-      </button>
-      <label class="analytics-searchbox">
-        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-        <input type="text" placeholder="Search...">
-      </label>
-      <button class="analytics-icon-btn" aria-label="Help">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-      </button>
-      <button class="analytics-icon-btn has-dot" aria-label="Notifications">
-        <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-      </button>
+      <span class="enterprise-badge">Enterprise</span>
     </div>
   </div>
   <div class="scan-layout" style="padding:32px; max-width:1400px; width:100%; margin:0 auto;">
