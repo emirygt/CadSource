@@ -4024,10 +4024,10 @@ function renderFigmaResultCard(r, index) {
         <span>benzerlik</span>
       </div>
       <div class="figma-result-actions" onclick="event.stopPropagation()">
-        <button class="figma-btn primary" onclick="toggleCompare(${r.id})">${cmpActive ? '✓ Seçildi' : '⌘ Detaylı Karşılaştır'}</button>
+        <button class="figma-btn primary" onclick="toggleCompare(${r.id})">${cmpActive ? '✓ Seçildi' : '⌘ Karşılaştır'}</button>
+        <button class="figma-btn" style="color:#10b981;border-color:rgba(16,185,129,0.4)" onclick="openDiffModal(${r.id})">◐ Fark</button>
+        <button class="figma-btn" onclick="showDetailModal(${r.id},'model3d')">⬡ 3D Gör</button>
         <button class="figma-btn success" onclick="showDetailModal(${r.id})">☑ Karar Ver</button>
-        <button class="figma-btn" onclick="showDetailModal(${r.id})">◉ Kütüphanede Gör</button>
-        <button class="figma-btn" onclick="alert('Rapor oluşturma yakında aktif olacak.')">⇩ Rapor Oluştur</button>
         ${favoriteButton(r, 'figma-btn icon-only')}
       </div>
     </div>
@@ -6759,7 +6759,7 @@ function renderDuplicateSection(f) {
   `;
 }
 
-async function showDetailModal(fileId) {
+async function showDetailModal(fileId, tab) {
   const modal = document.getElementById('detailModal');
   const body = document.getElementById('detailModalBody');
   const title = document.getElementById('detailModalTitle');
@@ -6767,6 +6767,7 @@ async function showDetailModal(fileId) {
   modal.classList.remove('hidden');
   document.body.style.overflow = 'hidden';
   body.innerHTML = '<div class="loading"><div class="spinner"></div><div>Yükleniyor...</div></div>';
+  if (tab) showDetailModal._pendingTab = { tab, fileId };
 
   try {
     const r = await fetch(`${API}/files/${fileId}?include_analysis=1&include_entities=1`, { headers: authH() });
@@ -7020,6 +7021,12 @@ async function showDetailModal(fileId) {
       </div>
       </div>`;
     _initDetailZoomPan();
+    const pending = showDetailModal._pendingTab;
+    if (pending && pending.fileId === fileId) {
+      showDetailModal._pendingTab = null;
+      const tabBtn = [...document.querySelectorAll('.detail-tab-btn')].find(b => b.textContent.includes('3D'));
+      if (tabBtn) { switchDetailTab('model3d', tabBtn); ensure3DViewer(fileId); }
+    }
   } catch (err) {
     body.innerHTML = `<div style="color:var(--red);padding:20px">${err.message}</div>`;
   }
