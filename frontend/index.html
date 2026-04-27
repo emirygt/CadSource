@@ -2964,14 +2964,13 @@
 
 <!-- ═══════════════ ANALİTİK SAYFASI ═══════════════ -->
 <div class="page" id="page-analytics" style="padding:0; background:#f8fafc; align-items: stretch; flex-direction: column;">
-  <!-- Light header -->
-  <div style="display:flex; justify-content:space-between; align-items:center; padding:20px 32px; background:#fff; border-bottom:1px solid #e2e8f0; flex-shrink:0;">
+  <div class="page-header">
     <div>
-      <h1 style="font-size:24px; font-weight:700; color:#0f172a; margin:0 0 4px; font-family:var(--font-display);" data-i18n="dash.title">Dashboard</h1>
-      <p style="font-size:13px; color:#64748b; margin:0;" data-i18n="dash.sub">Hoş geldiniz. Sistem durumu ve operasyonel özet aşağıda görüntülenmektedir.</p>
+      <h1 class="ph-title" data-i18n="dash.title">Dashboard</h1>
+      <p class="ph-sub" data-i18n="dash.sub">Hoş geldiniz. Sistem durumu ve operasyonel özet aşağıda görüntülenmektedir.</p>
     </div>
-    <div style="display:flex; align-items:center; gap:14px;">
-      <span style="font-size:12px; color:#94a3b8;" id="dashLastUpdate"></span>
+    <div class="ph-actions">
+      <span style="font-size:12px; color:var(--nav-muted);" id="dashLastUpdate"></span>
       <button class="analytics-primary-btn" onclick="navGo('search', document.getElementById('nav-search'))">
         <span class="btn-ic"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></span>
         Yeni Arama Başlat
