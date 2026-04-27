@@ -1267,6 +1267,17 @@
       box-shadow: 0 0 26px rgba(39, 245, 179, 0.40), 0 8px 22px rgba(25, 212, 155, 0.22), inset 0 1px 0 rgba(255,255,255,0.42);
       user-select: none;
       white-space: nowrap;
+      animation: enterprisePulse 2.6s ease-in-out infinite;
+    }
+    @keyframes enterprisePulse {
+      0%, 100% {
+        filter: brightness(1);
+        box-shadow: 0 0 20px rgba(39, 245, 179, 0.32), 0 8px 22px rgba(25, 212, 155, 0.20), inset 0 1px 0 rgba(255,255,255,0.38);
+      }
+      50% {
+        filter: brightness(1.34);
+        box-shadow: 0 0 42px rgba(39, 245, 179, 0.78), 0 12px 32px rgba(25, 212, 155, 0.42), inset 0 1px 0 rgba(255,255,255,0.66);
+      }
     }
 
     /* Main content typography scale - sidebar navigation is intentionally untouched. */
