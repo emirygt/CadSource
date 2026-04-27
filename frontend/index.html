@@ -1193,6 +1193,26 @@
     .ph-title { font-family: var(--font-display); font-size: 27px; font-weight: 700; color: var(--nav-text); margin-bottom: 4px; margin-top: 0; }
     .ph-sub { font-family: var(--font-ui); font-size: 14.5px; color: var(--nav-muted); margin: 0; }
     .ph-actions { display: flex; gap: 12px; align-items: center; }
+    #page-analytics .page-header { justify-content: flex-start; }
+    #page-analytics .page-header > div:first-child { text-align: left; }
+    #page-analytics .enterprise-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 34px;
+      padding: 0 14px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #6d28d9 0%, #7c3aed 50%, #a855f7 100%);
+      color: #ffffff;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      border: 1px solid rgba(196, 181, 253, 0.6);
+      box-shadow: 0 8px 22px rgba(124, 58, 237, 0.38), inset 0 1px 0 rgba(255,255,255,0.35);
+      user-select: none;
+      white-space: nowrap;
+    }
 
     /* Main content typography scale - sidebar navigation is intentionally untouched. */
     .page.active { font-size: 15px; }
@@ -2972,10 +2992,7 @@
     </div>
     <div class="ph-actions">
       <span style="font-size:12px; color:var(--nav-muted);" id="dashLastUpdate"></span>
-      <button class="analytics-primary-btn" onclick="navGo('search', document.getElementById('nav-search'))">
-        <span class="btn-ic"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></span>
-        Yeni Arama Başlat
-      </button>
+      <span class="enterprise-badge">Enterprise</span>
     </div>
   </div>
 
