@@ -1529,6 +1529,441 @@
     .job-modal-actions { display:flex; gap:8px; margin-top:14px; padding-top:14px; border-top:1px solid #f1f5f9 }
     .job-items-list { max-height:280px; overflow-y:auto; border:1px solid #f1f5f9; border-radius:8px; padding:4px 12px }
     .job-status-badge { padding:2px 8px; border-radius:4px; font-size:10px; font-weight:700; letter-spacing:0.04em; white-space:nowrap }
+
+    /* ═══════════════ Figma-style Search / Compare redesign ═══════════════ */
+    #page-search.active {
+      background: #edf3f9 !important;
+      padding: 0 !important;
+      align-items: stretch !important;
+      flex-direction: column !important;
+    }
+    #page-search .page-header { display: none !important; }
+    .search-figma-shell {
+      width: 100% !important;
+      max-width: none !important;
+      margin: 0 !important;
+      padding: 44px 44px 56px;
+      color: #0f172a;
+    }
+    .search-start-head { margin-bottom: 34px; }
+    .search-start-head h1,
+    .search-results-head h1 {
+      font-size: 34px;
+      line-height: 1.12;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      color: #0f172a;
+      margin: 0 0 12px;
+    }
+    .search-start-head p,
+    .search-results-sub {
+      font-size: 21px;
+      line-height: 1.45;
+      color: #667790;
+      font-weight: 500;
+    }
+    .search-start-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 520px;
+      gap: 34px;
+      align-items: start;
+    }
+    .search-start-left { min-width: 0; display: flex; flex-direction: column; gap: 30px; }
+    #page-search .search-upload-hero {
+      min-height: 500px;
+      padding: 64px 28px;
+      border: 2px dashed #c8d5e5;
+      border-radius: 24px;
+      background: rgba(255,255,255,0.32);
+      box-shadow: none;
+      gap: 16px;
+    }
+    #page-search .search-upload-hero::before,
+    #page-search .search-upload-hero::after { display: none; }
+    #page-search .search-upload-hero:hover,
+    #page-search .search-upload-hero.drag {
+      transform: none;
+      border-color: #2f66eb;
+      background: rgba(255,255,255,0.54);
+      box-shadow: 0 22px 50px rgba(47,102,235,0.10);
+    }
+    #page-search .search-upload-hero.loaded {
+      border: 2px dashed #16a34a;
+      background: #edfdf3;
+      color: #15803d;
+    }
+    #page-search .search-upload-hero .upload-icon {
+      width: 96px;
+      height: 96px;
+      border-radius: 26px;
+      background: #e9f2ff;
+      border: 2px solid #b9d6ff;
+      box-shadow: none;
+      color: #2f66eb;
+    }
+    #page-search .search-upload-hero.loaded .upload-icon {
+      background: #e8fff0;
+      border-color: #b7f4cb;
+      color: #16a34a;
+    }
+    #page-search .search-upload-hero .upload-icon svg {
+      width: 44px;
+      height: 44px;
+      stroke: currentColor;
+      filter: none;
+      stroke-width: 1.9;
+    }
+    #page-search .search-upload-hero .upload-title {
+      font-size: 25px;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      color: #162033;
+      margin-top: 14px;
+    }
+    #page-search .search-upload-hero .upload-sub {
+      font-size: 20px;
+      font-weight: 600;
+      color: #91a0b4;
+    }
+    #page-search .search-upload-hero.loaded .upload-title,
+    #page-search .search-upload-hero.loaded .upload-sub,
+    #page-search .search-upload-hero.loaded .upload-fname { color: #16a34a; }
+    .search-format-row { display:flex; flex-wrap:wrap; gap:12px; justify-content:center; margin-top:12px; }
+    .search-format-chip {
+      min-width: 72px;
+      padding: 9px 18px;
+      border-radius: 999px;
+      background: #eef3f9;
+      color: #45556b;
+      font-size: 18px;
+      font-weight: 800;
+    }
+    .search-max-note {
+      margin-top: 14px;
+      color: #c8d2df;
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .search-remove-file {
+      display: none;
+      border: 0;
+      background: transparent;
+      color: #ef4444;
+      font-size: 19px;
+      font-weight: 800;
+      cursor: pointer;
+      margin-top: 12px;
+    }
+    .search-upload-hero.loaded .search-format-row,
+    .search-upload-hero.loaded .search-max-note { display: none; }
+    .search-upload-hero.loaded .search-remove-file { display: inline-flex; align-items:center; gap:8px; }
+    .search-card {
+      background: #ffffff;
+      border: 1px solid #dbe5f0;
+      border-radius: 22px;
+      box-shadow: 0 10px 26px rgba(15, 35, 61, 0.06);
+    }
+    .search-settings-card { padding: 28px 32px 34px; }
+    .search-card-title {
+      display:flex;
+      align-items:center;
+      gap:12px;
+      font-size:23px;
+      font-weight:900;
+      color:#101827;
+      margin-bottom:34px;
+    }
+    .search-card-title svg { width:24px; height:24px; stroke:#2f66eb; fill:none; stroke-width:2; }
+    .search-field-label {
+      font-size: 19px;
+      color:#273449;
+      font-weight:900;
+      margin-bottom:16px;
+    }
+    .search-category-native { position:absolute !important; opacity:0 !important; pointer-events:none !important; width:1px !important; height:1px !important; }
+    .search-category-chips { display:flex; flex-wrap:wrap; gap:12px; margin-bottom:38px; }
+    .search-category-chip {
+      border:1px solid #d6e1ee;
+      background:#f9fbfe;
+      color:#4a5b72;
+      border-radius:14px;
+      padding:12px 19px;
+      font-size:18px;
+      font-weight:700;
+      cursor:pointer;
+      transition: all 0.16s ease;
+    }
+    .search-category-chip:hover { border-color:#abc4e7; background:#f2f7ff; }
+    .search-category-chip.active {
+      background:#2f66eb;
+      border-color:#2f66eb;
+      color:#ffffff;
+      box-shadow:0 12px 22px rgba(47,102,235,0.22);
+    }
+    .search-threshold-head {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:18px;
+      margin-bottom:22px;
+    }
+    .search-threshold-pill {
+      padding:9px 22px;
+      border-radius:14px;
+      background:#f0f5ff;
+      color:#2f66eb;
+      font-size:25px;
+      font-weight:900;
+    }
+    #page-search .search-settings-card input[type=range] {
+      width:100%;
+      height:12px;
+      border-radius:999px;
+      background: linear-gradient(90deg, #2f66eb 0%, #2f66eb 55%, #d5dde8 55%, #d5dde8 100%);
+      box-shadow:none;
+    }
+    #page-search .search-settings-card input[type=range]::-webkit-slider-thumb {
+      width:24px;
+      height:24px;
+      border:0;
+      background:#2f66eb;
+      box-shadow:none;
+    }
+    .search-range-scale {
+      display:flex;
+      justify-content:space-between;
+      margin-top:22px;
+      color:#9aa9bf;
+      font-size:18px;
+      font-weight:800;
+    }
+    .search-options-row { display:flex; flex-wrap:wrap; gap:44px; margin-top:34px; }
+    .search-option { display:flex; align-items:flex-start; gap:14px; color:#263449; font-size:19px; font-weight:800; }
+    .search-option small { display:block; color:#97a5b9; font-size:17px; font-weight:700; margin-top:2px; }
+    .search-option input { width:24px; height:24px; accent-color:#2f66eb; flex-shrink:0; }
+    #page-search .search-btn.search-main-btn {
+      height: 78px;
+      min-height: 78px;
+      border-radius: 20px;
+      font-size: 25px;
+      font-weight: 900;
+      gap:16px;
+      background:#2f66eb;
+      box-shadow:none;
+    }
+    #page-search .search-btn.search-main-btn:disabled {
+      background:#9aa9bd;
+      color:#ffffff;
+      opacity:1;
+    }
+    .search-btn-note {
+      color:#9aa9bf;
+      font-size:20px;
+      text-align:center;
+      font-weight:700;
+      margin-top:4px;
+    }
+    .search-side-stack { display:flex; flex-direction:column; gap:28px; }
+    .search-side-card { overflow:hidden; }
+    .search-side-card h3 {
+      display:flex;
+      align-items:center;
+      gap:12px;
+      padding:27px 32px;
+      border-bottom:1px solid #e7edf4;
+      font-size:22px;
+      font-weight:900;
+      margin:0;
+      color:#101827;
+    }
+    .search-side-card h3 svg { width:24px; height:24px; stroke:#91a4bd; fill:none; stroke-width:1.9; }
+    .recent-list { display:flex; flex-direction:column; }
+    .recent-item {
+      display:grid;
+      grid-template-columns:48px 1fr;
+      gap:18px;
+      padding:26px 32px;
+      border-bottom:1px solid #eef2f6;
+    }
+    .recent-item:last-child { border-bottom:0; }
+    .recent-icon {
+      width:48px;
+      height:48px;
+      border-radius:14px;
+      background:#f0f4f9;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color:#7690ad;
+    }
+    .recent-icon svg { width:23px; height:23px; stroke:currentColor; fill:none; stroke-width:1.8; }
+    .recent-name { font-size:20px; font-weight:900; color:#101827; }
+    .recent-sub { font-size:18px; font-weight:800; color:#91a0b4; margin-top:2px; }
+    .recent-meta { display:flex; align-items:center; gap:12px; margin-top:8px; color:#c4cedb; font-size:16px; font-weight:800; }
+    .recent-format { padding:4px 10px; border-radius:7px; background:#f0f3f7; color:#45556b; font-weight:900; }
+    .how-card {
+      padding:28px 32px;
+      background:linear-gradient(180deg,#eaf4ff,#dbeafe);
+      border-color:#a8d0ff;
+    }
+    .how-card h3 {
+      display:flex;
+      align-items:center;
+      gap:12px;
+      color:#1e4fc7;
+      font-size:22px;
+      font-weight:900;
+      margin:0 0 12px;
+    }
+    .how-card p { color:#3480ff; font-size:20px; line-height:1.48; font-weight:600; margin:0; }
+    .format-support-card { padding:28px 32px; }
+    .format-support-card h3 { font-size:22px; font-weight:900; color:#101827; margin:0 0 22px; }
+    .format-support-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    .format-support-item { border:1px solid #e2e8f0; border-radius:14px; padding:15px 18px; background:#fbfcfe; }
+    .format-support-item b { display:block; font-size:19px; color:#253246; margin-bottom:4px; }
+    .format-support-item span { color:#91a0b4; font-size:17px; font-weight:700; }
+
+    .search-results-shell { padding:32px 20px 52px; }
+    .search-results-top {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:24px;
+      margin-bottom:36px;
+    }
+    .search-results-title-row { display:flex; align-items:center; gap:18px; }
+    .search-back-btn {
+      width:54px;
+      height:54px;
+      border-radius:16px;
+      border:1px solid #dce6f2;
+      background:#f5f9fd;
+      color:#6b7d95;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .search-back-btn svg { width:26px; height:26px; stroke:currentColor; fill:none; stroke-width:1.8; }
+    .search-results-actions { display:flex; align-items:center; gap:18px; color:#667790; font-size:18px; font-weight:800; }
+    .search-sort-select {
+      height:44px;
+      min-width:210px;
+      padding:0 16px;
+      border:1px solid #dbe5f0;
+      border-radius:14px;
+      background:#fff;
+      color:#334155;
+      font-size:17px;
+      font-weight:700;
+    }
+    .search-action-btn {
+      height:44px;
+      border:1px solid #dbe5f0;
+      border-radius:14px;
+      background:#f8fbff;
+      color:#334155;
+      font-size:17px;
+      font-weight:800;
+      padding:0 18px;
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      cursor:pointer;
+    }
+    .search-action-btn.primary { background:#2f66eb; border-color:#2f66eb; color:#fff; box-shadow:0 12px 22px rgba(47,102,235,0.22); }
+    .search-results-grid { display:grid; grid-template-columns: 420px minmax(0,1fr); gap:30px; align-items:start; }
+    .search-results-left { display:flex; flex-direction:column; gap:22px; position:sticky; top:24px; }
+    .query-side-card { padding:24px; }
+    .query-side-title { color:#94a3b8; text-transform:uppercase; letter-spacing:0.08em; font-size:17px; font-weight:900; margin-bottom:18px; }
+    .query-side-preview { height:150px; border:1px solid #e2e8f0; border-radius:18px; background:#f8fafc; display:flex; align-items:center; justify-content:center; padding:14px; overflow:hidden; }
+    .query-side-preview img { width:100%; height:100%; object-fit:contain; }
+    .query-side-name { font-size:21px; font-weight:900; color:#111827; margin-top:18px; }
+    .query-side-sub { font-size:18px; color:#667790; font-weight:700; margin-top:6px; }
+    .query-side-tags { display:flex; gap:12px; margin-top:20px; }
+    .soft-tag { padding:6px 13px; border-radius:999px; background:#f1f5f9; color:#42607d; font-size:16px; font-weight:900; }
+    .summary-card { padding:24px; }
+    .summary-title { color:#94a3b8; text-transform:uppercase; letter-spacing:0.08em; font-size:17px; font-weight:900; margin-bottom:18px; }
+    .summary-row { display:flex; align-items:center; justify-content:space-between; font-size:18px; color:#334155; font-weight:700; padding:8px 0; }
+    .summary-dot { width:11px; height:11px; border-radius:999px; display:inline-block; margin-right:10px; }
+    .summary-row strong { font-size:18px; }
+    .search-results-list { display:flex; flex-direction:column; gap:22px; min-width:0; }
+    .figma-result-card {
+      --tone:#2f66eb;
+      --tone-soft:#eff5ff;
+      --tone-border:#bfdbfe;
+      background:#ffffff;
+      border:1px solid #dbe5f0;
+      border-radius:18px;
+      box-shadow:0 18px 42px rgba(15,35,61,0.10);
+      overflow:hidden;
+    }
+    .figma-result-card.score-elite,
+    .figma-result-card.score-high { --tone:#16a34a; --tone-soft:#f0fdf4; --tone-border:#bbf7d0; }
+    .figma-result-card.score-gold { --tone:#ea580c; --tone-soft:#fff7ed; --tone-border:#fed7aa; }
+    .figma-result-card.score-low { --tone:#e11d48; --tone-soft:#fff1f2; --tone-border:#fecdd3; }
+    .figma-result-card.selected { border-color:#2f66eb; box-shadow:0 20px 48px rgba(47,102,235,0.18); }
+    .figma-best-strip { display:flex; align-items:center; gap:10px; background:#ecfdf3; color:#16a34a; border-bottom:1px solid #bbf7d0; padding:12px 28px; font-size:18px; font-weight:900; }
+    .figma-result-inner { display:grid; grid-template-columns:32px 270px minmax(0,1fr) 120px; gap:28px; padding:28px; align-items:start; }
+    .figma-check { width:24px; height:24px; border:1px solid #cbd5e1; border-radius:6px; margin-top:6px; }
+    .figma-result-preview {
+      width:270px;
+      height:270px;
+      border:1px solid #e2e8f0;
+      border-radius:18px;
+      background:#fff;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      overflow:hidden;
+      padding:16px;
+    }
+    .figma-result-preview img,
+    .figma-result-preview svg { width:100%; height:100%; object-fit:contain; display:block; filter:contrast(1.7) brightness(1.14); }
+    .figma-result-main { min-width:0; }
+    .figma-result-title-row { display:flex; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:8px; }
+    .figma-result-title { font-size:24px; font-weight:900; color:#101827; }
+    .figma-match-type { border:1px solid var(--tone-border); background:var(--tone-soft); color:var(--tone); border-radius:999px; padding:6px 14px; font-size:17px; font-weight:900; }
+    .figma-result-sub { font-size:20px; color:#334155; font-weight:600; margin-bottom:8px; }
+    .figma-result-meta { font-size:17px; color:#93a3b8; font-weight:700; }
+    .figma-reasons-box { margin-top:18px; padding:18px; background:#f8fafc; border-radius:16px; }
+    .figma-reasons-title { display:flex; align-items:center; gap:10px; color:#334155; font-size:17px; font-weight:900; margin-bottom:12px; }
+    .figma-reasons-box .reason-chips { gap:10px; }
+    .figma-reasons-box .reason-chip { background:#eef2f7 !important; border:0 !important; color:#48586f !important; font-size:15px; padding:7px 12px; border-radius:999px; }
+    .figma-score-box {
+      justify-self:end;
+      width:106px;
+      min-height:106px;
+      border:2px solid var(--tone-border);
+      border-radius:22px;
+      background:var(--tone-soft);
+      color:var(--tone);
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      font-weight:900;
+    }
+    .figma-score-box b { font-size:31px; line-height:1; }
+    .figma-score-box span { font-size:15px; margin-top:6px; }
+    .figma-result-actions { grid-column: 2 / 5; display:flex; align-items:center; gap:12px; border-top:1px solid #edf2f7; padding-top:24px; flex-wrap:wrap; }
+    .figma-btn { min-height:54px; padding:0 22px; border-radius:14px; border:1px solid #dbe5f0; background:#fff; color:#64748b; font-size:18px; font-weight:900; display:inline-flex; align-items:center; gap:10px; cursor:pointer; }
+    .figma-btn.primary { background:#2f66eb; color:#fff; border-color:#2f66eb; }
+    .figma-btn.success { color:#16a34a; border-color:#bbf7d0; background:#fff; }
+    .figma-btn.icon-only { margin-left:auto; width:54px; padding:0; justify-content:center; }
+    @media (max-width: 1400px) {
+      .search-start-grid,
+      .search-results-grid { grid-template-columns:1fr; }
+      .search-results-left { position:static; grid-template-columns:1fr 1fr; display:grid; }
+    }
+    @media (max-width: 980px) {
+      .search-figma-shell { padding:28px 18px 40px; }
+      .figma-result-inner { grid-template-columns:1fr; }
+      .figma-result-actions { grid-column:auto; }
+      .figma-result-preview { width:100%; height:270px; }
+      .figma-score-box { justify-self:start; }
+      .search-results-top { align-items:flex-start; flex-direction:column; }
+    }
   </style>
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
@@ -1694,92 +2129,116 @@
 </div>
 
 <!-- ═══════════════ ARA SAYFASI ═══════════════ -->
-<div class="page" id="page-search" style="padding:0; background:#f8fafc; align-items: stretch; flex-direction: column;">
-  <div class="page-header">
-    <div>
-      <h1 class="ph-title" data-i18n="search.title">CAD Comparison</h1>
-      <p class="ph-sub" data-i18n="search.sub">Compare two or more CAD files</p>
-    </div>
-    <div class="ph-actions">
-      <button class="analytics-primary-btn" onclick="navGo('search', document.getElementById('nav-search'))">
-        <span class="btn-ic"><svg viewBox="0 0 24 24"><path d="M5 12h14M12 5v14"></path></svg></span>
-        <span data-i18n="common.new_comparison">New Comparison</span>
-      </button>
-      <label class="analytics-searchbox">
-        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-        <input type="text" data-i18n-placeholder="common.search_placeholder" placeholder="Search...">
-      </label>
-      <button class="analytics-icon-btn" aria-label="Help">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-      </button>
-      <button class="analytics-icon-btn has-dot" aria-label="Notifications">
-        <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-      </button>
-    </div>
-  </div>
-  <div class="search-layout" style="padding:32px; max-width:1400px; width:100%; margin:0 auto;">
-    <div class="sidebar">
-      <div class="upload-zone" id="uploadZone"
-        ondragover="handleDragOver(event)" ondragleave="handleDragLeave()"
-        ondrop="handleDrop(event)" onclick="document.getElementById('fileInput').click()">
-        <div class="upload-icon">
-          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-        </div>
-        <div class="upload-title" data-i18n="search.upload_label">DXF / DWG Yükle</div>
-        <div class="upload-sub" id="uploadSub" data-i18n="search.upload_sub">Sorgu dosyanızı sürükleyin</div>
-        <div class="upload-fname" id="uploadFname"></div>
-      </div>
-      <input type="file" id="fileInput" accept=".dxf,.dwg,.jpg,.jpeg,.png" style="display:none" onchange="onFileSelect(event)">
-
-      <!-- Anlık önizleme -->
-      <div class="sidebar-preview" id="sidebarPreview" style="display:none">
-        <div class="sidebar-preview-label">
-          <span data-i18n="search.preview">Önizleme</span>
-          <span id="sidebarPreviewInfo" style="color:var(--text2)"></span>
-        </div>
-        <div id="sidebarPreviewSvg"></div>
-      </div>
-
-      <div class="divider"></div>
-      <div class="section-label" data-i18n="search.category_filter">Kategori Filtresi</div>
-      <select id="searchCategorySelect" style="background:var(--bg3);border:1px solid var(--border2);border-radius:6px;color:var(--text);padding:6px 8px;font-size:12px;width:100%;outline:none">
-        <option value="" data-i18n="search.all_categories">Tüm kategoriler</option>
-      </select>
-      <div id="searchCatInfo" style="font-size:11px;color:var(--text3);display:none"></div>
-
-      <div class="divider"></div>
-      <div class="section-label" data-i18n="search.settings">Arama Ayarları</div>
-      <div class="filter-group">
-        <div class="filter-row">
-          <label data-i18n="search.result_count">Sonuç sayısı</label>
-          <span class="filter-val" id="topkVal">10</span>
-        </div>
-        <input type="range" min="5" max="50" step="5" value="10" id="topkSlider"
-          oninput="document.getElementById('topkVal').textContent=this.value">
-        <div class="filter-row">
-          <label data-i18n="search.min_similarity">Min. benzerlik</label>
-          <span class="filter-val" id="minSimVal">20%</span>
-        </div>
-        <input type="range" min="0" max="95" step="1" value="20" id="minSimSlider"
-          oninput="document.getElementById('minSimVal').textContent=this.value+'%'">
-        <div class="filter-row"><label data-i18n="search.sort">Sıralama</label></div>
-        <select id="sortSelect">
-          <option value="similarity" data-i18n="search.sort_similarity">Benzerlik (yüksek → düşük)</option>
-          <option value="entity_count" data-i18n="search.sort_entity">Entity sayısı</option>
-          <option value="layer_count" data-i18n="search.sort_layer">Katman sayısı</option>
-        </select>
-      </div>
-      <button class="search-btn" id="searchBtn" onclick="doSearch()" disabled data-i18n="search.find_btn">Benzer Çizimleri Bul</button>
+<div class="page" id="page-search">
+  <div class="search-figma-shell" id="searchStartShell">
+    <div class="search-start-head">
+      <h1>Ara &amp; Karşılaştır</h1>
+      <p>Çizim, DXF/DWG dosyası veya görüntü yükleyerek benzer profilleri saniyeler içinde bulun.</p>
     </div>
 
-    <div class="main" id="searchMain">
-      <div class="empty-state">
-        <div class="empty-icon">
-          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <div class="search-start-grid">
+      <div class="search-start-left">
+        <div class="upload-zone search-upload-hero" id="uploadZone"
+          ondragover="handleDragOver(event)" ondragleave="handleDragLeave()"
+          ondrop="handleDrop(event)" onclick="document.getElementById('fileInput').click()">
+          <div class="upload-icon">
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </div>
+          <div class="upload-title" id="uploadTitle">Dosyayı buraya bırakın</div>
+          <div class="upload-sub" id="uploadSub">veya tıklayarak bilgisayarınızdan seçin</div>
+          <div class="search-format-row">
+            <span class="search-format-chip">DWG</span>
+            <span class="search-format-chip">DXF</span>
+            <span class="search-format-chip">PDF</span>
+            <span class="search-format-chip">PNG</span>
+            <span class="search-format-chip">JPG</span>
+            <span class="search-format-chip">STEP</span>
+          </div>
+          <div class="search-max-note">Maksimum dosya boyutu: 100 MB</div>
+          <div class="upload-fname" id="uploadFname"></div>
+          <button type="button" class="search-remove-file" onclick="event.stopPropagation(); clearSearchFile()">× Kaldır</button>
         </div>
-        <div class="empty-title" data-i18n="search.empty_title">Arama yapmaya hazır</div>
-        <div class="empty-sub" data-i18n="search.empty_sub">Sol taraftan bir DXF/DWG dosyası yükleyin. DB'nizdeki kalıplar arasında en benzerleri bulunacak.</div>
+        <input type="file" id="fileInput" accept=".dxf,.dwg,.jpg,.jpeg,.png,.pdf,.step" style="display:none" onchange="onFileSelect(event)">
+
+        <div class="sidebar-preview" id="sidebarPreview" style="display:none">
+          <div class="sidebar-preview-label">
+            <span data-i18n="search.preview">Önizleme</span>
+            <span id="sidebarPreviewInfo" style="color:var(--text2)"></span>
+          </div>
+          <div id="sidebarPreviewSvg"></div>
+        </div>
+
+        <div class="search-card search-settings-card">
+          <div class="search-card-title">
+            <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/><circle cx="8" cy="7" r="1.8"/><circle cx="14" cy="12" r="1.8"/><circle cx="10" cy="17" r="1.8"/></svg>
+            <span>Arama Ayarları</span>
+          </div>
+
+          <div class="search-field-label">Kategori</div>
+          <select id="searchCategorySelect" class="search-category-native">
+            <option value="">Tüm kategoriler</option>
+          </select>
+          <div class="search-category-chips" id="searchCategoryChips">
+            <button type="button" class="search-category-chip active" data-cat-id="" onclick="setSearchCategory('')">Tüm Kategoriler</button>
+          </div>
+          <div id="searchCatInfo" style="font-size:11px;color:var(--text3);display:none"></div>
+
+          <input type="range" min="5" max="50" step="5" value="10" id="topkSlider" style="display:none" oninput="document.getElementById('topkVal').textContent=this.value">
+          <span id="topkVal" style="display:none">10</span>
+          <select id="sortSelect" style="display:none">
+            <option value="similarity">Benzerlik Skoru</option>
+            <option value="entity_count">Entity sayısı</option>
+            <option value="layer_count">Katman sayısı</option>
+          </select>
+
+          <div class="search-threshold-head">
+            <div class="search-field-label" style="margin:0">Benzerlik Eşiği</div>
+            <span class="search-threshold-pill" id="minSimVal">%70</span>
+          </div>
+          <input type="range" min="40" max="95" step="1" value="70" id="minSimSlider" oninput="updateSearchThreshold(this.value)">
+          <div class="search-range-scale"><span>%40 — Geniş arama</span><span>%100 — Tam eşleşme</span></div>
+
+          <div class="search-options-row">
+            <label class="search-option">
+              <input type="checkbox">
+              <span>⚡ Hızlı Mod<small>Daha hızlı, yaklaşık sonuç</small></span>
+            </label>
+            <label class="search-option">
+              <input type="checkbox" checked>
+              <span>Tam Eşleşme Öncelikli<small>%95+ sonuçları öne çıkar</small></span>
+            </label>
+          </div>
+        </div>
+
+        <button class="search-btn search-main-btn" id="searchBtn" onclick="doSearch()" disabled>
+          <svg viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" fill="none" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <span>Benzer Profilleri Ara</span>
+          <span>›</span>
+        </button>
+        <div class="search-btn-note" id="searchBtnNote">Arama başlatmak için önce bir dosya yükleyin</div>
       </div>
+
+      <aside class="search-side-stack">
+        <div class="search-card search-side-card">
+          <h3><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Son Aramalar</h3>
+          <div class="recent-list" id="recentSearchList"></div>
+        </div>
+
+        <div class="search-card how-card">
+          <h3>ⓘ Nasıl çalışır?</h3>
+          <p>Yüklediğiniz profil geometrik olarak analiz edilir ve 14.000+ profil arşivinde benzer yapılar taranır. Sonuçlar benzerlik skoru, fark haritası ve karar desteğiyle sunulur.</p>
+        </div>
+
+        <div class="search-card format-support-card">
+          <h3>Desteklenen Formatlar</h3>
+          <div class="format-support-grid">
+            <div class="format-support-item"><b>DWG / DXF</b><span>AutoCAD çizimleri</span></div>
+            <div class="format-support-item"><b>PDF</b><span>Teknik çizim PDF</span></div>
+            <div class="format-support-item"><b>PNG / JPG</b><span>Profil fotoğrafı</span></div>
+            <div class="format-support-item"><b>STEP</b><span>3D model dosyası</span></div>
+          </div>
+        </div>
+      </aside>
     </div>
   </div>
 </div>
@@ -3141,6 +3600,7 @@ function switchTab(name) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-' + name).classList.add('active');
   if (name === 'db')        { loadDbFiles(); loadCategoriesIntoSelect(); }
+  if (name === 'search')    { loadCategoriesIntoSelect(); loadHistory(); setTimeout(initSearchControls, 0); }
   if (name === 'approved')  { setProductsViewMode('split'); loadApprovedFiles(); }
   if (name === 'contour')   initContourTab();
   if (name === 'cat')       loadCategories();
@@ -3172,7 +3632,8 @@ async function loadStats() {
 // ══════════════════════════════════════════════════════════════════════════════
 //  ARA SAYFASI
 // ══════════════════════════════════════════════════════════════════════════════
-const searchState = { file: null, results: null, view: 'grid' };
+const searchState = { file: null, results: null, view: 'grid', sort: 'similarity' };
+let searchStartInitialHtml = '';
 const compareState = { items: [] };
 
 function handleDragOver(e) { e.preventDefault(); document.getElementById('uploadZone').classList.add('drag'); }
@@ -3182,18 +3643,87 @@ function onFileSelect(e) { if (e.target.files[0]) setFile(e.target.files[0]); }
 
 function setFile(f) {
   searchState.file = f;
-  document.getElementById('uploadFname').textContent = f.name;
-  document.getElementById('uploadSub').textContent = (f.size / 1024).toFixed(1) + ' KB';
-  document.getElementById('uploadZone').classList.add('loaded');
-  document.getElementById('searchBtn').disabled = false;
-  previewFileInSidebar(f);
+  const title = document.getElementById('uploadTitle');
+  const sub = document.getElementById('uploadSub');
+  const name = document.getElementById('uploadFname');
+  const zone = document.getElementById('uploadZone');
+  const btn = document.getElementById('searchBtn');
+  const note = document.getElementById('searchBtnNote');
+  if (title) title.textContent = f.name;
+  if (sub) sub.textContent = 'Dosya yüklendi — Arama için hazır';
+  if (name) name.textContent = `${(f.size / 1024).toFixed(1)} KB`;
+  if (zone) zone.classList.add('loaded');
+  if (btn) btn.disabled = false;
+  if (note) note.textContent = 'Dosya yüklendi — arama için hazır';
+}
+
+function clearSearchFile() {
+  searchState.file = null;
+  const input = document.getElementById('fileInput');
+  const zone = document.getElementById('uploadZone');
+  const title = document.getElementById('uploadTitle');
+  const sub = document.getElementById('uploadSub');
+  const name = document.getElementById('uploadFname');
+  const btn = document.getElementById('searchBtn');
+  const note = document.getElementById('searchBtnNote');
+  const preview = document.getElementById('sidebarPreview');
+  if (input) input.value = '';
+  if (zone) zone.classList.remove('loaded');
+  if (title) title.textContent = 'Dosyayı buraya bırakın';
+  if (sub) sub.textContent = 'veya tıklayarak bilgisayarınızdan seçin';
+  if (name) name.textContent = '';
+  if (btn) btn.disabled = true;
+  if (note) note.textContent = 'Arama başlatmak için önce bir dosya yükleyin';
+  if (preview) preview.style.display = 'none';
+}
+
+function updateSearchThreshold(value) {
+  const v = Number(value || 70);
+  const label = document.getElementById('minSimVal');
+  const slider = document.getElementById('minSimSlider');
+  if (label) label.textContent = `%${v}`;
+  if (slider) {
+    const min = Number(slider.min || 40);
+    const max = Number(slider.max || 95);
+    const pct = Math.max(0, Math.min(100, ((v - min) / (max - min)) * 100));
+    slider.style.background = `linear-gradient(90deg,#2f66eb 0%,#2f66eb ${pct}%,#d5dde8 ${pct}%,#d5dde8 100%)`;
+  }
+}
+
+function initSearchControls() {
+  const slider = document.getElementById('minSimSlider');
+  if (slider) updateSearchThreshold(slider.value);
+  renderSearchCategoryChips();
+}
+
+function setSearchCategory(id) {
+  const select = document.getElementById('searchCategorySelect');
+  if (select) select.value = id || '';
+  renderSearchCategoryChips();
+}
+
+function renderSearchCategoryChips() {
+  const select = document.getElementById('searchCategorySelect');
+  const wrap = document.getElementById('searchCategoryChips');
+  if (!select || !wrap) return;
+  const current = select.value || '';
+  const options = Array.from(select.options).filter(opt => opt.value !== '' || opt.textContent.trim());
+  wrap.innerHTML = options.map(opt => {
+    const label = opt.value === '' ? 'Tüm Kategoriler' : opt.textContent;
+    const active = (opt.value || '') === current ? 'active' : '';
+    return `<button type="button" class="search-category-chip ${active}" data-cat-id="${opt.value}" onclick="setSearchCategory('${String(opt.value).replace(/'/g, "\\'")}')">${label}</button>`;
+  }).join('');
+}
+
+function searchRoot() {
+  return document.getElementById('searchStartShell') || document.getElementById('searchMain');
 }
 
 async function doSearch() {
   if (!searchState.file) return;
   const topk = document.getElementById('topkSlider').value;
   const minSim = document.getElementById('minSimSlider').value / 100;
-  const main = document.getElementById('searchMain');
+  const main = searchRoot();
   main.innerHTML = `<div class="loading"><div class="spinner"></div><div>${searchState.file.name} analiz ediliyor...</div></div>`;
   try {
     const catId = document.getElementById('searchCategorySelect').value;
@@ -3205,6 +3735,7 @@ async function doSearch() {
     if (!r.ok) throw new Error(await r.text());
     const data = await r.json();
     const sort = document.getElementById('sortSelect').value;
+    searchState.sort = sort;
     if (sort === 'entity_count') data.results.sort((a,b) => b.entity_count - a.entity_count);
     else if (sort === 'layer_count') data.results.sort((a,b) => b.layer_count - a.layer_count);
     searchState.results = data;
@@ -3401,67 +3932,178 @@ function reasonListHtml(reasons) {
   }).join('')}</ul>`;
 }
 
+function resetSearchPage() {
+  const shell = document.getElementById('searchStartShell');
+  if (!shell || !searchStartInitialHtml) return;
+  shell.innerHTML = searchStartInitialHtml;
+  searchState.file = null;
+  searchState.results = null;
+  searchState.view = 'grid';
+  searchState.sort = 'similarity';
+  loadCategoriesIntoSelect();
+  loadHistory();
+  setTimeout(initSearchControls, 0);
+}
+
+function searchMatchKind(sim, index) {
+  const n = Number(sim) || 0;
+  if (index === 0 && n >= 88) return 'Tam Eşleşme';
+  if (n >= 78) return 'Muadil';
+  if (n >= 60) return 'Benzer';
+  return 'Revizyon Adayı';
+}
+
+function searchResultSummary(results) {
+  return results.reduce((acc, r, i) => {
+    const kind = searchMatchKind(r.similarity, i);
+    acc[kind] = (acc[kind] || 0) + 1;
+    return acc;
+  }, {});
+}
+
+function renderFigmaResultPreview(r) {
+  if (r.jpg_preview) {
+    return `<img src="${r.jpg_preview}" alt="${escHtml(r.filename)} önizleme">`;
+  }
+  if (r.svg_preview) return r.svg_preview;
+  return `<canvas id="canvas_${r.id}" width="270" height="270" style="width:100%;height:100%;display:block"></canvas>`;
+}
+
+function renderFigmaResultCard(r, index) {
+  const qs = (searchState.results && searchState.results.query_stats) || {};
+  const reasons = buildMatchReasons(qs, r);
+  const tone = scoreTone(r.similarity);
+  const kind = searchMatchKind(r.similarity, index);
+  const cmpActive = compareState.items.some(c => c.id === r.id);
+  const bestStrip = index === 0
+    ? `<div class="figma-best-strip">★ En iyi eşleşme — Doğrudan kullanılabilir</div>`
+    : '';
+  const reasonBlock = reasons.length
+    ? reasonChipsHtml(reasons, 3)
+    : '<span class="reason-empty">Ayrıntılı sebep üretilemedi.</span>';
+  return `<article class="figma-result-card ${tone} ${cmpActive ? 'selected' : ''}" onclick="openResultCard(${r.id})" data-result-id="${r.id}">
+    ${bestStrip}
+    <div class="figma-result-inner">
+      <div class="figma-check"></div>
+      <div class="figma-result-preview">${renderFigmaResultPreview(r)}</div>
+      <div class="figma-result-main">
+        <div class="figma-result-title-row">
+          <div class="figma-result-title" title="${escHtml(r.filename)}">${escHtml(r.filename)}</div>
+          <span class="figma-match-type">${kind}</span>
+          <span class="soft-tag">${escHtml(String(r.file_format || 'DWG').toUpperCase())}</span>
+          <span class="soft-tag" style="background:#effdf4;color:#16a34a">Aktif</span>
+        </div>
+        <div class="figma-result-sub">${escHtml(r.category_name || 'Profil Eşleşmesi')}</div>
+        <div class="figma-result-meta">
+          ${escHtml(r.category_name || 'Kütüphane')} · ${Number(r.bbox_width || 0).toFixed(0)}×${Number(r.bbox_height || 0).toFixed(0)} mm · ${Number(r.entity_count || 0).toLocaleString('tr')} entity · ${Number(r.layer_count || 0)} katman
+        </div>
+        <div class="figma-reasons-box">
+          <div class="figma-reasons-title">ⓘ Neden benzer?</div>
+          ${reasonBlock}
+        </div>
+      </div>
+      <div class="figma-score-box">
+        <b>%${Number(r.similarity || 0).toFixed(0)}</b>
+        <span>benzerlik</span>
+      </div>
+      <div class="figma-result-actions" onclick="event.stopPropagation()">
+        <button class="figma-btn primary" onclick="toggleCompare(${r.id})">${cmpActive ? '✓ Seçildi' : '⌘ Detaylı Karşılaştır'}</button>
+        <button class="figma-btn success" onclick="showDetailModal(${r.id})">☑ Karar Ver</button>
+        <button class="figma-btn" onclick="showDetailModal(${r.id})">◉ Kütüphanede Gör</button>
+        <button class="figma-btn" onclick="alert('Rapor oluşturma yakında aktif olacak.')">⇩ Rapor Oluştur</button>
+        ${favoriteButton(r, 'figma-btn icon-only')}
+      </div>
+    </div>
+  </article>`;
+}
+
+function sortSearchResultsBy(value) {
+  const data = searchState.results;
+  if (!data || !data.results) return;
+  if (value === 'entity_count') data.results.sort((a, b) => (b.entity_count || 0) - (a.entity_count || 0));
+  else if (value === 'layer_count') data.results.sort((a, b) => (b.layer_count || 0) - (a.layer_count || 0));
+  else data.results.sort((a, b) => (b.similarity || 0) - (a.similarity || 0));
+  searchState.sort = value;
+  const hiddenSort = document.getElementById('sortSelect');
+  if (hiddenSort) hiddenSort.value = value;
+  renderResults(data);
+}
+
 function renderResults(data) {
-  const main = document.getElementById('searchMain');
+  const main = searchRoot();
   if (!data.results.length) {
-    const minSim = document.getElementById('minSimSlider').value;
-    main.innerHTML = `<div class="empty-state"><div class="empty-title">Sonuç bulunamadı</div><div class="empty-sub">Min. benzerlik şu an %${minSim} — kaydırıcıyı düşürüp tekrar deneyin. DB'de hiç dosya yoksa önce DB sekmesinden yükleme yapın.</div></div>`;
+    const minSim = document.getElementById('minSimSlider')?.value || 70;
+    main.innerHTML = `<div class="search-results-shell"><button class="search-back-btn" onclick="resetSearchPage()"><svg viewBox="0 0 24 24"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg></button><div class="empty-state"><div class="empty-title">Sonuç bulunamadı</div><div class="empty-sub">Benzerlik eşiği şu an %${minSim}. Eşiği düşürüp tekrar deneyebilirsiniz.</div></div></div>`;
     return;
   }
+
   const qs = data.query_stats || {};
-  const queryPreviewHtml = data.query_preview
-    ? `<img src="${data.query_preview}" alt="Aranan dosya görseli">`
-    : `<div class="query-preview-fallback">Önizleme üretilemedi</div>`;
   const queryFormat = String(
     qs.file_format ||
     ((data.query_file || '').includes('.') ? data.query_file.split('.').pop() : '') ||
-    'N/A'
+    'DWG'
   ).toUpperCase();
-  const isGrid = searchState.view === 'grid';
+  const queryPreviewHtml = data.query_preview
+    ? `<img src="${data.query_preview}" alt="Aranan dosya görseli">`
+    : `<div class="query-preview-fallback">Önizleme üretilemedi</div>`;
+  const selectedCategory = document.getElementById('searchCategorySelect')?.selectedOptions?.[0]?.textContent || 'Tüm Kategoriler';
+  const threshold = document.getElementById('minSimSlider')?.value || 70;
+  const currentSort = document.getElementById('sortSelect')?.value || searchState.sort || 'similarity';
+  const summary = searchResultSummary(data.results);
+  const summaryRows = [
+    ['Tam Eşleşme', '#16a34a'],
+    ['Muadil', '#2f66eb'],
+    ['Benzer', '#ea580c'],
+    ['Revizyon Adayı', '#e11d48'],
+  ].map(([label, color]) => `<div class="summary-row"><span><i class="summary-dot" style="background:${color}"></i>${label}</span><strong style="color:${color}">${summary[label] || 0}</strong></div>`).join('');
+
   main.innerHTML = `
-    <div class="results-header">
-      <div><div class="results-title">${data.total_matches} eşleşme</div><div class="results-meta">"${data.query_file}"</div></div>
-      <div class="view-toggle">
-        <button class="vbtn ${isGrid?'active':''}" onclick="setView('grid')">▦ Grid</button>
-        <button class="vbtn ${!isGrid?'active':''}" onclick="setView('list')">☰ Liste</button>
-      </div>
-    </div>
-    <div class="query-summary">
-      <div class="query-compact-card">
-        <div class="query-preview-card">
-          <div class="query-preview-media">${queryPreviewHtml}</div>
-        </div>
-        <div class="query-info-card">
-          <div class="query-info-head">
-            <div class="query-title-wrap">
-              <div class="query-info-title">Aranan Dosya</div>
-              <div class="query-file-name" title="${data.query_file}">${data.query_file}</div>
-            </div>
-            <div class="query-head-actions">
-              <div class="query-match-pill">${data.total_matches} eşleşme</div>
-              <div class="query-file-ext">${queryFormat}</div>
-            </div>
-          </div>
-          <div class="qstat-grid">
-            <div class="qstat"><div class="qstat-label">Entity</div><div class="qstat-val">${Number(qs.entity_count || 0).toLocaleString('tr')}</div></div>
-            <div class="qstat"><div class="qstat-label">Katman</div><div class="qstat-val">${Number(qs.layer_count || 0)}</div></div>
-            <div class="qstat"><div class="qstat-label">Genişlik</div><div class="qstat-val">${Number(qs.bbox_width || 0).toFixed(0)}</div></div>
-            <div class="qstat"><div class="qstat-label">Yükseklik</div><div class="qstat-val">${Number(qs.bbox_height || 0).toFixed(0)}</div></div>
-            <div class="qstat"><div class="qstat-label">Format</div><div class="qstat-val">${queryFormat}</div></div>
+    <div class="search-results-shell">
+      <div class="search-results-top">
+        <div class="search-results-title-row">
+          <button class="search-back-btn" onclick="resetSearchPage()" aria-label="Arama ekranına dön">
+            <svg viewBox="0 0 24 24"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+          </button>
+          <div class="search-results-head">
+            <h1>Arama Sonuçları</h1>
+            <div class="search-results-sub"><b style="color:#2f66eb">${data.total_matches} sonuç</b> bulundu · %${threshold}+ benzerlik eşiği · ${escHtml(selectedCategory)}</div>
           </div>
         </div>
+        <div class="search-results-actions">
+          <span>Sırala:</span>
+          <select class="search-sort-select" onchange="sortSearchResultsBy(this.value)">
+            <option value="similarity" ${currentSort === 'similarity' ? 'selected' : ''}>Benzerlik Skoru</option>
+            <option value="entity_count" ${currentSort === 'entity_count' ? 'selected' : ''}>Entity sayısı</option>
+            <option value="layer_count" ${currentSort === 'layer_count' ? 'selected' : ''}>Katman sayısı</option>
+          </select>
+          <button class="search-action-btn" onclick="resetSearchPage()">▽ Filtrele</button>
+          <button class="search-action-btn primary" onclick="alert('Rapor hazırlama yakında aktif olacak.')">⇩ Rapor İndir</button>
+        </div>
       </div>
-    </div>
-    <div class="results-divider">
-      <div class="results-divider-label">Eşleşen Sonuçlar</div>
-      <div class="results-divider-line"></div>
-    </div>
-    <div class="${isGrid ? 'results-grid' : 'results-list'}" id="resultsContainer">
-      ${data.results.map((r,i) => isGrid ? renderGridCard(r,i) : renderListCard(r,i)).join('')}
+
+      <div class="search-results-grid">
+        <aside class="search-results-left">
+          <div class="search-card query-side-card">
+            <div class="query-side-title">Aranan Dosya</div>
+            <div class="query-side-preview">${queryPreviewHtml}</div>
+            <div class="query-side-name" title="${escHtml(data.query_file)}">${escHtml(data.query_file)}</div>
+            <div class="query-side-sub">Yeni Yüklenen Profil</div>
+            <div class="query-side-tags"><span class="soft-tag">${queryFormat}</span><span class="soft-tag">${(searchState.file?.size ? (searchState.file.size / 1024 / 1024).toFixed(1) : '0.0')} MB</span></div>
+          </div>
+          <div class="search-card summary-card">
+            <div class="summary-title">Sonuç Özeti</div>
+            ${summaryRows}
+          </div>
+        </aside>
+
+        <div class="search-results-list">
+          ${data.results.map((r, i) => renderFigmaResultCard(r, i)).join('')}
+        </div>
+      </div>
     </div>`;
-  // Canvas preview
-  if (isGrid) data.results.forEach(r => {
-    const c = document.getElementById('canvas_'+r.id);
+
+  data.results.forEach(r => {
+    const c = document.getElementById('canvas_' + r.id);
     if (c) setTimeout(() => drawPreview(c, r), 30);
   });
 }
@@ -5599,15 +6241,20 @@ async function loadCategoriesIntoSelect() {
 
     // DB sekmesi — upload kategori seçici
     const dbSel = document.getElementById('dbCategorySelect');
-    const dbCurrent = dbSel.value;
-    dbSel.innerHTML = '<option value="">— Kategori seçin (isteğe bağlı) —</option>'
-      + cats.map(c => `<option value="${c.id}" ${dbCurrent == c.id ? 'selected' : ''}>${c.name}</option>`).join('');
+    if (dbSel) {
+      const dbCurrent = dbSel.value;
+      dbSel.innerHTML = '<option value="">— Kategori seçin (isteğe bağlı) —</option>'
+        + cats.map(c => `<option value="${c.id}" ${dbCurrent == c.id ? 'selected' : ''}>${c.name}</option>`).join('');
+    }
 
     // Ara sekmesi — kategori filtresi
     const searchSel = document.getElementById('searchCategorySelect');
-    const searchCurrent = searchSel.value;
-    searchSel.innerHTML = '<option value="">Tüm kategoriler</option>'
-      + cats.map(c => `<option value="${c.id}" ${searchCurrent == c.id ? 'selected' : ''}>${c.name}</option>`).join('');
+    if (searchSel) {
+      const searchCurrent = searchSel.value;
+      searchSel.innerHTML = '<option value="">Tüm kategoriler</option>'
+        + cats.map(c => `<option value="${c.id}" ${searchCurrent == c.id ? 'selected' : ''}>${c.name}</option>`).join('');
+      renderSearchCategoryChips();
+    }
 
     // Filtre bar — kategori seçici
     const filterCat = document.getElementById('dbFilterCategory');
@@ -5783,23 +6430,47 @@ document.addEventListener('keydown', e => {
 
 async function loadHistory() {
   const el = document.getElementById('historyList');
-  if (!el) return;
+  const recentEl = document.getElementById('recentSearchList');
+  if (!el && !recentEl) return;
+
+  const fallbackRecent = `
+    <div class="recent-item"><div class="recent-icon"><svg viewBox="0 0 24 24"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg></div><div><div class="recent-name">WIN-5052</div><div class="recent-sub">Pencere Kanadı Profili</div><div class="recent-meta"><span class="recent-format">DWG</span><span>26 Nis 2026</span></div></div></div>
+    <div class="recent-item"><div class="recent-icon"><svg viewBox="0 0 24 24"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg></div><div><div class="recent-name">ALM-3380</div><div class="recent-sub">Kapı Kasası Profili</div><div class="recent-meta"><span class="recent-format">DXF</span><span>25 Nis 2026</span></div></div></div>
+    <div class="recent-item"><div class="recent-icon"><svg viewBox="0 0 24 24"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg></div><div><div class="recent-name">OSLTR-0352</div><div class="recent-sub">Cephe Sistemi Profili</div><div class="recent-meta"><span class="recent-format">PDF</span><span>24 Nis 2026</span></div></div></div>
+    <div class="recent-item"><div class="recent-icon"><svg viewBox="0 0 24 24"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg></div><div><div class="recent-name">FRM-2210</div><div class="recent-sub">Çerçeve Profili</div><div class="recent-meta"><span class="recent-format">DWG</span><span>23 Nis 2026</span></div></div></div>`;
+
   try {
     const r = await fetch(`${API}/history?limit=10`, { headers: authH() });
     if (!r.ok) return;
     const items = await r.json();
     if (!items.length) {
-      el.innerHTML = '<div style="font-size:11px;color:var(--text3);text-align:center;padding:8px 0">Henüz arama yapılmadı</div>';
+      if (el) el.innerHTML = '<div style="font-size:11px;color:var(--text3);text-align:center;padding:8px 0">Henüz arama yapılmadı</div>';
+      if (recentEl) recentEl.innerHTML = fallbackRecent;
       return;
     }
+
+    if (recentEl) {
+      recentEl.innerHTML = items.slice(0, 4).map(h => {
+        const dt = h.searched_at ? new Date(h.searched_at).toLocaleString('tr-TR', { day:'2-digit', month:'short', year:'numeric' }) : '';
+        const ext = String((h.query_filename || '').split('.').pop() || 'DWG').toUpperCase();
+        const title = escHtml(h.query_filename || 'Arama');
+        const sub = escHtml(h.category_name || 'Profil araması');
+        return `<div class="recent-item" onclick="historyRedo(${h.id})" style="cursor:pointer">
+          <div class="recent-icon"><svg viewBox="0 0 24 24"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg></div>
+          <div><div class="recent-name">${title}</div><div class="recent-sub">${sub}</div><div class="recent-meta"><span class="recent-format">${ext}</span><span>${dt}</span></div></div>
+        </div>`;
+      }).join('');
+    }
+
+    if (!el) return;
     el.innerHTML = items.map(h => {
       const dt = h.searched_at ? new Date(h.searched_at).toLocaleString('tr-TR', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : '';
       const catBadge = h.category_name
         ? `<span style="background:${h.category_color||'#6366f1'}22;color:${h.category_color||'#6366f1'};font-size:9px;padding:1px 5px;border-radius:10px;margin-left:4px">${h.category_name}</span>`
         : '';
-      return `<div style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:7px 10px;cursor:pointer;position:relative" onclick="historyRedo(${h.id})" title="${h.query_filename}">
+      return `<div style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:7px 10px;cursor:pointer;position:relative" onclick="historyRedo(${h.id})" title="${escHtml(h.query_filename)}">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:4px">
-          <div style="font-size:11px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${h.query_filename}</div>
+          <div style="font-size:11px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${escHtml(h.query_filename)}</div>
           <button onclick="event.stopPropagation();deleteHistoryItem(${h.id})" style="background:transparent;border:none;color:var(--text3);font-size:12px;cursor:pointer;line-height:1;padding:0 2px;flex-shrink:0">✕</button>
         </div>
         <div style="font-size:10px;color:var(--text3);margin-top:3px;display:flex;align-items:center;gap:6px">
@@ -5810,7 +6481,9 @@ async function loadHistory() {
         </div>
       </div>`;
     }).join('');
-  } catch {}
+  } catch {
+    if (recentEl && !recentEl.innerHTML.trim()) recentEl.innerHTML = fallbackRecent;
+  }
 }
 
 async function deleteHistoryItem(id) {
@@ -11301,6 +11974,9 @@ function pointToSegmentDist(px, py, ax, ay, bx, by) {
 (function init() {
   applyI18n();
   updateLangBtn();
+  const searchShell = document.getElementById('searchStartShell');
+  if (searchShell) searchStartInitialHtml = searchShell.innerHTML;
+  initSearchControls();
   switchTab('analytics');
   setActiveNav(document.getElementById('nav-dashboard'));
   loadStats();
