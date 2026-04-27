@@ -17,8 +17,9 @@
       --blue: #0ea5e9; --blue2: #0284c7; --green: #10b981;
       --amber: #f59e0b; --red: #ef4444; --radius: 10px; --radius-lg: 14px;
       --violet: #8b5cf6; --cyan: #0ea5e9; --pink: #db2777;
-      --nav-bg: var(--ds-bg-base); --nav-bg2: var(--ds-bg-base); --nav-border: var(--ds-border);
-      --sidebar: var(--ds-bg-base);
+      --sidebar-logo-bg: #010d25;
+      --nav-bg: var(--sidebar-logo-bg); --nav-bg2: var(--sidebar-logo-bg); --nav-border: var(--ds-border);
+      --sidebar: var(--sidebar-logo-bg);
       --sidebar-foreground: rgba(237, 246, 255, 0.88);
       --sidebar-foreground-muted: #8ea6c0;
       --sidebar-axis-green: #19d49b;
@@ -83,7 +84,7 @@
       gap: 0;
       padding: 0;
       border-radius: 0;
-      background: transparent;
+      background: var(--sidebar-logo-bg);
       border: none;
       box-shadow: none;
     }
@@ -95,6 +96,8 @@
       border-radius: 4px;
       object-fit: cover;
       object-position: center;
+      background: var(--sidebar-logo-bg);
+      filter: none;
       box-shadow: none;
     }
     .brand-icon {
@@ -1236,7 +1239,15 @@
     .page-header { display: flex; justify-content: flex-start; align-items: center; padding: 24px 32px; background: var(--nav-bg); border-bottom: 1px solid #1C3248; width: 100% !important; max-width: none !important; margin: 0 !important; flex-shrink: 0; position: relative; }
     .page-header > div:first-child { text-align: left; }
     .ph-actions { position: absolute; right: 32px; display: flex; align-items: center; gap: 8px; }
-    .ph-title { font-family: var(--font-display); font-size: 27px; font-weight: 700; color: var(--nav-text); margin-bottom: 4px; margin-top: 0; }
+    .ph-title {
+      font-family: var(--font-display);
+      font-size: 27px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 4px;
+      margin-top: 0;
+      text-shadow: 0 0 8px rgba(255,255,255,0.72), 0 0 22px rgba(39,245,179,0.32), 0 0 34px rgba(14,165,233,0.18);
+    }
     .ph-sub { font-family: var(--font-ui); font-size: 14.5px; color: var(--nav-muted); margin: 0; }
     .ph-actions { display: flex; gap: 12px; align-items: center; }
     .enterprise-badge {
@@ -2119,7 +2130,7 @@
 <!-- Topbar -->
 <div class="topbar">
   <div class="brand">
-    <img class="brand-logo-img" src="assets/profile-axis-logo.jpg" alt="Profile Axis">
+    <img class="brand-logo-img" src="assets/profile-axis-logo-neon.png" alt="Profile Axis">
   </div>
   <div class="topbar-right">
     <div class="topbar-meta">
