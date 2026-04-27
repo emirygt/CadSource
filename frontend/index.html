@@ -217,8 +217,8 @@
     .tab {
       padding: 10px 12px;
       font-size: 14px;
-      font-weight: 400;
-      color: #94a3b8;
+      font-weight: 700;
+      color: var(--nav-muted);
       cursor: pointer;
       border-radius: 8px;
       border: 1px solid transparent;
@@ -228,10 +228,10 @@
       align-items: center;
       gap: 10px;
       min-height: 46px;
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-family: var(--font-ui);
       font-size: 15.5px;
     }
-    .tab:hover { color: #cbd5e1; background: rgba(148,163,184,0.12); }
+    .tab:hover { color: #19d49b; background: rgba(25,212,155,0.10); }
     .tab.active {
       color: #ffffff;
       background: rgba(25,212,155,0.18);
@@ -241,7 +241,7 @@
     .nav-ic {
       width: 24px;
       height: 24px;
-      color: #94a3b8;
+      color: var(--nav-muted);
       flex-shrink: 0;
       display: inline-flex;
       align-items: center;
@@ -256,8 +256,8 @@
       stroke-linecap: round;
       stroke-linejoin: round;
     }
-    .tab.active { color: #ffffff !important; }
-    .tab.active .nav-ic { color: #ffffff; }
+    .tab.active { color: #19d49b !important; }
+    .tab.active .nav-ic { color: #19d49b; }
     .tab-group { display: flex; flex-direction: column; gap: 2px; }
     .tab-parent {
       justify-content: flex-start;
@@ -265,7 +265,7 @@
       border: 1px solid transparent;
       box-shadow: none;
     }
-    .tab-parent .chevron { margin-left: auto; color: #94a3b8; font-size: 14px; transition: transform 0.18s ease; }
+    .tab-parent .chevron { margin-left: auto; color: var(--nav-muted); font-size: 14px; transition: transform 0.18s ease; }
     .tab-parent.expanded { color: var(--nav-text); background: var(--nav-surface); border-color: #1C3248; }
     .tab-parent.expanded .chevron { transform: rotate(180deg); color: var(--nav-text); }
     .tab-submenu {
@@ -281,22 +281,21 @@
       font-size: 13px;
       padding: 7px 10px;
       border-radius: 8px;
-      color: #94a3b8;
-      font-weight: 400;
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      color: var(--nav-muted);
+      font-weight: 500;
       min-height: 36px;
     }
-    .tab-sub .nav-ic { width: 16px; height: 16px; color: #94a3b8; }
+    .tab-sub .nav-ic { width: 16px; height: 16px; color: var(--nav-muted); }
     .tab-sub .nav-ic svg { width: 14px; height: 14px; }
     .tab-sub.active {
-      background: rgba(25,212,155,0.18);
-      border-color: rgba(25,212,155,0.35);
-      box-shadow: 0 1px 3px rgba(25,212,155,0.25);
-      color: #ffffff;
+      background: rgba(14,165,233,0.10);
+      border-color: transparent;
+      box-shadow: none;
+      color: var(--blue);
     }
-    .tab-sub.active .nav-ic { color: #ffffff; }
+    .tab-sub.active .nav-ic { color: var(--blue); }
     .tab-sub.active::before {
-      background: #19d49b;
+      background: var(--blue);
       box-shadow: none;
     }
     .product-focus {
