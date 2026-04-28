@@ -1098,6 +1098,16 @@
     .scan-btn.smooth:hover { background: rgba(124,58,237,0.08); }
     .scan-btn.smooth.active { background: #7c3aed; color: #fff; }
     .scan-msg { font-size: 11px; color: var(--text3); min-height: 16px; }
+    .scan-cad-editor-card { border-color: rgba(15,23,42,0.14); background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%); }
+    .scan-cad-editor-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .scan-cad-editor-chip { font-size: 10px; font-weight: 700; letter-spacing: 0.06em; color: #0f172a; background: #fef3c7; border: 1px solid #fcd34d; border-radius: 6px; padding: 3px 6px; white-space: nowrap; }
+    .scan-cad-editor-status { font-size: 12px; color: var(--text2); line-height: 1.45; }
+    .scan-cad-editor-meta { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+    .scan-cad-editor-meta > span { background: var(--bg3); border: 1px solid var(--border); border-radius: 7px; padding: 6px 5px; font-size: 10px; color: var(--text3); text-align: center; }
+    .scan-cad-editor-meta > span b { display: block; margin-bottom: 2px; font-family: var(--font-data); font-size: 14px; color: var(--text); }
+    .scan-cad-open-btn { width: 100%; justify-content: center; background: #0f172a; border-color: #0f172a; color: #fff; font-weight: 700; }
+    .scan-cad-open-btn:hover { background: #1e293b; border-color: #1e293b; color: #fff; }
+    .scan-cad-open-btn:disabled { background: var(--bg3); border-color: var(--border); color: var(--text3); }
     .scan-preview-wrap { border: 1px solid var(--border); border-radius: 8px; background: #f1f5f9; overflow: hidden; }
     .scan-preview-wrap img { width: 100%; height: auto; display: block; }
     .scan-editor-card { flex: 1; }
@@ -1113,24 +1123,48 @@
     .scan-status-bar { display: flex; gap: 16px; font-size: 10px; color: var(--text3); padding: 4px 2px 0; flex-wrap: wrap; }
     .scan-status-bar span { font-family: var(--font-mono); }
 
-    /* ═══════════════ AutoCAD tarzı CAD Pro editor ═══════════════ */
-    .acad-overlay { position: fixed; inset: 0; background: #1e2023; z-index: 9000; display: flex; flex-direction: column; color: #d7d9dc; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    /* ═══════════════ Professional CAD Workbench editor ═══════════════ */
+    .acad-overlay { position: fixed; inset: 0; background: #151719; z-index: 9000; display: flex; flex-direction: column; color: #d7d9dc; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
     .acad-overlay.hidden { display: none; }
-    .acad-topbar { display: flex; align-items: center; gap: 8px; padding: 6px 10px; background: #2c2f35; border-bottom: 1px solid #3a3d44; flex-shrink: 0; }
-    .acad-logo { font-weight: 700; font-size: 12px; color: #ffb400; letter-spacing: 0.05em; }
-    .acad-tool-grp { display: flex; gap: 2px; padding: 0 8px; border-left: 1px solid #3a3d44; }
-    .acad-tool-grp:first-of-type { border-left: none; }
-    .acad-tool { background: #383b42; border: 1px solid #4a4d55; color: #e5e7eb; font-size: 11px; padding: 5px 9px; border-radius: 3px; cursor: pointer; min-width: 28px; text-align: center; font-weight: 500; }
-    .acad-tool:hover { background: #4a4d55; border-color: #5a5d65; }
+    .acad-topbar { background: #23262b; border-bottom: 1px solid #3a3d44; flex-shrink: 0; display: flex; flex-direction: column; }
+    .acad-ribbon-head { min-height: 38px; display: flex; align-items: center; gap: 10px; padding: 6px 10px; border-bottom: 1px solid #343841; background: #202328; }
+    .acad-logo { font-weight: 800; font-size: 12px; color: #ffb400; letter-spacing: 0.06em; white-space: nowrap; }
+    .acad-doc-info { display: flex; flex-direction: column; gap: 2px; min-width: 130px; padding: 0 8px 0 2px; }
+    .acad-doc-name { font-size: 11px; color: #f8fafc; font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px; }
+    .acad-doc-meta { font-size: 10px; color: #9ca0a9; white-space: nowrap; }
+    .acad-menu-strip { display: flex; align-items: center; gap: 2px; flex-wrap: wrap; }
+    .acad-menu-tab { height: 24px; padding: 0 10px; border: 1px solid transparent; background: transparent; color: #c4c8cf; border-radius: 3px; font-size: 11px; font-weight: 650; cursor: default; }
+    .acad-menu-tab.active { color: #111827; background: #ffb400; border-color: #ffb400; }
+    .acad-workbench { margin-left: auto; display: flex; align-items: center; gap: 6px; color: #9ca0a9; font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; }
+    .acad-workbench select { height: 26px; min-width: 210px; border: 1px solid #4a4d55; border-radius: 4px; background: #151719; color: #f3f4f6; font-size: 11px; padding: 0 8px; outline: none; }
+    .acad-ribbon-tools { display: flex; align-items: stretch; gap: 0; overflow-x: auto; padding: 7px 10px; background: #282b31; }
+    .acad-tool-grp { display: flex; align-items: center; gap: 3px; padding: 0 10px; border-left: 1px solid #3a3d44; min-height: 34px; }
+    .acad-tool-grp:first-of-type { border-left: none; padding-left: 0; }
+    .acad-tool { background: #343840; border: 1px solid #4a4d55; color: #e5e7eb; font-size: 11px; padding: 5px 9px; border-radius: 4px; cursor: pointer; min-width: 30px; height: 28px; text-align: center; font-weight: 650; }
+    .acad-tool:hover { background: #42464f; border-color: #626773; }
     .acad-tool.active { background: #ffb400; color: #1e2023; border-color: #ffb400; }
     .acad-tool.toggle.on { background: #2d8a3e; border-color: #36a049; color: #fff; }
-    .acad-tool-label { font-size: 10px; color: #9ca0a9; text-transform: uppercase; margin-right: 4px; letter-spacing: 0.04em; }
-    .acad-main { flex: 1; display: grid; grid-template-columns: 220px 1fr; min-height: 0; }
-    .acad-side { background: #25282d; border-right: 1px solid #3a3d44; overflow-y: auto; display: flex; flex-direction: column; }
-    .acad-side-hdr { font-size: 11px; font-weight: 600; color: #ffb400; padding: 8px 10px; text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 1px solid #3a3d44; display: flex; justify-content: space-between; align-items: center; }
+    .acad-tool-label { font-size: 10px; color: #9ca0a9; text-transform: uppercase; margin-right: 5px; letter-spacing: 0.06em; white-space: nowrap; }
+    .acad-main { flex: 1; display: grid; grid-template-columns: 265px minmax(0, 1fr) 286px; min-height: 0; }
+    .acad-side, .acad-props { background: #202328; overflow-y: auto; display: flex; flex-direction: column; min-width: 0; }
+    .acad-side { border-right: 1px solid #3a3d44; }
+    .acad-props { border-left: 1px solid #3a3d44; }
+    .acad-pane { border-bottom: 1px solid #343841; }
+    .acad-pane-body { padding: 8px 10px; }
+    .acad-side-hdr { font-size: 11px; font-weight: 700; color: #ffb400; padding: 8px 10px; text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 1px solid #343841; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
     .acad-side-hdr button { background: #383b42; border: 1px solid #4a4d55; color: #e5e7eb; border-radius: 3px; padding: 2px 7px; font-size: 10px; cursor: pointer; }
     .acad-side-hdr button:hover { background: #4a4d55; }
-    .acad-layer-row { display: flex; align-items: center; gap: 6px; padding: 4px 8px; font-size: 11px; border-bottom: 1px solid #2f3239; cursor: pointer; }
+    .acad-tree { font-size: 11px; color: #c4c8cf; line-height: 1.5; }
+    .acad-tree-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.035); }
+    .acad-tree-row:last-child { border-bottom: none; }
+    .acad-tree-row b { color: #f3f4f6; font-weight: 650; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .acad-tree-row span { color: #8f96a3; font-family: var(--font-mono); font-size: 10px; white-space: nowrap; }
+    .acad-tree-indent { padding-left: 12px; }
+    .acad-soft-list { display: grid; gap: 5px; font-size: 11px; color: #c4c8cf; }
+    .acad-soft-item { display: flex; justify-content: space-between; gap: 8px; padding: 5px 7px; background: #262a30; border: 1px solid #343841; border-radius: 4px; }
+    .acad-soft-item strong { color: #f3f4f6; font-weight: 650; }
+    .acad-soft-item span { color: #8f96a3; }
+    .acad-layer-row { display: flex; align-items: center; gap: 6px; padding: 5px 8px; font-size: 11px; border-bottom: 1px solid #2f3239; cursor: pointer; }
     .acad-layer-row.current { background: #333a46; border-left: 3px solid #ffb400; }
     .acad-layer-row .lcol { width: 14px; height: 14px; border-radius: 2px; border: 1px solid #111; cursor: pointer; flex-shrink: 0; }
     .acad-layer-row .lname { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #d7d9dc; }
@@ -1138,10 +1172,22 @@
     .acad-layer-row .lico { width: 16px; height: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #9ca0a9; font-size: 12px; }
     .acad-layer-row .lico:hover { color: #ffb400; }
     .acad-layer-row .lico.off { color: #4a4d55; }
-    .acad-canvas-area { position: relative; background: #1e2023; overflow: hidden; }
+    .acad-canvas-area { position: relative; background: #151719; overflow: hidden; min-width: 0; }
     .acad-svg-root { width: 100%; height: 100%; display: block; cursor: crosshair; }
     .acad-coords-tip { position: absolute; pointer-events: none; background: #1e2023; border: 1px solid #ffb400; color: #ffb400; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 11px; padding: 2px 6px; border-radius: 3px; z-index: 10; }
-    .acad-bottom { background: #25282d; border-top: 1px solid #3a3d44; flex-shrink: 0; display: flex; flex-direction: column; }
+    .acad-empty-state { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; pointer-events: none; }
+    .acad-empty-card { pointer-events: auto; width: min(420px, calc(100% - 48px)); border: 1px solid #3a3d44; background: rgba(37,40,45,0.94); border-radius: 8px; padding: 18px; box-shadow: 0 20px 60px rgba(0,0,0,0.35); text-align: center; }
+    .acad-empty-title { color: #f8fafc; font-weight: 700; font-size: 15px; margin-bottom: 6px; }
+    .acad-empty-sub { color: #9ca0a9; font-size: 12px; line-height: 1.45; margin-bottom: 14px; }
+    .acad-empty-actions { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+    .acad-empty-state.show { display: flex; }
+    .acad-empty-actions .acad-btn-save, .acad-empty-actions .acad-tool { padding: 7px 12px; }
+    .acad-prop-table { display: grid; gap: 5px; font-size: 11px; }
+    .acad-prop-row { display: grid; grid-template-columns: minmax(80px, 0.9fr) minmax(0, 1.2fr); gap: 8px; padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.045); }
+    .acad-prop-row span { color: #8f96a3; min-width: 0; }
+    .acad-prop-row b { color: #f3f4f6; font-weight: 650; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: right; }
+    .acad-health-pill { display: inline-flex; align-items: center; gap: 6px; padding: 5px 8px; border-radius: 4px; border: 1px solid #33564a; background: rgba(34,197,94,0.08); color: #7dd3a7; font-size: 11px; font-weight: 650; }
+    .acad-bottom { background: #202328; border-top: 1px solid #3a3d44; flex-shrink: 0; display: flex; flex-direction: column; }
     .acad-cmd-history { max-height: 74px; overflow-y: auto; padding: 4px 10px; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 11px; color: #9ca0a9; line-height: 1.5; }
     .acad-cmd-history .cmd-in { color: #ffb400; }
     .acad-cmd-history .cmd-err { color: #ef4444; }
@@ -1155,10 +1201,21 @@
     .acad-snap-marker { pointer-events: none; }
     /* SVG içindeki seçim gösterimi */
     .acad-sel { outline: none; }
-    .acad-btn-close { margin-left: auto; background: #b91c1c; border: 1px solid #dc2626; color: #fff; font-size: 11px; padding: 5px 12px; border-radius: 3px; cursor: pointer; font-weight: 600; }
+    .acad-btn-close { background: #8f1d1d; border: 1px solid #dc2626; color: #fff; font-size: 11px; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-weight: 650; }
     .acad-btn-close:hover { background: #dc2626; }
-    .acad-btn-save { background: #16a34a; border: 1px solid #22c55e; color: #fff; font-size: 11px; padding: 5px 12px; border-radius: 3px; cursor: pointer; font-weight: 600; }
+    .acad-btn-save { background: #15803d; border: 1px solid #22c55e; color: #fff; font-size: 11px; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-weight: 650; height: 28px; }
     .acad-btn-save:hover { background: #22c55e; }
+    @media (max-width: 1180px) {
+      .acad-main { grid-template-columns: 225px minmax(0, 1fr); }
+      .acad-props { display: none; }
+    }
+    @media (max-width: 980px) {
+      .acad-main { grid-template-columns: 1fr; }
+      .acad-side, .acad-props { display: none; }
+      .acad-doc-info { min-width: 100px; }
+      .acad-doc-name { max-width: 150px; }
+      .acad-workbench { display: none; }
+    }
 
     /* ══════════════════════════════════════════
        DASHBOARD — eksik CSS (Codex ekledi, CSS unutuldu)
@@ -2206,6 +2263,10 @@
       <div class="tab tab-sub" id="nav-scan" onclick="navDigital('scan', this)">
         <span class="nav-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/><circle cx="15" cy="15" r="2"/><path d="M12 15h.01"/></svg></span>
         <span data-i18n="nav.scan_cad">Scan → CAD</span>
+      </div>
+      <div class="tab tab-sub" id="nav-cad-editor" onclick="navCadEditor(this)">
+        <span class="nav-ic"><svg viewBox="0 0 24 24"><path d="M4 20h16"></path><path d="M5 17l9-9 3 3-9 9H5z"></path><path d="M13 9l2-2q2-2 4 0t0 4l-2 2"></path></svg></span>
+        <span data-i18n="nav.cad_editor">CAD Editör</span>
       </div>
     </div>
   </div>
@@ -3362,6 +3423,23 @@
         <div class="scan-msg" id="scanMsg"></div>
       </div>
 
+      <div class="scan-card scan-cad-editor-card">
+        <div class="scan-cad-editor-head">
+          <div class="scan-card-title" data-i18n="scan.cad_editor_title">CAD Editör</div>
+          <span class="scan-cad-editor-chip">CAD PRO</span>
+        </div>
+        <div class="scan-cad-editor-status" id="scanCadEditorStatus">Dönüştürme bekleniyor</div>
+        <button class="scan-btn scan-cad-open-btn" id="scanCadEditorBtn" onclick="openAcad()" disabled>
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h16M5 17l9-9 3 3-9 9H5z"/><path d="M13 9l2-2a2 2 0 0 1 3 3l-2 2"/></svg>
+          <span data-i18n="scan.cad_editor_open">CAD Editör'de Aç</span>
+        </button>
+        <div class="scan-cad-editor-meta" id="scanCadEditorMeta">
+          <span><b>0</b><span data-i18n="scan.stat_lines">Çizgi</span></span>
+          <span><b>0</b><span data-i18n="scan.stat_circles">Çember</span></span>
+          <span><b>0</b><span data-i18n="scan.stat_arcs">Yay</span></span>
+        </div>
+      </div>
+
       <!-- Orijinal görsel önizleme -->
       <div class="scan-card" id="scanOriginalCard" style="display:none">
         <div class="scan-card-title" data-i18n="scan.original">Orijinal</div>
@@ -3429,68 +3507,129 @@
   </div>
 </div>
 
-<!-- ═══════════════ CAD PRO (AutoCAD-style) OVERLAY ═══════════════ -->
+<!-- ═══════════════ CAD PRO WORKBENCH OVERLAY ═══════════════ -->
 <div class="acad-overlay hidden" id="acadOverlay">
   <div class="acad-topbar">
-    <div class="acad-logo">CAD PRO</div>
-
-    <div class="acad-tool-grp">
-      <span class="acad-tool-label" data-i18n="scan.draw">Çiz</span>
-      <button class="acad-tool" data-tool="line" onclick="acadSetTool('line')" title="Line (L)">╱</button>
-      <button class="acad-tool" data-tool="circle" onclick="acadSetTool('circle')" title="Circle (C)">◯</button>
-      <button class="acad-tool" data-tool="arc" onclick="acadSetTool('arc')" title="Arc 3pt (A)">⌒</button>
-      <button class="acad-tool" data-tool="rect" onclick="acadSetTool('rect')" title="Rectangle (REC)">▭</button>
-      <button class="acad-tool" data-tool="polyline" onclick="acadSetTool('polyline')" title="Polyline (PL)">⟋⟋</button>
-      <button class="acad-tool" data-tool="polygon" onclick="acadSetTool('polygon')" title="Polygon (POL)">⬡</button>
+    <div class="acad-ribbon-head">
+      <div class="acad-logo">PROFILE AXIS CAD</div>
+      <div class="acad-doc-info">
+        <div class="acad-doc-name" id="acadDocName" data-i18n="scan.cad_editor_title">CAD Editör</div>
+        <div class="acad-doc-meta" id="acadDocMeta">0 entity</div>
+      </div>
+      <div class="acad-menu-strip" aria-label="CAD ribbon">
+        <button class="acad-menu-tab active">File</button>
+        <button class="acad-menu-tab">View</button>
+        <button class="acad-menu-tab">Draw</button>
+        <button class="acad-menu-tab">Modify</button>
+        <button class="acad-menu-tab">Measure</button>
+        <button class="acad-menu-tab">Search</button>
+        <button class="acad-menu-tab">Compare</button>
+        <button class="acad-menu-tab">Export</button>
+      </div>
+      <label class="acad-workbench">
+        Workbench
+        <select id="acadWorkbenchSelect">
+          <option>Search Workbench</option>
+          <option>Compare Workbench</option>
+          <option>Scan-to-CAD Workbench</option>
+          <option>Review Workbench</option>
+          <option>Parametric Workbench</option>
+          <option>Archive Cleanup Workbench</option>
+        </select>
+      </label>
+      <button class="acad-btn-close" onclick="closeAcad()">× <span data-i18n="common.close">Kapat</span></button>
     </div>
 
-    <div class="acad-tool-grp">
-      <span class="acad-tool-label" data-i18n="scan.modify">Değiştir</span>
-      <button class="acad-tool" data-tool="select" onclick="acadSetTool('select')" title="Select (SEL)">⬚</button>
-      <button class="acad-tool" data-tool="move" onclick="acadSetTool('move')" title="Move (M)">⇔</button>
-      <button class="acad-tool" data-tool="copy" onclick="acadSetTool('copy')" title="Copy (CO)">⎘</button>
-      <button class="acad-tool" data-tool="rotate" onclick="acadSetTool('rotate')" title="Rotate (RO)">↻</button>
-      <button class="acad-tool" data-tool="erase" onclick="acadSetTool('erase')" title="Erase (E)">✕</button>
-      <button class="acad-tool" data-tool="trim" onclick="acadSetTool('trim')" title="Trim (TR)">✂</button>
-      <button class="acad-tool" data-tool="extend" onclick="acadSetTool('extend')" title="Extend (EX)">⟶‖</button>
-      <button class="acad-tool" data-tool="offset" onclick="acadSetTool('offset')" title="Offset (OFF)">≡</button>
-    </div>
+    <div class="acad-ribbon-tools">
+      <div class="acad-tool-grp">
+        <span class="acad-tool-label">File</span>
+        <button class="acad-tool" onclick="acadOpenScanUpload()" title="Dosya seç">OPEN</button>
+        <button class="acad-tool" onclick="acadStartBlankDrawing()" title="Boş çizim">NEW</button>
+      </div>
 
-    <div class="acad-tool-grp">
-      <span class="acad-tool-label" data-i18n="scan.measure">Ölçü</span>
-      <button class="acad-tool" data-tool="dim-lin" onclick="acadSetTool('dim-lin')" title="Linear Dimension (DLI)">⊢⊣</button>
-      <button class="acad-tool" data-tool="dim-ali" onclick="acadSetTool('dim-ali')" title="Aligned Dimension (DAL)">⤢</button>
-    </div>
+      <div class="acad-tool-grp">
+        <span class="acad-tool-label" data-i18n="scan.draw">Çiz</span>
+        <button class="acad-tool" data-tool="line" onclick="acadSetTool('line')" title="Line (L)">╱</button>
+        <button class="acad-tool" data-tool="circle" onclick="acadSetTool('circle')" title="Circle (C)">○</button>
+        <button class="acad-tool" data-tool="arc" onclick="acadSetTool('arc')" title="Arc 3pt (A)">⌒</button>
+        <button class="acad-tool" data-tool="rect" onclick="acadSetTool('rect')" title="Rectangle (REC)">▭</button>
+        <button class="acad-tool" data-tool="polyline" onclick="acadSetTool('polyline')" title="Polyline (PL)">PL</button>
+        <button class="acad-tool" data-tool="polygon" onclick="acadSetTool('polygon')" title="Polygon (POL)">POL</button>
+      </div>
 
-    <div class="acad-tool-grp">
-      <span class="acad-tool-label" data-i18n="scan.mode">Mod</span>
-      <button class="acad-tool toggle" id="acadToggleOsnap" onclick="acadToggle('osnap')" title="Object Snap (F3)">OSNAP</button>
-      <button class="acad-tool toggle" id="acadToggleOrtho" onclick="acadToggle('ortho')" title="Ortho (F8)">ORTHO</button>
-      <button class="acad-tool toggle" id="acadToggleGrid" onclick="acadToggle('gridSnap')" title="Grid Snap (F9)">GSNAP</button>
-    </div>
+      <div class="acad-tool-grp">
+        <span class="acad-tool-label" data-i18n="scan.modify">Değiştir</span>
+        <button class="acad-tool" data-tool="select" onclick="acadSetTool('select')" title="Select (SEL)">SEL</button>
+        <button class="acad-tool" data-tool="move" onclick="acadSetTool('move')" title="Move (M)">M</button>
+        <button class="acad-tool" data-tool="copy" onclick="acadSetTool('copy')" title="Copy (CO)">CO</button>
+        <button class="acad-tool" data-tool="rotate" onclick="acadSetTool('rotate')" title="Rotate (RO)">RO</button>
+        <button class="acad-tool" data-tool="erase" onclick="acadSetTool('erase')" title="Erase (E)">E</button>
+        <button class="acad-tool" data-tool="trim" onclick="acadSetTool('trim')" title="Trim (TR)">TR</button>
+        <button class="acad-tool" data-tool="extend" onclick="acadSetTool('extend')" title="Extend (EX)">EX</button>
+        <button class="acad-tool" data-tool="offset" onclick="acadSetTool('offset')" title="Offset (OFF)">OFF</button>
+      </div>
 
-    <div class="acad-tool-grp">
-      <button class="acad-tool" onclick="acadZoom(1.25)" title="Zoom In">+</button>
-      <button class="acad-tool" onclick="acadZoom(0.8)" title="Zoom Out">−</button>
-      <button class="acad-tool" onclick="acadFit()" title="Zoom Extents">⊡</button>
-      <button class="acad-tool" onclick="acadUndo()" title="Undo (Ctrl+Z)">↶</button>
-      <button class="acad-tool" onclick="acadRedo()" title="Redo (Ctrl+Y)">↷</button>
-    </div>
+      <div class="acad-tool-grp">
+        <span class="acad-tool-label" data-i18n="scan.measure">Ölçü</span>
+        <button class="acad-tool" data-tool="dim-lin" onclick="acadSetTool('dim-lin')" title="Linear Dimension (DLI)">DLI</button>
+        <button class="acad-tool" data-tool="dim-ali" onclick="acadSetTool('dim-ali')" title="Aligned Dimension (DAL)">DAL</button>
+      </div>
 
-    <button class="acad-btn-save" onclick="acadExportDXF()" title="DXF olarak indir">DXF</button>
-    <button class="acad-btn-save" onclick="acadExportSVG()" title="SVG olarak indir">SVG</button>
-    <button class="acad-btn-close" onclick="closeAcad()">× <span data-i18n="common.close">Kapat</span></button>
+      <div class="acad-tool-grp">
+        <span class="acad-tool-label">View</span>
+        <button class="acad-tool" onclick="acadZoom(1.25)" title="Zoom In">+</button>
+        <button class="acad-tool" onclick="acadZoom(0.8)" title="Zoom Out">−</button>
+        <button class="acad-tool" onclick="acadFit()" title="Zoom Extents">FIT</button>
+        <button class="acad-tool" onclick="acadUndo()" title="Undo (Ctrl+Z)">↶</button>
+        <button class="acad-tool" onclick="acadRedo()" title="Redo (Ctrl+Y)">↷</button>
+      </div>
+
+      <div class="acad-tool-grp">
+        <span class="acad-tool-label" data-i18n="scan.mode">Mod</span>
+        <button class="acad-tool toggle" id="acadToggleOsnap" onclick="acadToggle('osnap')" title="Object Snap (F3)">OSNAP</button>
+        <button class="acad-tool toggle" id="acadToggleOrtho" onclick="acadToggle('ortho')" title="Ortho (F8)">ORTHO</button>
+        <button class="acad-tool toggle" id="acadToggleGrid" onclick="acadToggle('gridSnap')" title="Grid Snap (F9)">GSNAP</button>
+      </div>
+
+      <div class="acad-tool-grp">
+        <span class="acad-tool-label">Export</span>
+        <button class="acad-btn-save" onclick="acadExportDXF()" title="DXF olarak indir">DXF</button>
+        <button class="acad-btn-save" onclick="acadExportSVG()" title="SVG olarak indir">SVG</button>
+      </div>
+    </div>
   </div>
 
   <div class="acad-main">
     <div class="acad-side">
-      <div class="acad-side-hdr">
-        <span data-i18n="scan.layers">Katmanlar</span>
-        <button onclick="acadLayerAdd()" data-i18n="scan.new_layer">+ Yeni</button>
-      </div>
-      <div id="acadLayerList"></div>
-      <div class="acad-side-hdr" style="margin-top:10px" data-i18n="scan.selection_panel">Seçim</div>
-      <div id="acadSelectionInfo" style="padding:8px 10px;font-size:11px;color:#9ca0a9;line-height:1.6" data-i18n="scan.no_selection">Henüz seçim yok</div>
+      <section class="acad-pane">
+        <div class="acad-side-hdr"><span>Model Tree</span><span id="acadTreeCount">0</span></div>
+        <div class="acad-pane-body">
+          <div id="acadModelTree" class="acad-tree"></div>
+        </div>
+      </section>
+      <section class="acad-pane">
+        <div class="acad-side-hdr">
+          <span data-i18n="scan.layers">Katmanlar</span>
+          <button onclick="acadLayerAdd()" data-i18n="scan.new_layer">+ Yeni</button>
+        </div>
+        <div id="acadLayerList"></div>
+      </section>
+      <section class="acad-pane">
+        <div class="acad-side-hdr"><span>Entities</span><span id="acadEntityTypeCount">0</span></div>
+        <div class="acad-pane-body">
+          <div id="acadEntityTree" class="acad-soft-list"></div>
+        </div>
+      </section>
+      <section class="acad-pane">
+        <div class="acad-side-hdr"><span>Search / Similar</span></div>
+        <div class="acad-pane-body">
+          <div class="acad-soft-list">
+            <div class="acad-soft-item"><strong>Search results</strong><span id="acadSearchResultCount">—</span></div>
+            <div class="acad-soft-item"><strong>Similar files</strong><span id="acadSimilarFileCount">—</span></div>
+            <div class="acad-soft-item"><strong>Duplicate groups</strong><span id="acadDuplicateGroupCount">—</span></div>
+          </div>
+        </div>
+      </section>
     </div>
 
     <div class="acad-canvas-area" id="acadCanvasArea">
@@ -3501,7 +3640,43 @@
            onwheel="acadWheel(event)"
            oncontextmenu="return false"></svg>
       <div class="acad-coords-tip" id="acadCoordsTip" style="display:none"></div>
+      <div class="acad-empty-state" id="acadEmptyState">
+        <div class="acad-empty-card">
+          <div class="acad-empty-title" data-i18n="acad.empty_title">Çizim yok</div>
+          <div class="acad-empty-sub" data-i18n="acad.empty_sub">Tara → CAD ile profil oluşturun veya boş çizime başlayın.</div>
+          <div class="acad-empty-actions">
+            <button class="acad-btn-save" onclick="acadOpenScanUpload()" data-i18n="acad.pick_file">Dosya Seç</button>
+            <button class="acad-tool" onclick="acadStartBlankDrawing()" data-i18n="acad.blank_start">Boş Çizim</button>
+          </div>
+        </div>
+      </div>
     </div>
+
+    <aside class="acad-props">
+      <section class="acad-pane">
+        <div class="acad-side-hdr" data-i18n="scan.selection_panel">Seçim</div>
+        <div id="acadSelectionInfo" class="acad-pane-body acad-prop-table" data-i18n="scan.no_selection">Henüz seçim yok</div>
+      </section>
+      <section class="acad-pane">
+        <div class="acad-side-hdr">Properties</div>
+        <div id="acadPropertyInfo" class="acad-pane-body acad-prop-table"></div>
+      </section>
+      <section class="acad-pane">
+        <div class="acad-side-hdr">Geometry Stats</div>
+        <div id="acadGeometryStats" class="acad-pane-body acad-prop-table"></div>
+      </section>
+      <section class="acad-pane">
+        <div class="acad-side-hdr">Review / Audit</div>
+        <div class="acad-pane-body">
+          <div class="acad-soft-list">
+            <div class="acad-soft-item"><strong>Similarity</strong><span id="acadSimilarityScore">—</span></div>
+            <div class="acad-soft-item"><strong>Duplicate</strong><span id="acadDuplicateStatus">—</span></div>
+            <div class="acad-soft-item"><strong>Revision</strong><span id="acadRevisionStatus">—</span></div>
+            <div class="acad-soft-item"><strong>CAD Health</strong><span id="acadCadHealth">Ready</span></div>
+          </div>
+        </div>
+      </section>
+    </aside>
   </div>
 
   <div class="acad-bottom">
@@ -3509,7 +3684,7 @@
     <div class="acad-cmd-line">
       <span class="acad-cmd-prompt" id="acadCmdPrompt" data-i18n="scan.cmd_prompt">Komut:</span>
       <input class="acad-cmd-input" id="acadCmdInput" autocomplete="off" spellcheck="false"
-             onkeydown="acadCmdKey(event)" data-i18n-placeholder="scan.cmd_placeholder" placeholder="Komut veya kısayol yazıp Enter (örn: L, C, REC, M, E, TR)">
+             onkeydown="acadCmdKey(event)" data-i18n-placeholder="scan.cmd_placeholder" placeholder="Komut, koordinat veya kısayol yazın (L, C, REC, 10,20, @5,0, 25<45)">
     </div>
     <div class="acad-status-bar">
       <span>X: <span id="acadCoordX" class="hl">0.00</span></span>
@@ -3524,6 +3699,8 @@
       <span id="acadStatusModes" class="hl">OSNAP · ORTHO · GSNAP</span>
       <span class="sep">|</span>
       <span id="acadEntityCount">0 entity</span>
+      <span class="sep">|</span>
+      <span>Job: <span id="acadJobStatus" class="hl">idle</span></span>
     </div>
   </div>
 </div>
@@ -3668,6 +3845,13 @@ function navDigital(target, el) {
   toggleDigitalMenu(true);
   setActiveNav(el);
   switchTab(target);
+}
+
+function navCadEditor(el) {
+  toggleDigitalMenu(true);
+  setActiveNav(el);
+  switchTab('scan');
+  setTimeout(() => openAcad(), 0);
 }
 
 function switchTab(name) {
@@ -8749,8 +8933,48 @@ const scanState = {
   ctx: null,
 };
 
+const CAD_ENTITY_KEYS = [
+  'lines','circles','arcs','texts','polylines','rectangles','polygons',
+  'dimensions','splines','ellipses','points','xlines','rays','leaders',
+];
+
+function scanEnsureCadEntityCollections(entities) {
+  const e = entities || {};
+  CAD_ENTITY_KEYS.forEach(k => { if (!Array.isArray(e[k])) e[k] = []; });
+  if (typeof e.width !== 'number') e.width = 500;
+  if (typeof e.height !== 'number') e.height = 500;
+  return e;
+}
+
+function scanEntityCounts(entities = scanState.entities) {
+  const e = entities || {};
+  const counts = {
+    lines: (e.lines || []).length,
+    circles: (e.circles || []).length,
+    arcs: (e.arcs || []).length,
+  };
+  counts.total = CAD_ENTITY_KEYS.reduce((sum, key) => sum + ((e[key] || []).length), 0);
+  return counts;
+}
+
+function scanUpdateCadEditorPanel() {
+  const btn = document.getElementById('scanCadEditorBtn');
+  const status = document.getElementById('scanCadEditorStatus');
+  const meta = document.getElementById('scanCadEditorMeta');
+  if (!btn || !status || !meta) return;
+  const counts = scanEntityCounts();
+  const ready = counts.total > 0;
+  btn.disabled = !ready;
+  status.textContent = ready ? `${t('scan.cad_editor_ready')} · ${counts.total} entity` : t('scan.cad_editor_waiting');
+  meta.innerHTML = `
+    <span><b>${counts.lines}</b>${t('scan.stat_lines')}</span>
+    <span><b>${counts.circles}</b>${t('scan.stat_circles')}</span>
+    <span><b>${counts.arcs}</b>${t('scan.stat_arcs')}</span>
+  `;
+}
+
 function scanInit() {
-  if (scanState.canvas) return;
+  if (scanState.canvas) { scanUpdateCadEditorPanel(); return; }
   const c = document.getElementById('scanCanvas');
   const wrap = document.getElementById('scanCanvasWrap');
   c.width = wrap.clientWidth || 800;
@@ -8766,6 +8990,7 @@ function scanInit() {
     c.width = wrap.clientWidth || 800;
     scanDraw();
   });
+  scanUpdateCadEditorPanel();
 }
 
 // ── dosya seçimi ──
@@ -8828,12 +9053,12 @@ async function scanConvert() {
       document.getElementById('scanOriginalCard').style.display = '';
     }
 
-    scanState.entities = data.entities;
+    scanState.entities = scanEnsureCadEntityCollections(data.entities);
     scanState.history = [];
     scanState.selectedIdx = null;
 
     // İstatistikler
-    const e = data.entities;
+    const e = scanState.entities;
     document.getElementById('sSLines').textContent = e.lines?.length || 0;
     document.getElementById('sSCircles').textContent = e.circles?.length || 0;
     document.getElementById('sSArcs').textContent = e.arcs?.length || 0;
@@ -8845,6 +9070,7 @@ async function scanConvert() {
     document.getElementById('scanSmoothBtn').disabled = false;
     document.getElementById('scanCanvasEmpty').style.display = 'none';
 
+    scanUpdateCadEditorPanel();
     scanFitView();
     const fg = data.foreground || {};
     const fgNote = fg.applied ? ' Parça konturu filtresi uygulandı.' : '';
@@ -8880,17 +9106,18 @@ async function scanSmooth() {
 
     if (data.preview) document.getElementById('scanOriginalImg').src = data.preview;
 
-    scanState.entities = data.entities;
+    scanState.entities = scanEnsureCadEntityCollections(data.entities);
     scanState.history = [];
     scanState.selectedIdx = null;
 
-    const e = data.entities;
+    const e = scanState.entities;
     document.getElementById('sSLines').textContent = e.lines?.length || 0;
     document.getElementById('sSCircles').textContent = e.circles?.length || 0;
     document.getElementById('sSArcs').textContent = e.arcs?.length || 0;
     document.getElementById('sSTotal').textContent = data.entity_count;
 
     btn.classList.add('active');
+    scanUpdateCadEditorPanel();
     scanFitView();
     scanMsg('İyileştirme tamamlandı.', '#7c3aed');
   } catch(err) {
@@ -9082,11 +9309,11 @@ function scanOnMouseDown(e) {
     if (scanState.arcPoints.length === 3) {
       const arc = threePointArc(scanState.arcPoints[0], scanState.arcPoints[1], scanState.arcPoints[2]);
       if (arc) {
-        if (!scanState.entities) scanState.entities = { lines: [], circles: [], arcs: [], texts: [], width: 500, height: 500 };
-        if (!scanState.entities.arcs) scanState.entities.arcs = [];
+        scanState.entities = scanEnsureCadEntityCollections(scanState.entities);
         scanSaveHistory();
         scanState.entities.arcs.push({ type:'ARC', cx: arc.cx, cy: arc.cy, r: arc.r, start_angle: arc.start, end_angle: arc.end });
         document.getElementById('scanExportBtn').disabled = false;
+        scanUpdateCadEditorPanel();
       }
       scanState.arcPoints = [];
     }
@@ -9126,7 +9353,7 @@ function scanOnMouseUp(e) {
   const ws = screenToWorld(scanState.drawStart.x, scanState.drawStart.y);
   const we = screenToWorld(mx, my);
 
-  if (!scanState.entities) scanState.entities = { lines: [], circles: [], arcs: [], texts: [], width: 500, height: 500 };
+  scanState.entities = scanEnsureCadEntityCollections(scanState.entities);
 
   scanSaveHistory();
 
@@ -9138,6 +9365,7 @@ function scanOnMouseUp(e) {
   }
 
   document.getElementById('scanExportBtn').disabled = false;
+  scanUpdateCadEditorPanel();
   scanDraw();
 }
 
@@ -9223,7 +9451,8 @@ function scanSaveHistory() {
 
 function scanUndo() {
   if (!scanState.history.length) return;
-  scanState.entities = JSON.parse(scanState.history.pop());
+  scanState.entities = scanEnsureCadEntityCollections(JSON.parse(scanState.history.pop()));
+  scanUpdateCadEditorPanel();
   if (scanState.svgMode) scanRenderSVG(); else scanDraw();
 }
 
@@ -9235,6 +9464,7 @@ function scanDeleteSelected() {
   scanState.entities[sel.type + 's'].splice(sel.index, 1);
   scanState.selectedIdx = null;
   document.getElementById('scanStatusSel').textContent = '—';
+  scanUpdateCadEditorPanel();
   if (scanState.svgMode) scanRenderSVG(); else scanDraw();
 }
 
@@ -9430,6 +9660,7 @@ function scanSvgMouseDown(ev) {
         if (!scanState.entities.arcs) scanState.entities.arcs = [];
         scanSaveHistory();
         scanState.entities.arcs.push({ type:'ARC', cx: arc.cx, cy: arc.cy, r: arc.r, start_angle: arc.start, end_angle: arc.end });
+        scanUpdateCadEditorPanel();
       }
       scanState.arcPoints = [];
       scanRenderSVG();
@@ -9466,7 +9697,7 @@ function scanSvgMouseUp(ev) {
   }
   if (scanState.drawing && scanState.drawStart) {
     const w = scanSvgClientToWorld(ev);
-    if (!scanState.entities) scanState.entities = { lines: [], circles: [], arcs: [], texts: [], width: 500, height: 500 };
+    scanState.entities = scanEnsureCadEntityCollections(scanState.entities);
     scanSaveHistory();
     if (scanState.tool === 'line') {
       scanState.entities.lines.push({ type:'LINE', x1: scanState.drawStart.x, y1: scanState.drawStart.y, x2: w.x, y2: w.y });
@@ -9477,6 +9708,7 @@ function scanSvgMouseUp(ev) {
     scanState.drawing = false;
     scanState.drawStart = null;
     document.getElementById('scanExportBtn').disabled = false;
+    scanUpdateCadEditorPanel();
     scanRenderSVG();
   }
 }
@@ -9562,11 +9794,9 @@ const ACAD_DEFAULT_LAYERS = [
 // ─── Açılış / kapanış ───────────────────────────────────────────────
 function openAcad() {
   if (!scanState.entities) {
-    scanState.entities = { lines: [], circles: [], arcs: [], texts: [], polylines: [], rectangles: [], polygons: [], dimensions: [], splines: [], ellipses: [], points: [], xlines: [], rays: [], leaders: [], width: 500, height: 500 };
+    scanState.entities = scanEnsureCadEntityCollections({ width: 500, height: 500 });
   } else {
-    // Geriye uyumluluk: yeni alanlar eksikse ekle
-    ['polylines','rectangles','polygons','dimensions','splines','ellipses','points','xlines','rays','leaders'].forEach(k => { if (!scanState.entities[k]) scanState.entities[k] = []; });
-    if (!scanState.entities.texts) scanState.entities.texts = [];
+    scanState.entities = scanEnsureCadEntityCollections(scanState.entities);
   }
   // Layers init: scanState.entities'da layers yoksa default'larla başla
   if (!scanState._acadLayers) scanState._acadLayers = ACAD_DEFAULT_LAYERS.map(l => ({ ...l }));
@@ -9579,9 +9809,15 @@ function openAcad() {
   acadFit();
   acadRenderLayers();
   acadUpdateModeButtons();
+  acadUpdateSelectionInfo();
   acadRender();
-  acadLog('CAD Pro yüklendi. Komut yazabilir veya araç seçebilirsiniz. (F1=yardım)', 'cmd-ok');
+  acadLog('CAD Pro yüklendi. Komut yazabilir veya araç seçebilirsiniz. Koordinat: x,y · @dx,dy · mesafe<açı. (F1=yardım)', 'cmd-ok');
   setTimeout(() => document.getElementById('acadCmdInput').focus(), 50);
+  requestAnimationFrame(() => {
+    acadResize();
+    acadFit();
+    acadRender();
+  });
   window.addEventListener('keydown', acadKeydown, true);
   window.addEventListener('resize', acadResize);
 }
@@ -9594,17 +9830,18 @@ function closeAcad() {
   window.removeEventListener('resize', acadResize);
   // Mevcut canvas görünümüne geri dön
   if (scanState.svgMode) scanRenderSVG(); else scanDraw();
+  scanUpdateCadEditorPanel();
 }
 
 function acadResize() {
   const area = document.getElementById('acadCanvasArea');
   if (!area) return;
   const r = area.getBoundingClientRect();
-  acadState.width = r.width;
-  acadState.height = r.height;
+  acadState.width = Math.max(r.width || 0, 600);
+  acadState.height = Math.max(r.height || 0, 420);
   const svg = document.getElementById('acadSvg');
-  svg.setAttribute('width', r.width);
-  svg.setAttribute('height', r.height);
+  svg.setAttribute('width', acadState.width);
+  svg.setAttribute('height', acadState.height);
   acadRender();
 }
 
@@ -9636,6 +9873,39 @@ function acadUpdateModeButtons() {
   document.getElementById('acadToggleGrid').classList.toggle('on', acadState.gridSnap);
   document.getElementById('acadStatusModes').textContent =
     `${acadState.osnap?'OSNAP':'osnap'} · ${acadState.ortho?'ORTHO':'ortho'} · ${acadState.gridSnap?'GSNAP':'gsnap'}`;
+}
+
+function acadUpdateDocInfo(visibleCount = null) {
+  const nameEl = document.getElementById('acadDocName');
+  const metaEl = document.getElementById('acadDocMeta');
+  if (!nameEl || !metaEl) return;
+  const total = scanEntityCounts().total;
+  const fileName = scanState.file?.name || t('acad.untitled');
+  nameEl.textContent = fileName;
+  metaEl.textContent = `${total} entity${visibleCount != null && visibleCount !== total ? ` · ${visibleCount} ${t('acad.visible')}` : ''}`;
+}
+
+function acadUpdateEmptyState() {
+  const empty = document.getElementById('acadEmptyState');
+  if (!empty) return;
+  const hasEntities = scanEntityCounts().total > 0;
+  empty.classList.toggle('show', !hasEntities && !acadState.pending);
+}
+
+function acadOpenScanUpload() {
+  closeAcad();
+  toggleDigitalMenu(true);
+  const nav = document.getElementById('nav-scan');
+  if (nav) setActiveNav(nav);
+  switchTab('scan');
+  setTimeout(() => document.getElementById('scanFileInput')?.click(), 80);
+}
+
+function acadStartBlankDrawing() {
+  scanState.entities = scanEnsureCadEntityCollections(scanState.entities || { width: 500, height: 500 });
+  acadSetTool('line');
+  acadUpdateEmptyState();
+  acadRender();
 }
 
 // ─── Koordinat dönüşümleri ──────────────────────────────────────────
@@ -9690,7 +9960,7 @@ function acadSnapshot() {
 function acadUndo() {
   if (!acadState.undoStack.length) { acadLog('Geri alınacak işlem yok.', 'cmd-err'); return; }
   acadState.redoStack.push(JSON.stringify(scanState.entities));
-  scanState.entities = JSON.parse(acadState.undoStack.pop());
+  scanState.entities = scanEnsureCadEntityCollections(JSON.parse(acadState.undoStack.pop()));
   acadState.selection = [];
   acadRender();
   acadLog('Geri alındı.', 'cmd-ok');
@@ -9698,7 +9968,7 @@ function acadUndo() {
 function acadRedo() {
   if (!acadState.redoStack.length) { acadLog('İleri alınacak işlem yok.', 'cmd-err'); return; }
   acadState.undoStack.push(JSON.stringify(scanState.entities));
-  scanState.entities = JSON.parse(acadState.redoStack.pop());
+  scanState.entities = scanEnsureCadEntityCollections(JSON.parse(acadState.redoStack.pop()));
   acadState.selection = [];
   acadRender();
   acadLog('İleri alındı.', 'cmd-ok');
@@ -9786,6 +10056,9 @@ function acadRender() {
   document.getElementById('acadStatusLayer').textContent = acadState.currentLayer;
   const totalEnts = all.length;
   document.getElementById('acadEntityCount').textContent = `${totalEnts} entity · ${acadState.selection.length} seçili`;
+  acadUpdateDocInfo(totalEnts);
+  acadUpdateEmptyState();
+  acadUpdateWorkbenchPanels(all);
 }
 
 function acadToolLabel(t) {
@@ -9985,28 +10258,82 @@ function acadRenderSnapMarker(x, y, kind) {
 }
 
 // ─── Fit, zoom, pan ────────────────────────────────────────────────
-function acadFit() {
-  const W = acadState.width, H = acadState.height;
-  const e = scanState.entities;
-  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-  (e?.lines || []).forEach(l => { minX=Math.min(minX,l.x1,l.x2); maxX=Math.max(maxX,l.x1,l.x2); minY=Math.min(minY,l.y1,l.y2); maxY=Math.max(maxY,l.y1,l.y2); });
-  (e?.circles || []).forEach(c => { minX=Math.min(minX,c.cx-c.r); maxX=Math.max(maxX,c.cx+c.r); minY=Math.min(minY,c.cy-c.r); maxY=Math.max(maxY,c.cy+c.r); });
-  (e?.arcs || []).forEach(a => { minX=Math.min(minX,a.cx-a.r); maxX=Math.max(maxX,a.cx+a.r); minY=Math.min(minY,a.cy-a.r); maxY=Math.max(maxY,a.cy+a.r); });
-  (e?.rectangles || []).forEach(r => { minX=Math.min(minX,r.x1,r.x2); maxX=Math.max(maxX,r.x1,r.x2); minY=Math.min(minY,r.y1,r.y2); maxY=Math.max(maxY,r.y1,r.y2); });
-  (e?.polylines || []).forEach(p => { (p.points||[]).forEach(pt => { minX=Math.min(minX,pt.x); maxX=Math.max(maxX,pt.x); minY=Math.min(minY,pt.y); maxY=Math.max(maxY,pt.y); }); });
-  (e?.polygons || []).forEach(p => { (p.points||[]).forEach(pt => { minX=Math.min(minX,pt.x); maxX=Math.max(maxX,pt.x); minY=Math.min(minY,pt.y); maxY=Math.max(maxY,pt.y); }); });
-  (e?.splines || []).forEach(p => { (p.points||[]).forEach(pt => { minX=Math.min(minX,pt.x); maxX=Math.max(maxX,pt.x); minY=Math.min(minY,pt.y); maxY=Math.max(maxY,pt.y); }); });
-  (e?.ellipses || []).forEach(el => { const R = Math.hypot(el.mx, el.my); minX=Math.min(minX,el.cx-R); maxX=Math.max(maxX,el.cx+R); minY=Math.min(minY,el.cy-R); maxY=Math.max(maxY,el.cy+R); });
-  (e?.points || []).forEach(p => { minX=Math.min(minX,p.x); maxX=Math.max(maxX,p.x); minY=Math.min(minY,p.y); maxY=Math.max(maxY,p.y); });
-  (e?.texts || []).forEach(t => { minX=Math.min(minX,t.x); maxX=Math.max(maxX,t.x); minY=Math.min(minY,t.y); maxY=Math.max(maxY,t.y); });
-  (e?.leaders || []).forEach(l => { minX=Math.min(minX,l.x1,l.x2,l.x3); maxX=Math.max(maxX,l.x1,l.x2,l.x3); minY=Math.min(minY,l.y1,l.y2,l.y3); maxY=Math.max(maxY,l.y1,l.y2,l.y3); });
+function acadBoundsNew() {
+  return { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity };
+}
 
-  if (!isFinite(minX)) { minX = 0; minY = 0; maxX = 100; maxY = 100; }
-  const ew = Math.max(maxX - minX, 1), eh = Math.max(maxY - minY, 1);
-  const margin = 60;
-  const zoom = Math.min((W - margin * 2) / ew, (H - margin * 2) / eh);
-  acadState.zoom = Math.max(zoom, 0.01);
-  const cx = (minX + maxX) / 2, cy = (minY + maxY) / 2;
+function acadBoundsAddPoint(b, x, y) {
+  if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+  b.minX = Math.min(b.minX, x);
+  b.maxX = Math.max(b.maxX, x);
+  b.minY = Math.min(b.minY, y);
+  b.maxY = Math.max(b.maxY, y);
+}
+
+function acadBoundsAddRadius(b, cx, cy, r) {
+  if (!Number.isFinite(cx) || !Number.isFinite(cy) || !Number.isFinite(r)) return;
+  acadBoundsAddPoint(b, cx - Math.abs(r), cy - Math.abs(r));
+  acadBoundsAddPoint(b, cx + Math.abs(r), cy + Math.abs(r));
+}
+
+function acadEntityBounds(entities = scanState.entities) {
+  const e = entities || {};
+  const b = acadBoundsNew();
+  (e.lines || []).forEach(l => { acadBoundsAddPoint(b, l.x1, l.y1); acadBoundsAddPoint(b, l.x2, l.y2); });
+  (e.circles || []).forEach(c => acadBoundsAddRadius(b, c.cx, c.cy, c.r));
+  (e.arcs || []).forEach(a => acadBoundsAddRadius(b, a.cx, a.cy, a.r));
+  (e.rectangles || []).forEach(r => { acadBoundsAddPoint(b, r.x1, r.y1); acadBoundsAddPoint(b, r.x2, r.y2); });
+  (e.polylines || []).forEach(p => (p.points || []).forEach(pt => acadBoundsAddPoint(b, pt.x, pt.y)));
+  (e.polygons || []).forEach(p => (p.points || []).forEach(pt => acadBoundsAddPoint(b, pt.x, pt.y)));
+  (e.splines || []).forEach(s => (s.points || []).forEach(pt => acadBoundsAddPoint(b, pt.x, pt.y)));
+  (e.ellipses || []).forEach(el => {
+    const major = Math.hypot(el.mx || 0, el.my || 0);
+    const r = major * Math.max(1, Math.abs(el.ratio || 0.5));
+    acadBoundsAddRadius(b, el.cx, el.cy, r);
+  });
+  (e.points || []).forEach(p => acadBoundsAddPoint(b, p.x, p.y));
+  (e.texts || []).forEach(t => {
+    const h = Math.max(t.height || 10, 1);
+    acadBoundsAddPoint(b, t.x, t.y);
+    acadBoundsAddPoint(b, t.x + String(t.text || '').length * h * 0.65, t.y + h);
+  });
+  (e.dimensions || []).forEach(d => {
+    acadBoundsAddPoint(b, d.x1, d.y1); acadBoundsAddPoint(b, d.x2, d.y2);
+    acadBoundsAddPoint(b, d.ox, d.oy);
+  });
+  (e.leaders || []).forEach(l => {
+    acadBoundsAddPoint(b, l.x1, l.y1); acadBoundsAddPoint(b, l.x2, l.y2); acadBoundsAddPoint(b, l.x3, l.y3);
+  });
+  (e.xlines || []).forEach(x => acadBoundsAddPoint(b, x.x, x.y));
+  (e.rays || []).forEach(r => acadBoundsAddPoint(b, r.x, r.y));
+  return Number.isFinite(b.minX) ? b : null;
+}
+
+function acadFit() {
+  const area = document.getElementById('acadCanvasArea');
+  if (area) {
+    const r = area.getBoundingClientRect();
+    acadState.width = Math.max(r.width || acadState.width || 0, 600);
+    acadState.height = Math.max(r.height || acadState.height || 0, 420);
+  }
+  const W = acadState.width, H = acadState.height;
+  const b = acadEntityBounds();
+  if (!b) {
+    acadState.zoom = 1;
+    acadState.pan.x = W / 2;
+    acadState.pan.y = H / 2;
+    acadRender();
+    return;
+  }
+  const ew = Math.max(b.maxX - b.minX, 1);
+  const eh = Math.max(b.maxY - b.minY, 1);
+  const margin = Math.max(36, Math.min(W, H) * 0.08);
+  const usableW = Math.max(W - margin * 2, 160);
+  const usableH = Math.max(H - margin * 2, 120);
+  const zoom = Math.min(usableW / ew, usableH / eh);
+  acadState.zoom = Math.max(Math.min(zoom, 12), 0.005);
+  const cx = (b.minX + b.maxX) / 2;
+  const cy = (b.minY + b.maxY) / 2;
   acadState.pan.x = W / 2 - cx * acadState.zoom;
   acadState.pan.y = H / 2 - cy * acadState.zoom;
   acadRender();
@@ -10109,6 +10436,58 @@ function acadApplyOrtho(from, to) {
   return dx > dy ? { x: to.x, y: from.y } : { x: from.x, y: to.y };
 }
 
+function acadPendingBasePoint(p) {
+  if (!p || !Array.isArray(p.points) || !p.points.length) return null;
+  return p.points[p.points.length - 1];
+}
+
+function acadNumberPattern() {
+  return '[-+]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)';
+}
+
+function acadParseCommandPoint(raw, p) {
+  const text = String(raw || '').trim();
+  const n = acadNumberPattern();
+  const base = acadPendingBasePoint(p) || { x: 0, y: 0 };
+  let m = text.match(new RegExp(`^(${n})\\s*,\\s*(${n})$`));
+  if (m) return { x: parseFloat(m[1]), y: parseFloat(m[2]) };
+  m = text.match(new RegExp(`^@\\s*(${n})\\s*,\\s*(${n})$`));
+  if (m) return { x: base.x + parseFloat(m[1]), y: base.y + parseFloat(m[2]) };
+  m = text.match(new RegExp(`^@?\\s*(${n})\\s*<\\s*(${n})$`));
+  if (m) {
+    const dist = parseFloat(m[1]);
+    const angle = parseFloat(m[2]) * Math.PI / 180;
+    return { x: base.x + dist * Math.cos(angle), y: base.y + dist * Math.sin(angle) };
+  }
+  return null;
+}
+
+function acadApplyNumericArgument(raw, p) {
+  const value = parseFloat(raw);
+  if (!p || isNaN(value)) return false;
+  if (p.type === 'circle' && p.points.length === 1 && value > 0) {
+    const c = p.points[0];
+    acadHandleToolClick({ x: c.x + value, y: c.y }, { shiftKey: false, ctrlKey: false, button: 0 });
+    return true;
+  }
+  if ((p.type === 'line' || p.type === 'polyline') && p.points.length >= 1 && value > 0) {
+    const base = acadPendingBasePoint(p);
+    let dx = acadState.mouseWorld.x - base.x;
+    let dy = acadState.mouseWorld.y - base.y;
+    const len = Math.hypot(dx, dy);
+    if (len < 0.0001) { dx = 1; dy = 0; }
+    else { dx /= len; dy /= len; }
+    acadHandleToolClick({ x: base.x + dx * value, y: base.y + dy * value }, { shiftKey: false, ctrlKey: false, button: 0 });
+    return true;
+  }
+  if (p.type === 'polygon' && p.step === 1 && p.points.length === 1 && value > 0) {
+    const c = p.points[0];
+    acadHandleToolClick({ x: c.x + value, y: c.y }, { shiftKey: false, ctrlKey: false, button: 0 });
+    return true;
+  }
+  return false;
+}
+
 // Efektif nokta: snap > grid > ortho > raw
 function acadResolvePoint(ev, fromPoint = null) {
   const sp = acadSvgPt(ev);
@@ -10191,6 +10570,7 @@ function acadSetTool(tool) {
     acadState.pending = null;
   }
   acadState.tool = tool;
+  if (tool && tool !== 'select') acadState.lastTool = tool;
   acadHighlightToolBtn(tool);
 
   // Tool init akışı
@@ -10853,13 +11233,147 @@ function acadSplineSamples(s, n) {
   return out;
 }
 
+function acadPropRows(rows) {
+  return rows.map(([label, value]) =>
+    `<div class="acad-prop-row"><span>${escHtml(label)}</span><b title="${escHtml(value)}">${escHtml(value)}</b></div>`
+  ).join('');
+}
+
+function acadTypeLabel(type) {
+  const labels = {
+    lines: 'Lines', circles: 'Circles', arcs: 'Arcs', texts: 'Text',
+    polylines: 'Polylines', rectangles: 'Rectangles', polygons: 'Polygons',
+    dimensions: 'Dimensions', splines: 'Splines', ellipses: 'Ellipses',
+    points: 'Points', xlines: 'XLines', rays: 'Rays', leaders: 'Leaders',
+  };
+  return labels[type] || type;
+}
+
+function acadTypeRows(entities = scanState.entities) {
+  const e = entities || {};
+  return CAD_ENTITY_KEYS
+    .map(key => ({ key, count: (e[key] || []).length }))
+    .filter(item => item.count > 0);
+}
+
+function acadFirstSelection() {
+  if (!acadState.selection.length || !scanState.entities) return null;
+  const sel = acadState.selection[0];
+  const arr = scanState.entities[sel.type + 's'];
+  if (!arr || !arr[sel.index]) return null;
+  return { sel, ent: arr[sel.index] };
+}
+
+function acadEntityLayerName(ent) {
+  return ent?.layer || acadState.currentLayer || '0';
+}
+
+function acadEntityDescriptor(sel, ent) {
+  if (!sel || !ent) return '—';
+  if (sel.type === 'line') {
+    const len = Math.hypot((ent.x2 || 0) - (ent.x1 || 0), (ent.y2 || 0) - (ent.y1 || 0));
+    return `LINE · ${len.toFixed(2)}`;
+  }
+  if (sel.type === 'circle') return `CIRCLE · r=${Number(ent.r || 0).toFixed(2)}`;
+  if (sel.type === 'arc') return `ARC · r=${Number(ent.r || 0).toFixed(2)}`;
+  if (sel.type === 'text') return `TEXT · ${String(ent.text || '').slice(0, 28)}`;
+  return `${sel.type.toUpperCase()} #${sel.index}`;
+}
+
+function acadSelectedPropertyRows() {
+  const first = acadFirstSelection();
+  if (!first) {
+    return [
+      ['Selection', 'None'],
+      ['Current layer', acadState.currentLayer],
+      ['Current tool', acadToolLabel(acadState.tool)],
+    ];
+  }
+  const { sel, ent } = first;
+  const rows = [
+    ['Type', sel.type.toUpperCase()],
+    ['Index', `#${sel.index}`],
+    ['Layer', acadEntityLayerName(ent)],
+    ['Summary', acadEntityDescriptor(sel, ent)],
+  ];
+  if ('x1' in ent) rows.push(['Start', `${Number(ent.x1).toFixed(2)}, ${Number(ent.y1).toFixed(2)}`]);
+  if ('x2' in ent) rows.push(['End', `${Number(ent.x2).toFixed(2)}, ${Number(ent.y2).toFixed(2)}`]);
+  if ('cx' in ent) rows.push(['Center', `${Number(ent.cx).toFixed(2)}, ${Number(ent.cy).toFixed(2)}`]);
+  if ('r' in ent) rows.push(['Radius', Number(ent.r).toFixed(2)]);
+  return rows;
+}
+
+function acadGeometryRows() {
+  const counts = scanEntityCounts();
+  const bounds = acadEntityBounds();
+  const rows = [
+    ['Total entities', String(counts.total)],
+    ['Visible entities', String(acadAllEntities().length)],
+    ['Layers', String(acadState.layers.length)],
+  ];
+  if (bounds) {
+    rows.push(['Width', (bounds.maxX - bounds.minX).toFixed(2)]);
+    rows.push(['Height', (bounds.maxY - bounds.minY).toFixed(2)]);
+    rows.push(['BBox min', `${bounds.minX.toFixed(2)}, ${bounds.minY.toFixed(2)}`]);
+    rows.push(['BBox max', `${bounds.maxX.toFixed(2)}, ${bounds.maxY.toFixed(2)}`]);
+  } else {
+    rows.push(['Width', '—']);
+    rows.push(['Height', '—']);
+  }
+  return rows;
+}
+
+function acadUpdateWorkbenchPanels(visibleEntities = null) {
+  const typeRows = acadTypeRows();
+  const total = scanEntityCounts().total;
+  const treeCount = document.getElementById('acadTreeCount');
+  const typeCount = document.getElementById('acadEntityTypeCount');
+  const modelTree = document.getElementById('acadModelTree');
+  const entityTree = document.getElementById('acadEntityTree');
+  const propInfo = document.getElementById('acadPropertyInfo');
+  const geometryStats = document.getElementById('acadGeometryStats');
+  const health = document.getElementById('acadCadHealth');
+  const searchCount = document.getElementById('acadSearchResultCount');
+  const similarCount = document.getElementById('acadSimilarFileCount');
+  const duplicateCount = document.getElementById('acadDuplicateGroupCount');
+
+  if (treeCount) treeCount.textContent = String(total);
+  if (typeCount) typeCount.textContent = String(typeRows.length);
+  if (modelTree) {
+    const filename = scanState.file?.name || t('acad.untitled');
+    modelTree.innerHTML = [
+      `<div class="acad-tree-row"><b>${escHtml(filename)}</b><span>${total}</span></div>`,
+      `<div class="acad-tree-row acad-tree-indent"><b>Body / Sketch</b><span>${(visibleEntities || acadAllEntities()).length}</span></div>`,
+      `<div class="acad-tree-row acad-tree-indent"><b>Layers</b><span>${acadState.layers.length}</span></div>`,
+    ].join('');
+  }
+  if (entityTree) {
+    entityTree.innerHTML = typeRows.length
+      ? typeRows.map(item => `<div class="acad-soft-item"><strong>${acadTypeLabel(item.key)}</strong><span>${item.count}</span></div>`).join('')
+      : '<div class="acad-soft-item"><strong>No entities</strong><span>0</span></div>';
+  }
+  if (propInfo) propInfo.innerHTML = acadPropRows(acadSelectedPropertyRows());
+  if (geometryStats) geometryStats.innerHTML = acadPropRows(acadGeometryRows());
+  if (health) health.textContent = total > 0 ? 'Ready' : 'Empty';
+  if (searchCount) searchCount.textContent = searchState.results?.total_matches ?? '—';
+  if (similarCount) similarCount.textContent = compareState.items?.length ? String(compareState.items.length) : '—';
+  if (duplicateCount) duplicateCount.textContent = dupState?.total ? String(dupState.total) : '—';
+}
+
 function acadUpdateSelectionInfo() {
   const el = document.getElementById('acadSelectionInfo');
   if (!el) return;
-  if (!acadState.selection.length) { el.textContent = 'Henüz seçim yok'; return; }
+  if (!acadState.selection.length) {
+    el.innerHTML = acadPropRows([['Selection', 'None'], ['Tool', acadToolLabel(acadState.tool)]]);
+    acadUpdateWorkbenchPanels();
+    return;
+  }
   const by = {};
   acadState.selection.forEach(s => { by[s.type] = (by[s.type] || 0) + 1; });
-  el.innerHTML = Object.entries(by).map(([k, v]) => `<div>${k}: <b>${v}</b></div>`).join('');
+  const rows = [['Selected', String(acadState.selection.length)]]
+    .concat(Object.entries(by).map(([k, v]) => [k.toUpperCase(), String(v)]));
+  el.innerHTML = acadPropRows(rows);
+  acadUpdateWorkbenchPanels();
 }
 
 function acadEraseSelection() {
@@ -11201,7 +11715,15 @@ function acadCmdKey(ev) {
 
 function acadCmdEnterOnly() {
   const p = acadState.pending;
-  if (!p) { acadLog(acadState.tool === 'select' ? 'Boş komut.' : `${acadState.tool.toUpperCase()} — tıklayın.`, ''); return; }
+  if (!p) {
+    if (acadState.lastTool && acadState.tool === 'select') {
+      acadLog(`Tekrar: ${acadToolLabel(acadState.lastTool)}`, 'cmd-ok');
+      acadSetTool(acadState.lastTool);
+      return;
+    }
+    acadLog(acadState.tool === 'select' ? 'Boş komut.' : `${acadState.tool.toUpperCase()} — tıklayın.`, '');
+    return;
+  }
   if (p.type === 'polyline') {
     if (p.points.length >= 2) {
       acadSnapshot();
@@ -11299,10 +11821,14 @@ function acadProcessCmd(raw) {
     }
   }
 
-  // Koordinat girişi (x,y)
-  if (p && /^-?[\d.]+\s*,\s*-?[\d.]+$/.test(raw)) {
-    const [xs, ys] = raw.split(',').map(s => parseFloat(s));
-    acadHandleToolClick({ x: xs, y: ys }, { shiftKey: false, ctrlKey: false, button: 0 });
+  // Komut satırı nokta/mesafe girişi:
+  // x,y mutlak koordinat; @dx,dy göreli koordinat; mesafe<açı polar; tek sayı bağlama göre mesafe/radius.
+  const cmdPoint = p ? acadParseCommandPoint(raw, p) : null;
+  if (cmdPoint) {
+    acadHandleToolClick(cmdPoint, { shiftKey: false, ctrlKey: false, button: 0 });
+    return;
+  }
+  if (p && /^[-+]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(raw) && acadApplyNumericArgument(raw, p)) {
     return;
   }
 
@@ -11347,7 +11873,7 @@ function acadProcessCmd(raw) {
     case '__dimdia':      acadCmdDimRadius('diameter'); return;
     case '__dimang':      acadCmdDimAngular(); return;
     case '__help':
-      acadLog('YARDIM — Çizim: L C A REC PL POL EL PO T XL RAY LE | Değiştir: M CO RO E TR EX OFF MI SC F CHA BR J X LEN AR DIV ME SM MA | Ölçü: DLI DAL DRA DDI DAN | Inquiry: DI ID AA LI PR | Mod: F3 F8 F9 Z P U REDO FIT REGEN PURGE HELP', 'cmd-ok');
+      acadLog('YARDIM — Çizim: L C A REC PL POL EL PO T XL RAY LE | Değiştir: M CO RO E TR EX OFF MI SC F CHA BR J X LEN AR DIV ME SM MA | Ölçü: DLI DAL DRA DDI DAN | Inquiry: DI ID AA LI PR | Koordinat: x,y @dx,dy mesafe<açı tek sayı | Mod: F3 F8 F9 Z P U REDO FIT REGEN PURGE HELP', 'cmd-ok');
       return;
     default:
       acadSetTool(mapped);
@@ -12295,6 +12821,7 @@ function scanReset() {
   scanState.arcPoints = [];
   scanState.dragging = false;
   scanState.dragStart = null;
+  scanUpdateCadEditorPanel();
 }
 
 function scanMsg(txt, color = '') {
