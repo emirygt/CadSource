@@ -55,7 +55,8 @@ CREATE TABLE IF NOT EXISTS {schema}.cad_files (
     category_id     INTEGER REFERENCES {schema}.categories(id) ON DELETE SET NULL,
     approved        BOOLEAN DEFAULT FALSE,
     approved_at     TIMESTAMP,
-    approval_status VARCHAR(20) DEFAULT 'uploaded'
+    approval_status VARCHAR(20) DEFAULT 'uploaded',
+    attributes      JSONB DEFAULT '{}'
 );
 
 CREATE TABLE IF NOT EXISTS {schema}.cad_file_groups (
@@ -122,6 +123,17 @@ CREATE TABLE IF NOT EXISTS {schema}.search_feedback (
     similarity_score REAL,
     is_relevant      BOOLEAN NOT NULL,
     created_at       TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS {schema}.attribute_definitions (
+    id         SERIAL PRIMARY KEY,
+    name       VARCHAR(100) NOT NULL,
+    data_type  VARCHAR(20) NOT NULL DEFAULT 'text',
+    options    JSONB DEFAULT '[]',
+    unit       VARCHAR(50) DEFAULT '',
+    required   BOOLEAN DEFAULT FALSE,
+    sort_order INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT NOW()
 );
 """
 

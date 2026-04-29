@@ -2278,6 +2278,10 @@
     <span class="nav-ic"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg></span>
     <span data-i18n="nav.categories">Categories</span>
   </div>
+  <div class="tab" id="nav-attr-defs" onclick="navGo('attr-defs', this)">
+    <span class="nav-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="4" rx="1"/><rect x="3" y="10" width="18" height="4" rx="1"/><rect x="3" y="17" width="18" height="4" rx="1"/><line x1="7" y1="5" x2="7" y2="5.01"/><line x1="7" y1="12" x2="7" y2="12.01"/><line x1="7" y1="19" x2="7" y2="19.01"/></svg></span>
+    <span data-i18n="nav.attr_defs">Attribute Tanımları</span>
+  </div>
   <div class="tab" id="nav-activity" onclick="navGo('activity', this)">
     <span class="nav-ic"><svg viewBox="0 0 24 24"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg></span>
     <span data-i18n="nav.job_history">Job History</span>
@@ -3106,6 +3110,49 @@
   </div>
 </div>
 
+<!-- ═══════════════ ATTRİBUTE TANIMLARI SAYFASI ═══════════════ -->
+<div class="page" id="page-attr-defs" style="padding:0; background:#f8fafc; align-items:stretch; flex-direction:column;">
+  <div class="page-header">
+    <div>
+      <h1 class="ph-title" data-i18n="attr.title">Attribute Tanımları</h1>
+      <p class="ph-sub" data-i18n="attr.sub">Ürünlere özel alanlar tanımlayın</p>
+    </div>
+  </div>
+  <div style="padding:32px; max-width:900px; width:100%; margin:0 auto;">
+
+    <!-- Yeni tanım ekle -->
+    <div class="cat-add-card" style="margin-bottom:24px">
+      <h2 style="font-size:15px;font-weight:600;margin-bottom:14px">Yeni Attribute</h2>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start">
+        <input id="attrNameInput" type="text" maxlength="100"
+          data-i18n-placeholder="attr.new_name" placeholder="Alan adı..."
+          style="flex:1;min-width:150px;font-family:inherit;font-size:13px;padding:8px 12px;border:1px solid #e2e8f0;border-radius:8px;outline:none">
+        <select id="attrTypeSelect" style="font-family:inherit;font-size:13px;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;background:#fff;outline:none">
+          <option value="text" data-i18n="attr.type_text">Metin</option>
+          <option value="number" data-i18n="attr.type_number">Sayı</option>
+          <option value="boolean" data-i18n="attr.type_boolean">Evet/Hayır</option>
+          <option value="select" data-i18n="attr.type_select">Seçenek</option>
+        </select>
+        <input id="attrUnitInput" type="text" maxlength="50"
+          data-i18n-placeholder="attr.unit_placeholder" placeholder="Birim (mm, kg...)"
+          style="width:130px;font-family:inherit;font-size:13px;padding:8px 12px;border:1px solid #e2e8f0;border-radius:8px;outline:none">
+        <input id="attrOptionsInput" type="text"
+          data-i18n-placeholder="attr.options_placeholder" placeholder="Seçenekler (virgülle ayır)"
+          style="width:200px;font-family:inherit;font-size:13px;padding:8px 12px;border:1px solid #e2e8f0;border-radius:8px;outline:none"
+          title="Sadece 'Seçenek' tipi için">
+        <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;white-space:nowrap">
+          <input type="checkbox" id="attrRequiredChk"> <span data-i18n="attr.required">Zorunlu</span>
+        </label>
+        <button class="btn-primary" onclick="addAttrDef()" data-i18n="attr.add">Ekle</button>
+      </div>
+      <div id="attrAddMsg" style="margin-top:8px;font-size:12px;display:none"></div>
+    </div>
+
+    <!-- Liste -->
+    <div id="attrDefList"></div>
+  </div>
+</div>
+
 <!-- ═══════════════ ANALİTİK SAYFASI ═══════════════ -->
 <div class="page" id="page-analytics" style="padding:0; background:#f8fafc; align-items: stretch; flex-direction: column;">
   <div class="page-header">
@@ -3758,6 +3805,131 @@ const token = localStorage.getItem('token');
 if (!token) window.location.href = 'login.html';
 const authH = () => ({ 'Authorization': `Bearer ${localStorage.getItem('token') || ''}` });
 
+// ───────── ATTRİBUTE TANIMLARI ─────────
+let _attrDefs = [];
+
+async function loadAttrDefs() {
+  const r = await fetch(`${API}/attributes/definitions`, { headers: authH() });
+  if (!r.ok) return;
+  _attrDefs = await r.json();
+  renderAttrDefList();
+}
+
+function renderAttrDefList() {
+  const el = document.getElementById('attrDefList');
+  if (!el) return;
+  if (!_attrDefs.length) {
+    el.innerHTML = `<p style="color:#94a3b8;font-size:13px">${t('attr.empty') || 'Henüz attribute tanımlanmadı.'}</p>`;
+    return;
+  }
+  const typeLabel = { text: 'Metin', number: 'Sayı', boolean: 'Evet/Hayır', select: 'Seçenek' };
+  el.innerHTML = `<div style="display:flex;flex-direction:column;gap:8px">${_attrDefs.map(d => `
+    <div style="display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:12px 16px">
+      <div style="flex:1;font-size:13px;font-weight:600;color:#0f172a">${escHtml(d.name)}</div>
+      <span style="font-size:11px;background:#f1f5f9;border-radius:5px;padding:2px 8px;color:#475569">${typeLabel[d.data_type] || d.data_type}</span>
+      ${d.unit ? `<span style="font-size:11px;color:#64748b">${escHtml(d.unit)}</span>` : ''}
+      ${d.required ? `<span style="font-size:11px;color:#dc2626">Zorunlu</span>` : ''}
+      ${d.options?.length ? `<span style="font-size:11px;color:#94a3b8">${d.options.map(o => escHtml(o)).join(', ')}</span>` : ''}
+      <button onclick="deleteAttrDef(${d.id})" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:16px;padding:0 4px;line-height:1" title="Sil">×</button>
+    </div>`).join('')}</div>`;
+}
+
+async function addAttrDef() {
+  const name = document.getElementById('attrNameInput').value.trim();
+  const data_type = document.getElementById('attrTypeSelect').value;
+  const unit = document.getElementById('attrUnitInput').value.trim();
+  const optionsRaw = document.getElementById('attrOptionsInput').value.trim();
+  const required = document.getElementById('attrRequiredChk').checked;
+  const msg = document.getElementById('attrAddMsg');
+  if (!name) { msg.style.display='block'; msg.style.color='#dc2626'; msg.textContent='Alan adı boş olamaz'; return; }
+  const options = optionsRaw ? optionsRaw.split(',').map(s => s.trim()).filter(Boolean) : [];
+  const r = await fetch(`${API}/attributes/definitions`, {
+    method: 'POST', headers: { ...authH(), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, data_type, options, unit, required, sort_order: _attrDefs.length }),
+  });
+  if (!r.ok) { const e = await r.json(); msg.style.display='block'; msg.style.color='#dc2626'; msg.textContent=e.detail||'Hata'; return; }
+  document.getElementById('attrNameInput').value = '';
+  document.getElementById('attrUnitInput').value = '';
+  document.getElementById('attrOptionsInput').value = '';
+  document.getElementById('attrRequiredChk').checked = false;
+  msg.style.display = 'none';
+  await loadAttrDefs();
+}
+
+async function deleteAttrDef(id) {
+  if (!confirm('Bu attribute tanımını silmek istediğinizden emin misiniz?')) return;
+  await fetch(`${API}/attributes/definitions/${id}`, { method: 'DELETE', headers: authH() });
+  await loadAttrDefs();
+}
+
+// Dosya detay modal — Attributes tabı
+let _fileAttrLoaded = null;
+async function loadFileAttributesTab(fileId) {
+  if (_fileAttrLoaded === fileId) return;
+  _fileAttrLoaded = fileId;
+  const panel = document.getElementById('dtAttributes');
+  if (!panel) return;
+  panel.innerHTML = '<div style="padding:12px 0;color:#94a3b8;font-size:13px">Yükleniyor...</div>';
+  const r = await fetch(`${API}/attributes/files/${fileId}`, { headers: authH() });
+  if (!r.ok) { panel.innerHTML = '<div style="color:#dc2626;font-size:13px">Yüklenemedi</div>'; return; }
+  const data = await r.json();
+  renderFileAttrForm(panel, fileId, data);
+}
+
+function renderFileAttrForm(panel, fileId, data) {
+  const { definitions, values } = data;
+  if (!definitions.length) {
+    panel.innerHTML = `<p style="color:#94a3b8;font-size:13px">Henüz attribute tanımı yok. <button onclick="navGo('attr-defs',document.getElementById('nav-attr-defs'))" style="background:none;border:none;color:#0ea5e9;cursor:pointer;font-size:13px;text-decoration:underline">Tanımla →</button></p>`;
+    return;
+  }
+  const typeLabel = { text: 'Metin', number: 'Sayı', boolean: 'Evet/Hayır', select: 'Seçenek' };
+  const fields = definitions.map(d => {
+    const val = values[String(d.id)] ?? '';
+    let input;
+    if (d.data_type === 'boolean') {
+      const checked = val === true || val === 'true' || val === '1' ? 'checked' : '';
+      input = `<input type="checkbox" id="af_${d.id}" ${checked} style="width:16px;height:16px;cursor:pointer">`;
+    } else if (d.data_type === 'select' && d.options?.length) {
+      const opts = d.options.map(o => `<option value="${escHtml(o)}" ${val===o?'selected':''}>${escHtml(o)}</option>`).join('');
+      input = `<select id="af_${d.id}" style="font-family:inherit;font-size:13px;padding:7px 10px;border:1px solid #e2e8f0;border-radius:7px;background:#fff;width:100%;outline:none"><option value=""></option>${opts}</select>`;
+    } else {
+      input = `<input type="${d.data_type === 'number' ? 'number' : 'text'}" id="af_${d.id}" value="${escHtml(String(val))}" style="font-family:inherit;font-size:13px;padding:7px 10px;border:1px solid #e2e8f0;border-radius:7px;width:100%;box-sizing:border-box;outline:none" ${d.required ? 'required' : ''}>`;
+    }
+    return `<div style="margin-bottom:14px">
+      <label style="display:block;font-size:12px;font-weight:600;color:#475569;margin-bottom:5px">${escHtml(d.name)}${d.unit ? ` <span style="font-weight:400;color:#94a3b8">(${escHtml(d.unit)})</span>` : ''}${d.required ? ' <span style="color:#dc2626">*</span>' : ''}</label>
+      ${input}
+    </div>`;
+  }).join('');
+
+  panel.innerHTML = `
+    <div style="max-width:500px">${fields}</div>
+    <div style="display:flex;align-items:center;gap:10px;margin-top:4px">
+      <button class="btn-primary" onclick="saveFileAttr(${fileId})" style="font-size:12.5px;padding:7px 16px">${t('attr.save')||'Kaydet'}</button>
+      <span id="attrSaveMsg" style="font-size:12px;color:#16a34a;display:none">${t('attr.saved')||'Kaydedildi'}</span>
+    </div>`;
+}
+
+async function saveFileAttr(fileId) {
+  const panel = document.getElementById('dtAttributes');
+  const defs = _attrDefs.length ? _attrDefs : (await fetch(`${API}/attributes/definitions`, { headers: authH() }).then(r => r.json()));
+  const values = {};
+  for (const d of defs) {
+    const el = document.getElementById(`af_${d.id}`);
+    if (!el) continue;
+    values[String(d.id)] = d.data_type === 'boolean' ? el.checked : el.value;
+  }
+  const r = await fetch(`${API}/attributes/files/${fileId}`, {
+    method: 'PUT', headers: { ...authH(), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ values }),
+  });
+  const msg = document.getElementById('attrSaveMsg');
+  if (r.ok) {
+    if (msg) { msg.style.display = 'inline'; setTimeout(() => { msg.style.display = 'none'; }, 2000); }
+  } else {
+    if (msg) { msg.style.display = 'inline'; msg.style.color = '#dc2626'; msg.textContent = 'Hata'; }
+  }
+}
+
 // ───────── DOĞAL DİL ARAMA ─────────
 async function runNLSearch() {
   const textarea = document.getElementById('nlQueryInput');
@@ -3940,6 +4112,7 @@ function switchTab(name) {
   if (name === 'approved')  { setProductsViewMode('split'); loadApprovedFiles(); }
   if (name === 'contour')   initContourTab();
   if (name === 'cat')       loadCategories();
+  if (name === 'attr-defs') loadAttrDefs();
   if (name === 'analytics') loadAnalytics();
   if (name === 'activity')   loadActivityLog();
   if (name === 'scan')       scanInit();
@@ -7230,6 +7403,7 @@ async function showDetailModal(fileId, tab) {
       <div class="detail-tab-bar">
         <button class="detail-tab-btn active" onclick="switchDetailTab('preview',this)">Önizleme</button>
         <button class="detail-tab-btn" onclick="switchDetailTab('analysis',this)">Analiz</button>
+        <button class="detail-tab-btn" onclick="switchDetailTab('attributes',this);loadFileAttributesTab(${f.id})">Attributeler</button>
         <button class="detail-tab-btn" onclick="switchDetailTab('duplicate',this)">Duplicate</button>
         <button class="detail-tab-btn" onclick="switchDetailTab('jobs',this)">Job Geçmişi</button>
         <button class="detail-tab-btn" onclick="switchDetailTab('model3d',this);ensure3DViewer(${f.id})">3D Görünüm</button>
@@ -7395,6 +7569,10 @@ async function showDetailModal(fileId, tab) {
           <button onclick="openCompareFromDetail(${f.id}, ${f.duplicate_group[0]?.file_id || 0})" style="padding:7px 16px;background:#dbeafe;color:#1d4ed8;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer">Orijinalle Karşılaştır</button>
         </div>` : ''}
       </div>
+      <!-- ATTRİBUTE TAB -->
+      <div id="dtAttributes" class="detail-tab-panel">
+        <div style="padding:8px 0;color:#94a3b8;font-size:13px">Yükleniyor...</div>
+      </div>
       <!-- JOB GEÇMİŞİ TAB -->
       <div id="dtJobs" class="detail-tab-panel">
         <div style="font-size:12px;font-weight:600;color:#475569;margin-bottom:8px">Bu dosyayla ilgili işlemler</div>
@@ -7470,6 +7648,7 @@ function closeDetailModal() {
   document.getElementById('detailModal').classList.add('hidden');
   document.body.style.overflow = '';
   dispose3D();
+  _fileAttrLoaded = null;
 }
 
 // ── 3D Viewer ────────────────────────────────────────────────────────────────

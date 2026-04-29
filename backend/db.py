@@ -347,6 +347,23 @@ def init_db():
                     created_at       TIMESTAMPTZ DEFAULT NOW()
                 )
             """))
+            conn.execute(text(f"""
+                CREATE TABLE IF NOT EXISTS {schema}.attribute_definitions (
+                    id         SERIAL PRIMARY KEY,
+                    name       VARCHAR(100) NOT NULL,
+                    data_type  VARCHAR(20) NOT NULL DEFAULT 'text',
+                    options    JSONB DEFAULT '[]',
+                    unit       VARCHAR(50) DEFAULT '',
+                    required   BOOLEAN DEFAULT FALSE,
+                    sort_order INTEGER DEFAULT 0,
+                    created_at TIMESTAMP DEFAULT NOW()
+                )
+            """))
+            conn.execute(text(f"""
+                DO $$ BEGIN
+                    ALTER TABLE {schema}.cad_files ADD COLUMN IF NOT EXISTS attributes JSONB DEFAULT '{{}}';
+                EXCEPTION WHEN others THEN NULL; END $$;
+            """))
         conn.commit()
 
     # Default schema (public) için HNSW — tenant schema'larında schema_manager kurar
