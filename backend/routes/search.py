@@ -9,6 +9,7 @@ from typing import Optional, Tuple, List
 from pydantic import BaseModel
 import base64
 import io
+import json
 import math
 from collections import Counter, defaultdict
 
@@ -1021,7 +1022,7 @@ def list_files(
                (f.file_data IS NOT NULL) AS has_file_data,
                (f.clip_vector IS NOT NULL) AS has_clip,
                f.content_hash, f.geometry_hash, f.duplicate_status, f.duplicate_group_id,
-               f.category_id,
+               f.category_id, f.attributes,
                c.name AS category_name, c.color AS category_color
         FROM cad_files f
         LEFT JOIN categories c ON c.id = f.category_id
@@ -1080,6 +1081,7 @@ def list_files(
                 "category_id": f.category_id,
                 "category_name": f.category_name,
                 "category_color": f.category_color,
+                "attributes": json.loads(f.attributes) if isinstance(f.attributes, str) else (f.attributes or {}),
             }
             for f in files
         ],

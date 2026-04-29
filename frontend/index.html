@@ -3088,24 +3088,83 @@
 <div class="page" id="page-nl-search" style="padding:0; background:#f8fafc; align-items: stretch; flex-direction: column;">
   <div class="page-header">
     <div>
-      <h1 class="ph-title" data-i18n="nl_search.title">Doğal Dil Arama</h1>
-      <p class="ph-sub" data-i18n="nl_search.sub">Yazıyla ürün arayın</p>
+      <h1 class="ph-title" data-i18n="nl_search.title">Özellik ile Ara</h1>
+      <p class="ph-sub" data-i18n="nl_search.sub">Ürünleri özelliklerine göre filtreleyin</p>
     </div>
-    <div class="ph-actions"><span class="enterprise-badge">Enterprise</span></div>
   </div>
-  <div style="padding:32px; max-width:1200px; width:100%; margin:0 auto;">
-    <div class="cat-add-card" style="margin-bottom:24px">
-      <h2 data-i18n="nl_search.input_label" style="margin-bottom:12px">Ne arıyorsun?</h2>
-      <div style="display:flex;gap:10px;align-items:flex-start">
-        <textarea id="nlQueryInput" rows="2"
-          data-i18n-placeholder="nl_search.placeholder"
-          placeholder='Örn: "A profilinde delik olan ürün var mı?"'
-          style="flex:1;font-family:inherit;font-size:13px;padding:10px 12px;border:1px solid #e2e8f0;border-radius:8px;resize:vertical;line-height:1.5;outline:none"
-          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();runNLSearch()}"
-        ></textarea>
-        <button class="btn-primary" onclick="runNLSearch()" data-i18n="nl_search.btn" style="flex-shrink:0;margin-top:0">Ara</button>
+  <div style="padding:24px 32px; max-width:1200px; width:100%; margin:0 auto; display:flex; flex-direction:column; gap:20px;">
+
+    <!-- Filter Panel -->
+    <div class="cat-add-card" style="padding:20px 24px">
+      <!-- Built-in filters -->
+      <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:14px 20px; margin-bottom:16px">
+
+        <div style="display:flex;flex-direction:column;gap:5px">
+          <label style="font-size:11px;font-weight:700;color:#64748b;letter-spacing:0.05em;text-transform:uppercase" data-i18n="attr_search.category">Kategori</label>
+          <select id="asFilterCat" style="font-family:inherit;font-size:13px;padding:7px 10px;border:1px solid #e2e8f0;border-radius:8px;background:#fff;outline:none;color:#0f172a">
+            <option value="" data-i18n="attr_search.all">Tümü</option>
+          </select>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:5px">
+          <label style="font-size:11px;font-weight:700;color:#64748b;letter-spacing:0.05em;text-transform:uppercase" data-i18n="attr_search.format">Format</label>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;padding-top:4px">
+            <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="checkbox" class="as-fmt-chk" value="dwg" style="accent-color:#6366f1"> DWG</label>
+            <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="checkbox" class="as-fmt-chk" value="dxf" style="accent-color:#6366f1"> DXF</label>
+            <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="checkbox" class="as-fmt-chk" value="pdf" style="accent-color:#6366f1"> PDF</label>
+            <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="checkbox" class="as-fmt-chk" value="jpg" style="accent-color:#6366f1"> JPG</label>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:5px">
+          <label style="font-size:11px;font-weight:700;color:#64748b;letter-spacing:0.05em;text-transform:uppercase" data-i18n="attr_search.entity_count">Entity Sayısı</label>
+          <div style="display:flex;gap:6px;align-items:center">
+            <input id="asEntityMin" type="number" min="0" placeholder="Min" style="width:80px;font-family:inherit;font-size:12px;padding:6px 8px;border:1px solid #e2e8f0;border-radius:7px;outline:none">
+            <span style="color:#94a3b8;font-size:12px">—</span>
+            <input id="asEntityMax" type="number" min="0" placeholder="Max" style="width:80px;font-family:inherit;font-size:12px;padding:6px 8px;border:1px solid #e2e8f0;border-radius:7px;outline:none">
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:5px">
+          <label style="font-size:11px;font-weight:700;color:#64748b;letter-spacing:0.05em;text-transform:uppercase" data-i18n="attr_search.width_mm">Genişlik (mm)</label>
+          <div style="display:flex;gap:6px;align-items:center">
+            <input id="asBwMin" type="number" min="0" placeholder="Min" style="width:80px;font-family:inherit;font-size:12px;padding:6px 8px;border:1px solid #e2e8f0;border-radius:7px;outline:none">
+            <span style="color:#94a3b8;font-size:12px">—</span>
+            <input id="asBwMax" type="number" min="0" placeholder="Max" style="width:80px;font-family:inherit;font-size:12px;padding:6px 8px;border:1px solid #e2e8f0;border-radius:7px;outline:none">
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:5px">
+          <label style="font-size:11px;font-weight:700;color:#64748b;letter-spacing:0.05em;text-transform:uppercase" data-i18n="attr_search.height_mm">Yükseklik (mm)</label>
+          <div style="display:flex;gap:6px;align-items:center">
+            <input id="asBhMin" type="number" min="0" placeholder="Min" style="width:80px;font-family:inherit;font-size:12px;padding:6px 8px;border:1px solid #e2e8f0;border-radius:7px;outline:none">
+            <span style="color:#94a3b8;font-size:12px">—</span>
+            <input id="asBhMax" type="number" min="0" placeholder="Max" style="width:80px;font-family:inherit;font-size:12px;padding:6px 8px;border:1px solid #e2e8f0;border-radius:7px;outline:none">
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:5px">
+          <label style="font-size:11px;font-weight:700;color:#64748b;letter-spacing:0.05em;text-transform:uppercase" data-i18n="attr_search.layer">Katman</label>
+          <input id="asLayer" type="text" placeholder="Katman adı..." style="font-family:inherit;font-size:12px;padding:7px 10px;border:1px solid #e2e8f0;border-radius:8px;outline:none">
+        </div>
+
+      </div>
+
+      <!-- Custom attribute filters (dynamic) -->
+      <div id="asCustomFilters" style="display:none;margin-top:4px;padding-top:16px;border-top:1px solid #f1f5f9">
+        <div style="font-size:11px;font-weight:700;color:#64748b;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:12px" data-i18n="attr_search.custom">Özel Alanlar</div>
+        <div id="asCustomFilterGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px 20px"></div>
+      </div>
+
+      <!-- Action buttons -->
+      <div style="display:flex;gap:10px;margin-top:18px;align-items:center">
+        <button class="btn-primary" onclick="runAttrSearch(1)" data-i18n="attr_search.btn" style="min-width:90px">Ara</button>
+        <button onclick="resetAttrSearch()" style="font-size:12px;color:#dc2626;background:none;border:none;cursor:pointer;padding:4px 8px" data-i18n="attr_search.reset">Temizle</button>
+        <span id="asResultCount" style="font-size:12px;color:#64748b;margin-left:4px"></span>
       </div>
     </div>
+
+    <!-- Results -->
     <div id="nlResultsArea"></div>
   </div>
 </div>
@@ -3930,52 +3989,183 @@ async function saveFileAttr(fileId) {
   }
 }
 
-// ───────── DOĞAL DİL ARAMA ─────────
-async function runNLSearch() {
-  const textarea = document.getElementById('nlQueryInput');
-  const area = document.getElementById('nlResultsArea');
-  const query = (textarea?.value || '').trim();
-  if (!query) return;
-  area.innerHTML = '<p style="color:#64748b;font-size:13px;padding:8px 0">Aranıyor...</p>';
+// ───────── ATTRIBUTE FILTER SEARCH ─────────
+let _asAttrDefs = [];
+let _asPage = 1;
+const _asPerPage = 24;
+
+async function loadAttrSearchFilters() {
+  // Categories
+  const catSel = document.getElementById('asFilterCat');
+  if (catSel && catSel.options.length <= 1) {
+    try {
+      const cats = await fetch(`${API}/categories`, { headers: authH() }).then(r => r.json());
+      (cats || []).forEach(c => {
+        const o = document.createElement('option');
+        o.value = c.id;
+        o.textContent = c.name;
+        catSel.appendChild(o);
+      });
+    } catch (_) {}
+  }
+  // Custom attr definitions
   try {
-    const r = await fetch(`${API}/nl-search`, {
+    const defs = await fetch(`${API}/attributes/definitions`, { headers: authH() }).then(r => r.json());
+    _asAttrDefs = defs || [];
+    renderAttrCustomFilters();
+  } catch (_) {}
+}
+
+function renderAttrCustomFilters() {
+  const wrap = document.getElementById('asCustomFilters');
+  const grid = document.getElementById('asCustomFilterGrid');
+  if (!wrap || !grid) return;
+  if (!_asAttrDefs.length) { wrap.style.display = 'none'; return; }
+  wrap.style.display = '';
+  grid.innerHTML = _asAttrDefs.map(def => {
+    const inputStyle = 'font-family:inherit;font-size:12px;padding:7px 10px;border:1px solid #e2e8f0;border-radius:8px;outline:none;width:100%;box-sizing:border-box';
+    let input = '';
+    if (def.data_type === 'text') {
+      input = `<input type="text" id="asAttr_${def.id}" placeholder="${escHtml(def.name)}..." style="${inputStyle}">`;
+    } else if (def.data_type === 'number') {
+      input = `<div style="display:flex;gap:6px;align-items:center">
+        <input type="number" id="asAttrMin_${def.id}" placeholder="Min${def.unit ? ' ('+escHtml(def.unit)+')' : ''}" style="flex:1;font-family:inherit;font-size:12px;padding:6px 8px;border:1px solid #e2e8f0;border-radius:7px;outline:none">
+        <span style="color:#94a3b8;font-size:12px">—</span>
+        <input type="number" id="asAttrMax_${def.id}" placeholder="Max" style="flex:1;font-family:inherit;font-size:12px;padding:6px 8px;border:1px solid #e2e8f0;border-radius:7px;outline:none">
+      </div>`;
+    } else if (def.data_type === 'boolean') {
+      input = `<select id="asAttr_${def.id}" style="${inputStyle}">
+        <option value="">Tümü</option>
+        <option value="true">Evet</option>
+        <option value="false">Hayır</option>
+      </select>`;
+    } else if (def.data_type === 'select') {
+      const opts = (def.options || []).map(o => `<option value="${escHtml(o)}">${escHtml(o)}</option>`).join('');
+      input = `<select id="asAttr_${def.id}" style="${inputStyle}"><option value="">Tümü</option>${opts}</select>`;
+    }
+    return `<div style="display:flex;flex-direction:column;gap:5px">
+      <label style="font-size:11px;font-weight:700;color:#64748b;letter-spacing:0.05em;text-transform:uppercase">${escHtml(def.name)}${def.unit ? ' ('+escHtml(def.unit)+')' : ''}</label>
+      ${input}
+    </div>`;
+  }).join('');
+}
+
+function _buildAttrSearchBody(page) {
+  const catId = document.getElementById('asFilterCat')?.value;
+  const fmts = [...document.querySelectorAll('.as-fmt-chk:checked')].map(el => el.value);
+  const eMin = document.getElementById('asEntityMin')?.value;
+  const eMax = document.getElementById('asEntityMax')?.value;
+  const bwMin = document.getElementById('asBwMin')?.value;
+  const bwMax = document.getElementById('asBwMax')?.value;
+  const bhMin = document.getElementById('asBhMin')?.value;
+  const bhMax = document.getElementById('asBhMax')?.value;
+  const layer = document.getElementById('asLayer')?.value?.trim();
+
+  const body = {
+    page,
+    per_page: _asPerPage,
+    formats: fmts,
+    attr_filters: [],
+  };
+  if (catId) body.category_id = parseInt(catId);
+  if (eMin) body.entity_min = parseInt(eMin);
+  if (eMax) body.entity_max = parseInt(eMax);
+  if (bwMin) body.bbox_w_min = parseFloat(bwMin);
+  if (bwMax) body.bbox_w_max = parseFloat(bwMax);
+  if (bhMin) body.bbox_h_min = parseFloat(bhMin);
+  if (bhMax) body.bbox_h_max = parseFloat(bhMax);
+  if (layer) body.layer = layer;
+
+  for (const def of _asAttrDefs) {
+    if (def.data_type === 'number') {
+      const mn = document.getElementById(`asAttrMin_${def.id}`)?.value;
+      const mx = document.getElementById(`asAttrMax_${def.id}`)?.value;
+      if (mn || mx) body.attr_filters.push({ name: def.name, data_type: 'number', min: mn ? parseFloat(mn) : null, max: mx ? parseFloat(mx) : null });
+    } else {
+      const val = document.getElementById(`asAttr_${def.id}`)?.value;
+      if (val) body.attr_filters.push({ name: def.name, data_type: def.data_type, value: def.data_type === 'boolean' ? (val === 'true') : val });
+    }
+  }
+  return body;
+}
+
+async function runAttrSearch(page) {
+  _asPage = page || 1;
+  const area = document.getElementById('nlResultsArea');
+  const countEl = document.getElementById('asResultCount');
+  area.innerHTML = '<p style="color:#64748b;font-size:13px;padding:8px 0">Aranıyor...</p>';
+  if (countEl) countEl.textContent = '';
+  try {
+    const r = await fetch(`${API}/attr-search`, {
       method: 'POST',
       headers: { ...authH(), 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query, top_k: 20, min_similarity: 0.15 }),
+      body: JSON.stringify(_buildAttrSearchBody(_asPage)),
     });
     if (!r.ok) { area.innerHTML = `<p style="color:#ef4444;font-size:13px">Hata: ${r.status}</p>`; return; }
-    renderNLResults(await r.json());
+    renderAttrSearchResults(await r.json());
   } catch (e) {
     area.innerHTML = `<p style="color:#ef4444;font-size:13px">Bağlantı hatası: ${e.message}</p>`;
   }
 }
 
-function renderNLResults(data) {
+function renderAttrSearchResults(data) {
   const area = document.getElementById('nlResultsArea');
-  if (!data.results?.length) {
-    area.innerHTML = `<p style="color:#64748b;font-size:13px;padding:8px 0">${t('nl_search.empty') || 'Sonuç bulunamadı'}</p>`;
+  const countEl = document.getElementById('asResultCount');
+  if (countEl) countEl.textContent = `${(data.total || 0).toLocaleString('tr')} sonuç`;
+
+  if (!data.files?.length) {
+    area.innerHTML = `<p style="color:#64748b;font-size:13px;padding:8px 0">Eşleşen ürün bulunamadı.</p>`;
     return;
   }
-  const matchLine = (t('nl_search.matches') || '{n} sonuç').replace('{n}', data.total_matches);
-  const cards = data.results.map(r => {
-    const pct = Math.round(r.similarity * 100);
-    const tone = pct >= 70 ? '#16a34a' : pct >= 50 ? '#ca8a04' : '#dc2626';
-    const preview = r.jpg_preview
-      ? `<img src="data:image/jpeg;base64,${r.jpg_preview}" style="width:100%;height:120px;object-fit:contain;background:#f1f5f9;border-radius:6px;margin-bottom:10px">`
-      : `<div style="width:100%;height:120px;background:#f1f5f9;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:12px;margin-bottom:10px">Önizleme yok</div>`;
-    return `<div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:14px;display:flex;flex-direction:column">
+
+  const cards = data.files.map(f => {
+    const fmt = (f.file_format || '').toUpperCase();
+    const fmtColor = { DWG: '#6d28d9', DXF: '#0369a1', PDF: '#b91c1c', JPG: '#a16207' }[fmt] || '#475569';
+    const preview = f.jpg_preview
+      ? `<img src="data:image/jpeg;base64,${f.jpg_preview}" style="width:100%;height:120px;object-fit:contain;background:#f8fafc;border-radius:6px;margin-bottom:10px;cursor:pointer" onclick="showDetailModal(${f.id})">`
+      : `<div style="width:100%;height:120px;background:#f1f5f9;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:12px;margin-bottom:10px;cursor:pointer" onclick="showDetailModal(${f.id})">${fmt||'FILE'}</div>`;
+    const attrs = f.attributes || {};
+    const attrChips = Object.entries(attrs).filter(([,v]) => v !== null && v !== '' && v !== false).map(([k,v]) =>
+      `<span style="font-size:10px;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:1px 6px;color:#475569;white-space:nowrap">${escHtml(k)}: <b>${escHtml(String(v))}</b></span>`
+    ).join('');
+    const catTag = f.category_name ? `<span style="font-size:10px;color:#6366f1;font-weight:600">${escHtml(f.category_name)}</span>` : '';
+    return `<div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:14px;display:flex;flex-direction:column;cursor:pointer" onclick="showDetailModal(${f.id})">
       ${preview}
-      <div style="font-size:12px;font-weight:600;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${r.filename}">${r.filename}</div>
-      <div style="margin-top:6px;display:flex;align-items:center;gap:6px">
-        <span style="font-size:11px;font-weight:700;color:${tone};background:${tone}18;border-radius:4px;padding:2px 7px">%${pct}</span>
-        ${r.category_name ? `<span style="font-size:11px;color:#64748b">${r.category_name}</span>` : ''}
+      <div style="font-size:12px;font-weight:600;color:#0f172a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escHtml(f.filename)}">${escHtml(f.filename)}</div>
+      <div style="margin-top:5px;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+        <span style="font-size:10px;font-weight:700;color:${fmtColor};background:${fmtColor}18;border-radius:4px;padding:1px 6px">${fmt}</span>
+        ${catTag}
+        ${f.entity_count ? `<span style="font-size:10px;color:#94a3b8">${f.entity_count} entity</span>` : ''}
+        ${(f.bbox_width && f.bbox_height) ? `<span style="font-size:10px;color:#94a3b8">${f.bbox_width.toFixed(0)}×${f.bbox_height.toFixed(0)}</span>` : ''}
       </div>
-      ${r.entity_count ? `<div style="font-size:11px;color:#94a3b8;margin-top:4px">${r.entity_count} entity · ${r.file_format}</div>` : ''}
+      ${attrChips ? `<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px">${attrChips}</div>` : ''}
     </div>`;
   }).join('');
-  area.innerHTML = `
-    <p style="font-size:12px;color:#64748b;margin-bottom:14px">${matchLine}</p>
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px">${cards}</div>`;
+
+  const pages = Math.ceil(data.total / _asPerPage);
+  const pager = pages > 1 ? `<div style="display:flex;justify-content:center;gap:8px;margin-top:20px;flex-wrap:wrap">
+    ${_asPage > 1 ? `<button onclick="runAttrSearch(${_asPage-1})" style="font-size:12px;padding:6px 14px;border:1px solid #e2e8f0;border-radius:7px;background:#fff;cursor:pointer">← Önceki</button>` : ''}
+    <span style="font-size:12px;color:#64748b;align-self:center">Sayfa ${_asPage} / ${pages}</span>
+    ${_asPage < pages ? `<button onclick="runAttrSearch(${_asPage+1})" style="font-size:12px;padding:6px 14px;border:1px solid #e2e8f0;border-radius:7px;background:#fff;cursor:pointer">Sonraki →</button>` : ''}
+  </div>` : '';
+
+  area.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px">${cards}</div>${pager}`;
+}
+
+function resetAttrSearch() {
+  document.getElementById('asFilterCat').value = '';
+  document.querySelectorAll('.as-fmt-chk').forEach(el => el.checked = false);
+  ['asEntityMin','asEntityMax','asBwMin','asBwMax','asBhMin','asBhMax','asLayer'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  for (const def of _asAttrDefs) {
+    const el = document.getElementById(`asAttr_${def.id}`) || document.getElementById(`asAttrMin_${def.id}`);
+    if (el) el.value = '';
+    const el2 = document.getElementById(`asAttrMax_${def.id}`);
+    if (el2) el2.value = '';
+  }
+  document.getElementById('nlResultsArea').innerHTML = '';
+  const c = document.getElementById('asResultCount'); if (c) c.textContent = '';
 }
 
 async function ensureApiBase(force = false) {
@@ -4113,6 +4303,7 @@ function switchTab(name) {
   if (name === 'contour')   initContourTab();
   if (name === 'cat')       loadCategories();
   if (name === 'attr-defs') loadAttrDefs();
+  if (name === 'nl-search') loadAttrSearchFilters();
   if (name === 'analytics') loadAnalytics();
   if (name === 'activity')   loadActivityLog();
   if (name === 'scan')       scanInit();
@@ -5814,6 +6005,10 @@ function renderDbTable(files) {
       const thumb = f.jpg_preview
         ? `<img src="${f.jpg_preview}" style="max-width:100%;max-height:72px;object-fit:contain;border-radius:6px">`
         : docIcon;
+      const attrObj = f.attributes || {};
+      const attrChipsGrid = Object.entries(attrObj).filter(([,v]) => v !== null && v !== '' && v !== false).slice(0, 4).map(([k,v]) =>
+        `<span style="font-size:9px;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:3px;padding:1px 5px;color:#475569;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%">${escHtml(k)}: <b>${escHtml(String(v))}</b></span>`
+      ).join('');
       return `<div class="fl-card" onclick="showDetailModal(${f.id})">
         ${favoriteButton(f, 'fl-card-favorite')}
         <span class="fl-card-badge" style="${badgeStyle}">${fmt.toUpperCase()}</span>
@@ -5823,7 +6018,7 @@ function renderDbTable(files) {
         <div class="fl-card-icon">${thumb}</div>
         <div class="fl-card-name" title="${f.filepath}">${f.filename}</div>
         <div class="fl-card-meta">${meta}</div>
-        <div class="fl-card-tags">${catTag}</div>
+        <div class="fl-card-tags">${catTag}${attrChipsGrid ? '<div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:3px">'+attrChipsGrid+'</div>' : ''}</div>
       </div>`;
     }).join('');
     updateDbApprovalSelectionUi();
@@ -5846,10 +6041,14 @@ function renderDbTable(files) {
       ? `<img src="${f.jpg_preview}" style="width:44px;height:32px;object-fit:contain;border-radius:4px;border:1px solid var(--border);background:#f1f5f9;cursor:pointer" onclick="event.stopPropagation();showDetailModal(${f.id})" title="Önizle">`
       : `<div style="width:44px;height:32px;border-radius:4px;border:1px solid var(--border);background:#f1f5f9;display:flex;align-items:center;justify-content:center"><span style="font-size:9px;color:var(--text3)">${fmt.toUpperCase()}</span></div>`;
     const hasData = f.has_file_data;
+    const attrObj = f.attributes || {};
+    const attrChipsList = Object.entries(attrObj).filter(([,v]) => v !== null && v !== '' && v !== false).slice(0, 5).map(([k,v]) =>
+      `<span style="font-size:10px;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:3px;padding:1px 6px;color:#475569;white-space:nowrap">${escHtml(k)}: <b>${escHtml(String(v))}</b></span>`
+    ).join('');
     return `<tr class="clickable-row" onclick="showDetailModal(${f.id})">
       <td style="text-align:center" onclick="event.stopPropagation()"><input id="dbSel_${f.id}" type="checkbox" ${checked} onchange="toggleDbSelect(${f.id}, this.checked)" style="accent-color:var(--blue);cursor:pointer"></td>
       <td style="padding:4px 8px">${thumb}</td>
-      <td><div class="td-filename" title="${f.filepath}">${f.filename}</div></td>
+      <td><div class="td-filename" title="${f.filepath}">${f.filename}</div>${attrChipsList ? '<div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:3px">'+attrChipsList+'</div>' : ''}</td>
       <td><span class="td-format ${fmtColor[fmt]||''}">${fmt.toUpperCase()}</span></td>
       <td>${catBadge}</td>
       <td>${(f.entity_count||0).toLocaleString('tr')}</td>
