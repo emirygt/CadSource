@@ -3948,7 +3948,7 @@ function renderFileAttrForm(panel, fileId, data) {
   }
   const typeLabel = { text: 'Metin', number: 'Sayı', boolean: 'Evet/Hayır', select: 'Seçenek' };
   const fields = definitions.map(d => {
-    const val = values[String(d.id)] ?? '';
+    const val = values[d.name] ?? values[String(d.id)] ?? '';
     let input;
     if (d.data_type === 'boolean') {
       const checked = val === true || val === 'true' || val === '1' ? 'checked' : '';
@@ -3980,7 +3980,7 @@ async function saveFileAttr(fileId) {
   for (const d of defs) {
     const el = document.getElementById(`af_${d.id}`);
     if (!el) continue;
-    values[String(d.id)] = d.data_type === 'boolean' ? el.checked : el.value;
+    values[d.name] = d.data_type === 'boolean' ? el.checked : el.value;
   }
   const r = await fetch(`${API}/attributes/files/${fileId}`, {
     method: 'PUT', headers: { ...authH(), 'Content-Type': 'application/json' },
@@ -3989,6 +3989,12 @@ async function saveFileAttr(fileId) {
   const msg = document.getElementById('attrSaveMsg');
   if (r.ok) {
     if (msg) { msg.style.display = 'inline'; setTimeout(() => { msg.style.display = 'none'; }, 2000); }
+    // Update cached file list so warning icons reflect new values immediately
+    const idx = dbLastFiles.findIndex(f => Number(f.id) === Number(fileId));
+    if (idx !== -1) {
+      dbLastFiles[idx] = { ...dbLastFiles[idx], attributes: values };
+      renderDbTable(dbLastFiles);
+    }
   } else {
     if (msg) { msg.style.display = 'inline'; msg.style.color = '#dc2626'; msg.textContent = 'Hata'; }
   }

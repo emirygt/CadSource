@@ -383,6 +383,25 @@ def init_db():
                     SELECT 1 FROM {schema}.attribute_definitions WHERE name = t.name
                 )
             """))
+            # Migrate attribute values from numeric-ID keys to name keys (one-time, idempotent)
+            conn.execute(text(f"""
+                UPDATE {schema}.cad_files
+                SET attributes = (
+                    SELECT COALESCE(jsonb_object_agg(
+                        CASE
+                            WHEN kv.key ~ '^[0-9]+$' THEN COALESCE(
+                                (SELECT ad.name FROM {schema}.attribute_definitions ad WHERE ad.id::text = kv.key),
+                                kv.key
+                            )
+                            ELSE kv.key
+                        END,
+                        kv.value
+                    ), '{{}}'::jsonb)
+                    FROM jsonb_each(COALESCE(attributes, '{{}}'::jsonb)) AS kv(key, value)
+                )
+                WHERE attributes IS NOT NULL
+                  AND attributes::text ~ '"[0-9]+\s*":';
+            """))
         conn.commit()
 
     # Default schema (public) için HNSW — tenant schema'larında schema_manager kurar
