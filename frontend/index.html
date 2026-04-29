@@ -2120,6 +2120,75 @@
       .figma-score-box { justify-self:start; }
       .search-results-top { align-items:flex-start; flex-direction:column; }
     }
+
+    /* ═══════════════ Claude-style DB page ═══════════════ */
+    #page-db { background: #f7f5f2 !important; }
+    #page-db .fl-main { background: #f7f5f2; }
+    #page-db .fl-content { padding: 20px 24px; background: #f7f5f2; }
+
+    /* Folder sidebar */
+    #page-db .fl-sidebar { background: #f2f0ec; border-right: 1px solid #e8e4dd; }
+    #page-db .fl-section-label { color: #a3a09a; font-size: 10px; letter-spacing: 0.1em; padding: 14px 16px 6px; }
+    #page-db .fl-folder-btn { font-size: 13px; color: #4b5563; border-radius: 8px; padding: 7px 10px; }
+    #page-db .fl-folder-btn:hover { background: #e8e4dd; color: #1a1a1a; }
+    #page-db .fl-folder-btn.active { background: #1a1a1a; color: #fff; font-weight: 500; }
+    #page-db .fl-folder-btn.active svg { stroke: #fff; }
+    #page-db .fl-folder-count { font-size: 11px; font-weight: 600; opacity: 0.65; }
+    #page-db .fl-storage { border-top: 1px solid #e8e4dd; background: #f2f0ec; }
+    #page-db .fl-storage-bar { background: #1a1a1a; }
+
+    /* Toolbar */
+    #page-db .fl-toolbar { background: #fff; border-bottom: 1px solid #e8e4dd; padding: 10px 20px; }
+    #page-db .fl-toolbar-search input {
+      border: 1.5px solid #e3dfd8; border-radius: 10px; background: #f7f5f2;
+      font-size: 13px; color: #1a1a1a; width: 280px; padding: 8px 12px 8px 34px;
+      transition: all 0.15s;
+    }
+    #page-db .fl-toolbar-search input:focus { border-color: #1a1a1a; background: #fff; box-shadow: 0 0 0 3px rgba(0,0,0,0.06); }
+    #page-db .fl-view-toggle { background: #ede9e2; border-radius: 10px; }
+    #page-db .fl-view-btn { color: #6b7280; font-size: 12px; border-radius: 7px; }
+    #page-db .fl-view-btn.active { background: #fff; color: #1a1a1a; font-weight: 600; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+    #page-db .fl-filter-btn { background: #f7f5f2; border: 1.5px solid #e3dfd8; border-radius: 10px; color: #4b5563; font-size: 13px; transition: all 0.15s; }
+    #page-db .fl-filter-btn:hover { background: #edeae4; border-color: #c8c4bc; }
+    #page-db #dbBulkStatusSelect { background: #f7f5f2; border: 1.5px solid #e3dfd8; border-radius: 10px; color: #374151; padding: 6px 10px; font-size: 12px; outline: none; }
+    #page-db .pg-btn { background: #f7f5f2; border: 1.5px solid #e3dfd8; color: #4b5563; border-radius: 8px; font-size: 12px; padding: 5px 14px; font-family: var(--font-ui); transition: all 0.15s; }
+    #page-db .pg-btn:hover { background: #edeae4; border-color: #1a1a1a; color: #1a1a1a; }
+    #page-db .pg-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+    #page-db #dbSelectedApproveInfo { font-size: 12px; color: #9ca3af; }
+
+    /* File card */
+    #page-db .db-files-card { background: #fff; border: 1.5px solid #e8e4dd; border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 6px 20px rgba(0,0,0,0.03); overflow: hidden; }
+    #page-db .db-files-header { padding: 14px 20px; border-bottom: 1px solid #f0ede7; background: #fff; }
+    #page-db .db-files-header h2 { font-size: 14px; font-weight: 600; color: #1a1a1a; letter-spacing: -0.01em; }
+
+    /* Table */
+    #page-db table { font-family: var(--font-ui); }
+    #page-db table th { font-size: 11px; font-weight: 600; color: #a3a09a; text-transform: uppercase; letter-spacing: 0.07em; padding: 9px 14px; background: #faf8f5; border-bottom: 1.5px solid #ebe8e1; white-space: nowrap; }
+    #page-db table td { padding: 10px 14px; font-size: 12.5px; border-bottom: 1px solid #f2f0ec; color: #374151; vertical-align: middle; }
+    #page-db table tr:last-child td { border-bottom: none; }
+    #page-db table tr:hover td { background: #faf8f5; }
+    #page-db .td-filename { font-family: var(--font-ui); font-weight: 500; color: #1a1a1a; font-size: 13px; }
+    #page-db .td-date { color: #a3a09a; font-size: 11px; white-space: nowrap; }
+    #page-db .del-btn { background: transparent; border: 1px solid transparent; color: #a3a09a; cursor: pointer; padding: 4px 8px; border-radius: 6px; font-size: 12px; transition: all 0.15s; }
+    #page-db .del-btn:hover { border-color: #dc2626; color: #dc2626; background: rgba(220,38,38,0.06); }
+
+    /* Pagination */
+    #page-db .db-pagination { border-top: 1px solid #f0ede7; padding: 12px 20px; background: #faf8f5; }
+    #page-db .db-pagination span { font-size: 12px; color: #a3a09a; }
+
+    /* Upload panel */
+    #page-db .fl-upload-panel { background: #fff; border-bottom: 1px solid #e8e4dd; }
+    #page-db .db-empty { padding: 64px 20px; text-align: center; color: #b8b4ad; font-size: 14px; font-family: var(--font-ui); }
+
+    /* Filter bar strip */
+    #page-db #dbFilterBar { background: #faf8f5 !important; border-bottom: 1px solid #e8e4dd !important; padding: 10px 24px !important; }
+    #page-db .db-filter-strip { background: #faf8f5; border-bottom: 1px solid #f0ede7; padding: 6px 24px; }
+
+    /* Grid card */
+    #page-db .fl-card { background: #fff; border: 1.5px solid #e8e4dd; border-radius: 14px; }
+    #page-db .fl-card:hover { border-color: #1a1a1a; box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+    #page-db .fl-card-name { color: #1a1a1a; }
+    /* ══════════════════════════════════════ */
   </style>
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
@@ -2551,10 +2620,10 @@
     <button onclick="clearDbFilters()" style="font-size:12px;color:#dc2626;background:none;border:none;cursor:pointer;padding:4px 8px">Temizle ✕</button>
     <span id="dbFilterActiveCount" style="font-size:11px;color:#0ea5e9;font-weight:600"></span>
   </div>
-  <div style="padding:6px 32px;background:#fff;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;gap:8px">
-    <button onclick="toggleDbFilterBar()" style="font-size:12px;color:#475569;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:4px 12px;cursor:pointer;display:flex;align-items:center;gap:6px">
+  <div class="db-filter-strip" style="display:flex;align-items:center;gap:8px">
+    <button onclick="toggleDbFilterBar()" style="font-size:12px;color:#4b5563;background:#f2f0ec;border:1.5px solid #e3dfd8;border-radius:8px;padding:5px 12px;cursor:pointer;display:flex;align-items:center;gap:6px;font-family:var(--font-ui);transition:all 0.15s" onmouseover="this.style.background='#edeae4'" onmouseout="this.style.background='#f2f0ec'">
       <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
-      Filtrele <span id="dbFilterToggleBadge" style="display:none;background:#0ea5e9;color:#fff;border-radius:10px;padding:1px 6px;font-size:10px"></span>
+      Filtrele <span id="dbFilterToggleBadge" style="display:none;background:#1a1a1a;color:#fff;border-radius:10px;padding:1px 7px;font-size:10px;font-weight:600"></span>
     </button>
   </div>
 
@@ -2565,7 +2634,7 @@
     <div class="fl-sidebar">
       <!-- Upload butonu sidebar'da -->
       <div style="padding:12px 8px 4px">
-        <button onclick="toggleDbUploadPanel()" style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 12px;background:#0ea5e9;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:background 0.15s;font-family:var(--font-ui)" onmouseover="this.style.background='#0284c7'" onmouseout="this.style.background='#0ea5e9'">
+        <button onclick="toggleDbUploadPanel()" style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 12px;background:#1a1a1a;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:background 0.15s;font-family:var(--font-ui)" onmouseover="this.style.background='#333'" onmouseout="this.style.background='#1a1a1a'">
           <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
           <span data-i18n="common.upload_files">Upload Files</span>
         </button>
@@ -6092,11 +6161,11 @@ function renderDbTable(files) {
     const approvedBadge = statusBadge(status);
     const checked = dbState.selectedIds.has(Number(f.id)) ? 'checked' : '';
     const catBadge = f.category_name
-      ? `<span style="background:${f.category_color||'#6366f1'}22;color:${f.category_color||'#6366f1'};border:1px solid ${f.category_color||'#6366f1'}55;font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;white-space:nowrap">${f.category_name}</span>`
-      : `<span style="color:var(--text3);font-size:11px">—</span>`;
+      ? `<span style="background:${f.category_color||'#6366f1'}18;color:${f.category_color||'#6366f1'};font-size:11px;font-weight:600;padding:2px 9px;border-radius:6px;white-space:nowrap">${f.category_name}</span>`
+      : `<span style="color:#c8c4bc;font-size:13px">—</span>`;
     const thumb = f.jpg_preview
-      ? `<img src="${f.jpg_preview}" style="width:44px;height:32px;object-fit:contain;border-radius:4px;border:1px solid var(--border);background:#f1f5f9;cursor:pointer" onclick="event.stopPropagation();showDetailModal(${f.id})" title="Önizle">`
-      : `<div style="width:44px;height:32px;border-radius:4px;border:1px solid var(--border);background:#f1f5f9;display:flex;align-items:center;justify-content:center"><span style="font-size:9px;color:var(--text3)">${fmt.toUpperCase()}</span></div>`;
+      ? `<img src="${f.jpg_preview}" style="width:44px;height:32px;object-fit:contain;border-radius:6px;border:1px solid #e8e4dd;background:#f7f5f2;cursor:pointer" onclick="event.stopPropagation();showDetailModal(${f.id})" title="Önizle">`
+      : `<div style="width:44px;height:32px;border-radius:6px;border:1px solid #e8e4dd;background:#f2f0ec;display:flex;align-items:center;justify-content:center"><span style="font-size:9px;color:#a3a09a;font-weight:600">${fmt.toUpperCase()}</span></div>`;
     const hasData = f.has_file_data;
     const attrObj = f.attributes || {};
     const missing = _fileMissingAttrs(f);
@@ -6106,11 +6175,11 @@ function renderDbTable(files) {
       const isEmpty = v === null || v === undefined || String(v).trim() === '' || v === false;
       if (isEmpty) {
         return def.required
-          ? `<td style="color:#dc2626;font-size:11px;white-space:nowrap">⚠ eksik</td>`
-          : `<td style="color:#cbd5e1;font-size:12px">—</td>`;
+          ? `<td style="white-space:nowrap"><span style="background:#fee2e2;color:#991b1b;font-size:10px;font-weight:600;padding:2px 7px;border-radius:5px;letter-spacing:0.02em">⚠ eksik</span></td>`
+          : `<td style="color:#d1cdc5;font-size:13px">—</td>`;
       }
       const display = v === true ? 'Evet' : v === false ? 'Hayır' : String(v);
-      return `<td style="font-size:12px;color:#334155;white-space:nowrap;max-width:140px;overflow:hidden;text-overflow:ellipsis" title="${escHtml(display)}">${escHtml(display)}</td>`;
+      return `<td style="font-size:12px;color:#374151;white-space:nowrap;max-width:140px;overflow:hidden;text-overflow:ellipsis" title="${escHtml(display)}">${escHtml(display)}</td>`;
     }).join('');
     const totalCols = 11 + _dbAttrDefs.length;
     return `<tr class="clickable-row" onclick="showDetailModal(${f.id})" style="${hasMissing ? 'border-left:3px solid #fca5a5' : ''}">
@@ -6127,7 +6196,7 @@ function renderDbTable(files) {
       ${attrCells}
       <td style="display:flex;gap:6px;align-items:center" onclick="event.stopPropagation()">
         ${favoriteButton(f)}
-        <button class="del-btn" style="background:rgba(59,130,246,0.12);color:var(--blue);border-color:rgba(59,130,246,0.3)" onclick="downloadFile(${f.id},'${f.filename.replace(/'/g,"\\'")}')">↓</button>
+        <button class="del-btn" style="background:#f2f0ec;color:#374151;border-color:#e3dfd8" onclick="downloadFile(${f.id},'${f.filename.replace(/'/g,"\\'")}')">↓</button>
         <button class="del-btn" onclick="deleteFile(${f.id},'${f.filename.replace(/'/g,"\\'")}')">Sil</button>
       </td>
     </tr>`;
@@ -6161,12 +6230,12 @@ function statusLabel(status) {
 function statusBadge(status) {
   const s = (status || '').toLowerCase();
   if (s === 'approved') {
-    return '<span style="background:rgba(16,185,129,0.1);color:#059669;border:1px solid rgba(16,185,129,0.25);font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;white-space:nowrap">Approved</span>';
+    return '<span style="background:#d1fae5;color:#065f46;font-size:11px;font-weight:600;padding:2px 9px;border-radius:6px;white-space:nowrap;letter-spacing:0.02em">Approved</span>';
   }
   if (s === 'draft') {
-    return '<span style="background:rgba(245,158,11,0.1);color:#d97706;border:1px solid rgba(245,158,11,0.25);font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;white-space:nowrap">Review</span>';
+    return '<span style="background:#fef3c7;color:#92400e;font-size:11px;font-weight:600;padding:2px 9px;border-radius:6px;white-space:nowrap;letter-spacing:0.02em">Review</span>';
   }
-  return '<span style="background:rgba(14,165,233,0.1);color:#0ea5e9;border:1px solid rgba(14,165,233,0.2);font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;white-space:nowrap">New</span>';
+  return '<span style="background:#f3f4f6;color:#6b7280;font-size:11px;font-weight:600;padding:2px 9px;border-radius:6px;white-space:nowrap;letter-spacing:0.02em">New</span>';
 }
 
 function normalizedStatus(file) {
@@ -6356,11 +6425,11 @@ function renderProductTable(kind, files) {
       : '—';
     const checked = st.selectedIds.has(Number(f.id)) ? 'checked' : '';
     const catBadge = f.category_name
-      ? `<span style="background:${f.category_color||'#6366f1'}22;color:${f.category_color||'#6366f1'};border:1px solid ${f.category_color||'#6366f1'}55;font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;white-space:nowrap">${f.category_name}</span>`
-      : `<span style="color:var(--text3);font-size:11px">—</span>`;
+      ? `<span style="background:${f.category_color||'#6366f1'}18;color:${f.category_color||'#6366f1'};font-size:11px;font-weight:600;padding:2px 9px;border-radius:6px;white-space:nowrap">${f.category_name}</span>`
+      : `<span style="color:#c8c4bc;font-size:13px">—</span>`;
     const thumb = f.jpg_preview
-      ? `<img src="${f.jpg_preview}" style="width:44px;height:32px;object-fit:contain;border-radius:4px;border:1px solid var(--border);background:#f1f5f9;cursor:pointer" onclick="event.stopPropagation();showDetailModal(${f.id})" title="Önizle">`
-      : `<div style="width:44px;height:32px;border-radius:4px;border:1px solid var(--border);background:#f1f5f9;display:flex;align-items:center;justify-content:center"><span style="font-size:9px;color:var(--text3)">${fmt.toUpperCase()}</span></div>`;
+      ? `<img src="${f.jpg_preview}" style="width:44px;height:32px;object-fit:contain;border-radius:6px;border:1px solid #e8e4dd;background:#f7f5f2;cursor:pointer" onclick="event.stopPropagation();showDetailModal(${f.id})" title="Önizle">`
+      : `<div style="width:44px;height:32px;border-radius:6px;border:1px solid #e8e4dd;background:#f2f0ec;display:flex;align-items:center;justify-content:center"><span style="font-size:9px;color:#a3a09a;font-weight:600">${fmt.toUpperCase()}</span></div>`;
     return `<tr class="clickable-row" onclick="showDetailModal(${f.id})">
       <td style="text-align:center" onclick="event.stopPropagation()"><input id="${kind}Sel_${f.id}" type="checkbox" ${checked} onchange="toggleProductSelect('${kind}', ${f.id}, this.checked)" style="accent-color:var(--blue);cursor:pointer"></td>
       <td style="padding:4px 8px">${thumb}</td>
