@@ -21,7 +21,7 @@ class CadToolHealthResponse(BaseModel):
     ok: bool = True
     status: str = "ok"
     service: str = "cad_tools"
-    version: str = "phase1"
+    version: str = "phase2"
     adapters: List[Dict[str, Any]] = Field(default_factory=list)
     warnings: List[str] = Field(default_factory=list)
 

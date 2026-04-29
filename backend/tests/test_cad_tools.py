@@ -49,6 +49,41 @@ def test_cad_convert_returns_placeholder_response():
     assert body["status"] == "placeholder"
     assert body["adapter"] == "dxf"
     assert body["operation"] == "convert"
+    assert body["data"]["service_boundary"]["active_pipeline"].startswith("features.py")
+    assert body["data"]["converter_plan"]["strategy"] == "internal_existing_pipeline"
+    assert "features.parse_dxf_bytes" in body["data"]["converter_plan"]["current_internal_paths"]
+
+
+def test_cad_convert_kernel_format_recommends_job_boundary():
+    client = _client()
+    response = client.post(
+        "/cad/convert",
+        json={"source_format": "step", "target_format": "glb", "filename": "sample.step"},
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    boundary = body["data"]["service_boundary"]
+    plan = body["data"]["converter_plan"]
+    assert body["adapter"] == "mayo"
+    assert boundary["job_recommended"] is True
+    assert boundary["source_kind"] == "kernel_service"
+    assert plan["strategy"] == "external_service_boundary"
+    assert plan["job"]["recommended"] is True
+    assert plan["future_service"] == "mayo_converter_service"
+
+
+def test_cad_preview3d_dxf_uses_existing_model3d_pipeline():
+    client = _client()
+    response = client.post(
+        "/cad/preview3d",
+        json={"source_format": "dxf", "target_format": "glb", "filename": "profile.dxf"},
+    )
+
+    assert response.status_code == 200
+    plan = response.json()["data"]["converter_plan"]
+    assert plan["strategy"] == "internal_existing_pipeline"
+    assert "routes.model3d.get_model3d" in plan["current_internal_paths"]
 
 
 def test_cad_generate_parametric_uses_cadquery_boundary():
@@ -63,12 +98,18 @@ def test_cad_generate_parametric_uses_cadquery_boundary():
 
     assert response.status_code == 200
     body = response.json()
+    boundary = body["data"]["service_boundary"]
     assert body["adapter"] == "cadquery"
     assert body["data"]["profile_type"] == "circular_hole_profile"
+    assert boundary["active_pipeline"] == "CadQuery worker/module boundary"
+    assert boundary["source_kind"] == "parametric_template"
+    assert body["data"]["converter_plan"]["strategy"] == "parametric_worker_boundary"
 
 
 if __name__ == "__main__":
     test_cad_tools_health_lists_adapters()
     test_cad_convert_returns_placeholder_response()
+    test_cad_convert_kernel_format_recommends_job_boundary()
+    test_cad_preview3d_dxf_uses_existing_model3d_pipeline()
     test_cad_generate_parametric_uses_cadquery_boundary()
     print("cad_tools tests passed")

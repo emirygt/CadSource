@@ -15,11 +15,21 @@
 - ✅ Scan → CAD nav tab geri getirildi (yanlışlıkla display:none yapılmıştı)
 
 ## VPS Bilgisi
-- Host: 3.79.98.10 — ec2-user@ip-172-31-22-74
-- Backend: PM2 ile `venv/bin/uvicorn main:app --host 0.0.0.0 --port 8000 --name cadsearch`
-- Deploy: `git pull` → sadece frontend değişmişse restart gerekmez
-- Backend değişmişse: `pm2 restart cadsearch`
+- Host: `3.79.98.10` — user `ec2-user` (hostname `ip-172-31-22-74`)
+- **SSH alias:** `cadsearch` (key: `~/.ssh/emirygt.pem`, config: `~/.ssh/config`)
+- **AI agent direkt erişimi var** — `ssh cadsearch "<komut>"` ile çalıştırır
+- **Repo path:** `~/CadSource` (yani `/home/ec2-user/CadSource`)
+- **PM2 processes (ikisi birden):**
+  - `cadsearch` — FastAPI app (port 8000)
+  - `cadsearch-worker` — Background worker (CLIP/embedding işleri)
+- **Deploy akışı:**
+  ```
+  ssh cadsearch "cd ~/CadSource && git pull"
+  ssh cadsearch "pm2 restart cadsearch && pm2 restart cadsearch-worker"
+  ```
+- Sadece frontend değişmişse `pm2 restart` gerekmez
 - VPS'te venv yoksa: `python3 -m venv venv && venv/bin/pip install -r requirements.txt`
+- **Tehlikeli komutlar (DB drop, force push, rm -rf) için her zaman onay iste**
 
 ## Sıradaki
 Faza 3.3 — Autodesk Vault / SharePoint entegrasyonu (veya 3.4 API key)

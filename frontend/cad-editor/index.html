@@ -1,0 +1,2241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile Axis CAD Editor</title>
+  <style>
+    :root {
+      --chrome: #f3f4f6;
+      --chrome-2: #ffffff;
+      --panel: #f8fafc;
+      --panel-line: #d9dee7;
+      --text: #1f2937;
+      --muted: #64748b;
+      --blue: #2563eb;
+      --cyan: #37c3e6;
+      --cyan-dark: #0f718d;
+      --pink: #e85f98;
+      --green: #22c55e;
+      --yellow: #f59e0b;
+      --red: #ef4444;
+      --viewport: #878787;
+      --input: #ffffff;
+      --shadow: 0 1px 3px rgba(15, 23, 42, .16);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      height: 100vh;
+      overflow: hidden;
+      color: var(--text);
+      background: #d6d6d6;
+      font: 12px/1.35 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    button, input, select { font: inherit; }
+    button {
+      border: 1px solid transparent;
+      background: transparent;
+      color: inherit;
+      cursor: pointer;
+    }
+
+    .app {
+      display: grid;
+      grid-template-rows: 38px 92px minmax(0, 1fr) 24px;
+      height: 100vh;
+      background: var(--chrome);
+    }
+
+    .titlebar {
+      display: grid;
+      grid-template-columns: 250px minmax(220px, 1fr) 430px;
+      align-items: center;
+      gap: 12px;
+      height: 38px;
+      padding: 0 12px;
+      background: #ececec;
+      border-bottom: 1px solid #d3d3d3;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      font-weight: 700;
+    }
+
+    .pepper {
+      width: 16px;
+      height: 16px;
+      border-radius: 60% 40% 65% 35%;
+      background: linear-gradient(135deg, #f43f5e 0%, #dc2626 62%, #f97316 63%);
+      transform: rotate(-22deg);
+      box-shadow: inset -3px -1px 0 rgba(255,255,255,.3);
+    }
+
+    .doc-tab {
+      justify-self: center;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      min-width: 310px;
+      max-width: 430px;
+      height: 27px;
+      padding: 0 10px;
+      border-radius: 6px;
+      background: #ffffff;
+      box-shadow: var(--shadow);
+      color: #111827;
+    }
+
+    .doc-tab input {
+      width: 100%;
+      min-width: 0;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: inherit;
+      font-weight: 600;
+    }
+
+    .title-actions {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .icon-btn {
+      width: 28px;
+      min-width: max-content;
+      height: 28px;
+      display: inline-grid;
+      place-items: center;
+      border-radius: 5px;
+      color: #334155;
+      padding: 0 7px;
+    }
+
+    .icon-btn:hover, .tool:hover, .tree-row:hover {
+      background: #e5e7eb;
+    }
+
+    .ribbon {
+      display: grid;
+      grid-template-rows: 28px 64px;
+      background: var(--chrome-2);
+      border-bottom: 1px solid var(--panel-line);
+      box-shadow: 0 1px 2px rgba(15,23,42,.08);
+      min-width: 0;
+    }
+
+    .ribbon-tabs {
+      display: flex;
+      align-items: end;
+      gap: 22px;
+      padding: 0 18px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .ribbon-tab {
+      height: 27px;
+      padding: 0 3px 7px;
+      border-bottom: 3px solid transparent;
+      color: #374151;
+      font-weight: 600;
+    }
+
+    .ribbon-tab.active {
+      color: var(--blue);
+      border-color: var(--blue);
+    }
+
+    .ribbon-groups {
+      display: flex;
+      align-items: stretch;
+      gap: 0;
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding-left: 8px;
+    }
+
+    .group {
+      display: grid;
+      grid-template-rows: 1fr 15px;
+      min-width: max-content;
+      padding: 4px 10px 2px;
+      border-right: 1px solid #e5e7eb;
+    }
+
+    .tools {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .tool {
+      width: 48px;
+      min-width: 48px;
+      height: 42px;
+      display: grid;
+      grid-template-rows: 22px 14px;
+      justify-items: center;
+      align-items: center;
+      border-radius: 5px;
+      color: #334155;
+      position: relative;
+    }
+
+    .tool.active {
+      background: #dbeafe;
+      outline: 1px solid #93c5fd;
+      color: #1d4ed8;
+    }
+
+    .tool.disabled {
+      opacity: .42;
+      cursor: not-allowed;
+    }
+
+    .tool-label {
+      font-size: 10px;
+      white-space: nowrap;
+    }
+
+    .group-label {
+      text-align: center;
+      color: #6b7280;
+      font-size: 10px;
+    }
+
+    .tool-svg {
+      width: 22px;
+      height: 22px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: 265px minmax(0, 1fr);
+      min-height: 0;
+    }
+
+    .sidebar {
+      display: grid;
+      grid-template-rows: minmax(230px, 1fr) 310px;
+      min-height: 0;
+      background: var(--panel);
+      border-right: 1px solid var(--panel-line);
+    }
+
+    .side-section {
+      display: grid;
+      grid-template-rows: 34px minmax(0, 1fr);
+      min-height: 0;
+      border-bottom: 1px solid var(--panel-line);
+    }
+
+    .side-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 10px;
+      background: #f1f5f9;
+      border-bottom: 1px solid var(--panel-line);
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .side-actions {
+      display: flex;
+      gap: 4px;
+      color: #475569;
+    }
+
+    .tree {
+      padding: 6px;
+      overflow: auto;
+    }
+
+    .tree-row {
+      display: grid;
+      grid-template-columns: 18px minmax(0, 1fr) 24px;
+      align-items: center;
+      gap: 3px;
+      min-height: 25px;
+      padding: 2px 4px;
+      border-radius: 3px;
+      color: #334155;
+      cursor: pointer;
+    }
+
+    .tree-row.level-1 { padding-left: 18px; }
+    .tree-row.level-2 { padding-left: 32px; }
+    .tree-row.selected {
+      background: #d6d6d6;
+      color: #111827;
+      font-weight: 700;
+    }
+
+    .tree-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .eye {
+      color: #475569;
+      font-size: 13px;
+      text-align: center;
+    }
+
+    .properties {
+      overflow: auto;
+      padding: 7px;
+    }
+
+    .prop-row {
+      display: grid;
+      grid-template-columns: 78px minmax(0, 1fr);
+      align-items: center;
+      gap: 7px;
+      margin-bottom: 7px;
+    }
+
+    .prop-row label {
+      color: #475569;
+    }
+
+    .prop-row input, .prop-row select {
+      height: 25px;
+      min-width: 0;
+      border: 1px solid #d7dce5;
+      border-radius: 4px;
+      background: var(--input);
+      color: #111827;
+      padding: 0 6px;
+    }
+
+    .prop-card {
+      border: 1px solid #dfe4ec;
+      border-radius: 5px;
+      background: #ffffff;
+      margin-bottom: 8px;
+      overflow: hidden;
+    }
+
+    .prop-card summary {
+      cursor: pointer;
+      padding: 6px 8px;
+      background: #e5e7eb;
+      font-weight: 700;
+      color: #374151;
+    }
+
+    .prop-card-body {
+      padding: 8px;
+    }
+
+    .color-chip {
+      height: 25px;
+      display: grid;
+      place-items: center;
+      border-radius: 4px;
+      border: 1px solid #d7dce5;
+      color: #0f172a;
+      font-weight: 700;
+    }
+
+    .viewport-shell {
+      position: relative;
+      min-width: 0;
+      min-height: 0;
+      overflow: hidden;
+      background: var(--viewport);
+    }
+
+    .viewport {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      cursor: grab;
+      background:
+        radial-gradient(circle at center, rgba(255,255,255,.08) 0 1px, transparent 1px) 0 0 / 24px 24px,
+        linear-gradient(120deg, rgba(135,135,135,.9), rgba(128,128,128,.9));
+    }
+
+    .viewport:active { cursor: grabbing; }
+
+    .model-svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .axis-line {
+      stroke-width: 1.2;
+      opacity: .8;
+      vector-effect: non-scaling-stroke;
+    }
+
+    .part {
+      cursor: pointer;
+      transition: filter .15s ease, opacity .15s ease;
+    }
+
+    .part-surface {
+      fill: var(--cyan);
+      stroke: #155e75;
+      stroke-width: 2.2;
+      vector-effect: non-scaling-stroke;
+    }
+
+    .part-edge {
+      fill: none;
+      stroke: #063b4c;
+      stroke-width: 1.5;
+      opacity: .75;
+      vector-effect: non-scaling-stroke;
+    }
+
+    .part.selected .part-surface {
+      stroke: #0a33ff;
+      stroke-width: 3.2;
+      filter: drop-shadow(0 0 4px rgba(37,99,235,.55));
+    }
+
+    .part.hidden {
+      opacity: .18;
+    }
+
+    .import-overlay {
+      fill: none;
+      stroke: #111827;
+      stroke-width: 1.4;
+      vector-effect: non-scaling-stroke;
+      opacity: .85;
+    }
+
+    .sketch-entity {
+      cursor: pointer;
+    }
+
+    .sketch-fill {
+      fill: rgba(56, 189, 248, .22);
+      stroke: #075985;
+      stroke-width: 2;
+      vector-effect: non-scaling-stroke;
+    }
+
+    .sketch-wire {
+      fill: none;
+      stroke: #0f172a;
+      stroke-width: 2;
+      vector-effect: non-scaling-stroke;
+    }
+
+    .sketch-helper {
+      fill: none;
+      stroke: #f59e0b;
+      stroke-width: 1.5;
+      stroke-dasharray: 8 5;
+      vector-effect: non-scaling-stroke;
+    }
+
+    .sketch-entity.selected .sketch-fill,
+    .sketch-entity.selected .sketch-wire {
+      stroke: #0a33ff;
+      stroke-width: 3;
+      filter: drop-shadow(0 0 4px rgba(37, 99, 235, .75));
+    }
+
+    .sketch-entity.hidden {
+      opacity: .15;
+    }
+
+    .sketch-preview * {
+      pointer-events: none;
+      stroke: #2563eb;
+      stroke-width: 2;
+      stroke-dasharray: 7 5;
+      fill: rgba(37, 99, 235, .12);
+      vector-effect: non-scaling-stroke;
+    }
+
+    .viewport-note {
+      position: absolute;
+      left: 16px;
+      top: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      border-radius: 6px;
+      background: rgba(255,255,255,.82);
+      color: #334155;
+      box-shadow: var(--shadow);
+      max-width: min(620px, calc(100% - 120px));
+    }
+
+    .viewport-note.error {
+      color: #7f1d1d;
+      background: #fee2e2;
+    }
+
+    .view-gizmo {
+      position: absolute;
+      right: 24px;
+      top: 24px;
+      width: 92px;
+      height: 92px;
+    }
+
+    .gizmo-axis {
+      position: absolute;
+      left: 42px;
+      top: 42px;
+      width: 38px;
+      height: 2px;
+      transform-origin: left center;
+      background: currentColor;
+    }
+
+    .gizmo-axis.x { color: #dc2626; transform: rotate(-38deg); }
+    .gizmo-axis.y { color: #65a30d; transform: rotate(168deg); }
+    .gizmo-axis.z { color: #2563eb; transform: rotate(-88deg); }
+
+    .gizmo-dot {
+      position: absolute;
+      width: 17px;
+      height: 17px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      color: #111827;
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .gizmo-dot.x { right: 2px; top: 19px; background: #dc2626; }
+    .gizmo-dot.y { left: 4px; top: 48px; background: #65a30d; }
+    .gizmo-dot.z { left: 44px; top: 3px; background: #2563eb; color: white; }
+    .gizmo-dot.o { left: 43px; top: 43px; width: 10px; height: 10px; background: #ef4444; }
+    .gizmo-dot.a { right: 20px; bottom: 17px; width: 10px; height: 10px; background: #60a5fa; }
+    .gizmo-dot.b { left: 28px; bottom: 23px; width: 10px; height: 10px; background: #f97316; }
+
+    .view-controls {
+      position: absolute;
+      right: 16px;
+      top: 168px;
+      display: grid;
+      gap: 6px;
+      padding: 6px;
+      border-radius: 8px;
+      background: rgba(244,244,244,.72);
+      box-shadow: var(--shadow);
+    }
+
+    .view-control {
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      border-radius: 6px;
+      background: rgba(255,255,255,.82);
+      color: #475569;
+      border: 1px solid rgba(148,163,184,.55);
+    }
+
+    .view-control:hover {
+      color: var(--blue);
+      border-color: var(--blue);
+    }
+
+    .act-bar {
+      position: absolute;
+      left: 50%;
+      bottom: 20px;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 8px;
+      padding: 6px;
+      border-radius: 10px;
+      background: rgba(255,255,255,.28);
+      box-shadow: var(--shadow);
+    }
+
+    .act-btn {
+      width: 82px;
+      height: 32px;
+      border-radius: 7px;
+      background: rgba(255,255,255,.88);
+      border: 1px solid rgba(148,163,184,.65);
+      color: #475569;
+      font-weight: 700;
+    }
+
+    .drag-overlay {
+      position: absolute;
+      inset: 0;
+      display: none;
+      place-items: center;
+      background: rgba(37,99,235,.12);
+      border: 3px dashed rgba(37,99,235,.65);
+      color: #0f172a;
+      font-size: 18px;
+      font-weight: 800;
+      z-index: 10;
+    }
+
+    .drag-overlay.show {
+      display: grid;
+    }
+
+    .file-preview-overlay {
+      position: absolute;
+      left: 18px;
+      right: 92px;
+      bottom: 74px;
+      max-height: 38vh;
+      display: none;
+      border: 1px solid rgba(15, 23, 42, .22);
+      border-radius: 10px;
+      background: rgba(248, 250, 252, .92);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      z-index: 5;
+    }
+
+    .file-preview-overlay.show {
+      display: grid;
+      grid-template-rows: 32px minmax(120px, 1fr);
+    }
+
+    .file-preview-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 0 10px;
+      background: #e5e7eb;
+      border-bottom: 1px solid #cbd5e1;
+      color: #334155;
+      font-weight: 700;
+    }
+
+    .file-preview-body {
+      min-height: 140px;
+      overflow: auto;
+      display: grid;
+      place-items: center;
+      padding: 12px;
+      color: #334155;
+    }
+
+    .file-preview-body img,
+    .file-preview-body iframe {
+      width: 100%;
+      height: 32vh;
+      min-height: 220px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      background: #ffffff;
+      object-fit: contain;
+    }
+
+    .file-card {
+      max-width: 560px;
+      padding: 16px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      background: #ffffff;
+      text-align: center;
+    }
+
+    .file-card strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 15px;
+      color: #0f172a;
+    }
+
+    .statusbar {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 12px;
+      height: 24px;
+      padding: 0 8px;
+      background: #f8fafc;
+      border-top: 1px solid var(--panel-line);
+      color: #334155;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    .status-left {
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .snap-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .snap-row label {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .hidden-input {
+      display: none;
+    }
+
+    @media (max-width: 1050px) {
+      body { overflow: auto; }
+      .app { min-height: 100vh; height: auto; grid-template-rows: auto auto minmax(760px, 1fr) auto; }
+      .titlebar { grid-template-columns: 1fr; height: auto; padding: 8px; }
+      .doc-tab { justify-self: stretch; min-width: 0; }
+      .workspace { grid-template-columns: 1fr; }
+      .sidebar { grid-template-rows: 250px 300px; border-right: 0; border-bottom: 1px solid var(--panel-line); }
+      .viewport-shell { min-height: 620px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app" id="appRoot">
+    <header class="titlebar">
+      <div class="brand">
+        <span class="pepper"></span>
+        <span>Chili3D-inspired CAD Editor</span>
+        <button class="icon-btn" title="Home" type="button" data-action="home">Home</button>
+      </div>
+      <div class="doc-tab">
+        <input id="documentNameInput" value="undefined 1" aria-label="Document name">
+        <button class="icon-btn" type="button" title="Close document">x</button>
+      </div>
+      <div class="title-actions">
+        <button class="icon-btn" type="button" title="Undo" data-action="undo">Undo</button>
+        <button class="icon-btn" type="button" title="Redo" data-action="redo">Redo</button>
+        <button class="icon-btn" type="button" title="Import" id="titleImportBtn">Import</button>
+        <button class="icon-btn" type="button" title="Export" id="titleExportBtn">Export</button>
+        <button class="icon-btn" type="button" title="Download original file" id="originalExportBtn">Original</button>
+        <button class="icon-btn" type="button" title="Back to existing preview" id="fallbackPreviewBtn">Preview</button>
+      </div>
+    </header>
+
+    <section class="ribbon" aria-label="CAD tools ribbon">
+      <nav class="ribbon-tabs">
+        <button class="ribbon-tab active" type="button" data-tab="Startup">Startup</button>
+        <button class="ribbon-tab" type="button" data-tab="Drawing">Drawing</button>
+        <button class="ribbon-tab" type="button" data-tab="Tools">Tools</button>
+      </nav>
+      <div class="ribbon-groups">
+        <div class="group">
+          <div class="tools" data-group="Drawing"></div>
+          <div class="group-label">Drawing</div>
+        </div>
+        <div class="group">
+          <div class="tools" data-group="Primitives"></div>
+          <div class="group-label">Primitives</div>
+        </div>
+        <div class="group">
+          <div class="tools" data-group="Modify"></div>
+          <div class="group-label">Modify</div>
+        </div>
+        <div class="group">
+          <div class="tools" data-group="Converter"></div>
+          <div class="group-label">Converter</div>
+        </div>
+        <div class="group">
+          <div class="tools" data-group="Boolean"></div>
+          <div class="group-label">Boolean</div>
+        </div>
+        <div class="group">
+          <div class="tools" data-group="Measure"></div>
+          <div class="group-label">Measure</div>
+        </div>
+        <div class="group">
+          <div class="tools" data-group="ImportExport"></div>
+          <div class="group-label">Import/Export</div>
+        </div>
+      </div>
+    </section>
+
+    <main class="workspace">
+      <aside class="sidebar">
+        <section class="side-section">
+          <div class="side-head">
+            <span>Items</span>
+            <div class="side-actions">
+              <button class="icon-btn" type="button" title="New group">+</button>
+              <button class="icon-btn" type="button" title="Duplicate">Copy</button>
+            </div>
+          </div>
+          <div class="tree" id="itemsTree"></div>
+        </section>
+
+        <section class="side-section">
+          <div class="side-head"><span>Properties</span></div>
+          <div class="properties">
+            <div class="prop-row">
+              <label for="propName">Name</label>
+              <input id="propName" value="Top">
+            </div>
+            <details class="prop-card" open>
+              <summary>Matrix</summary>
+              <div class="prop-card-body">
+                <div class="prop-row"><label>Translation</label><input id="propTranslation" value="99.390457, 215.102890, 0.000000"></div>
+                <div class="prop-row"><label>Scale</label><input id="propScale" value="1.000000, 1.000000, 1.000000"></div>
+                <div class="prop-row"><label>Rotation</label><input id="propRotation" value="0.000000, 0.000000, 0.000000"></div>
+              </div>
+            </details>
+            <details class="prop-card" open>
+              <summary>Editable Shape</summary>
+              <div class="prop-card-body">
+                <div class="prop-row">
+                  <label>Material</label>
+                  <div class="color-chip" id="propMaterial">LightGray</div>
+                </div>
+                <div class="prop-row">
+                  <label for="propColor">Color</label>
+                  <input id="propColor" type="color" value="#37c3e6">
+                </div>
+              </div>
+            </details>
+            <details class="prop-card" open>
+              <summary>Profile Axis File</summary>
+              <div class="prop-card-body">
+                <div class="prop-row"><label>File ID</label><input id="propFileId" readonly></div>
+                <div class="prop-row"><label>Format</label><input id="propFormat" readonly></div>
+                <div class="prop-row"><label>Status</label><input id="propLoadStatus" readonly value="Sample document"></div>
+              </div>
+            </details>
+          </div>
+        </section>
+      </aside>
+
+      <section class="viewport-shell">
+        <div class="viewport" id="viewport">
+          <svg class="model-svg" viewBox="0 0 1280 760" aria-label="CAD model viewport">
+            <defs>
+              <linearGradient id="bodyGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#5bd8f2"/>
+                <stop offset="1" stop-color="#1fa8c9"/>
+              </linearGradient>
+              <linearGradient id="sideGrad" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0" stop-color="#2cb8d8"/>
+                <stop offset="1" stop-color="#1683a3"/>
+              </linearGradient>
+              <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx="0" dy="8" stdDeviation="7" flood-color="#334155" flood-opacity=".3"/>
+              </filter>
+            </defs>
+            <line class="axis-line" x1="120" y1="502" x2="1090" y2="270" stroke="#b6dc62"/>
+            <line class="axis-line" x1="900" y1="720" x2="1050" y2="-40" stroke="#407bc4"/>
+            <line class="axis-line" x1="720" y1="690" x2="1040" y2="220" stroke="#d7b44a"/>
+            <g id="sceneGroup" transform="translate(30 0)">
+              <g class="part" data-id="back-cap" filter="url(#softShadow)">
+                <path class="part-surface" d="M316 378 C300 358 300 323 318 304 L378 266 L420 318 L413 417 L342 433 C332 420 322 400 316 378Z" fill="#e85f98"/>
+                <path class="part-edge" d="M332 335 C360 340 382 353 398 375 M326 367 C359 369 384 383 405 405"/>
+              </g>
+              <g class="part" data-id="main-body" filter="url(#softShadow)">
+                <path class="part-surface" d="M420 274 L782 366 L852 572 L538 648 L376 512 L394 326 Z" fill="url(#bodyGrad)"/>
+                <path class="part-edge" d="M420 274 L548 232 L890 318 L782 366 M782 366 L852 572 M538 648 L538 431 L782 366 M394 326 L538 431 L890 318"/>
+                <path class="part-edge" d="M448 304 L788 389 L825 549 L553 612 L414 495 L428 350 Z"/>
+              </g>
+              <g class="part" data-id="top-cylinder">
+                <path class="part-surface" d="M780 112 C780 86 865 72 947 86 C1002 96 1030 116 1030 139 L1030 380 C1030 409 976 430 905 430 C831 430 780 408 780 381 Z" fill="url(#bodyGrad)"/>
+                <ellipse class="part-surface" cx="905" cy="118" rx="124" ry="38" fill="#5bd8f2"/>
+                <ellipse class="part-edge" cx="905" cy="118" rx="86" ry="25"/>
+                <path class="part-edge" d="M780 122 L780 382 C792 416 849 430 905 430 C974 430 1029 408 1030 380 L1030 139"/>
+              </g>
+              <g class="part" data-id="right-bracket">
+                <path class="part-surface" d="M905 408 L1112 324 L1180 502 L1050 590 L962 548 Z" fill="#41c5e4"/>
+                <path class="part-edge" d="M1112 324 L1082 494 L1050 590 M964 548 L1082 494 L1180 502"/>
+                <path class="part-edge" d="M1078 456 C1118 443 1145 455 1154 481"/>
+              </g>
+              <g class="part" data-id="front-pad">
+                <path class="part-surface" d="M596 462 L742 498 L731 584 L590 624 L515 573 L528 493 Z" fill="#39bfdf"/>
+                <ellipse class="part-edge" cx="618" cy="528" rx="35" ry="22"/>
+                <ellipse class="part-edge" cx="618" cy="528" rx="22" ry="13"/>
+                <path class="part-edge" d="M528 493 L590 545 L731 584 M590 624 L590 545"/>
+              </g>
+              <g class="part" data-id="lower-post">
+                <path class="part-surface" d="M586 595 C612 588 647 596 657 614 L657 706 C657 726 616 736 586 719 Z" fill="#35bddc"/>
+                <path class="part-edge" d="M586 595 C612 588 647 596 657 614 M586 719 C612 732 657 724 657 706"/>
+                <path class="part-surface" d="M526 702 L678 723 L646 758 L500 736 Z" fill="#37c3e6"/>
+              </g>
+              <g id="importedPreview"></g>
+              <g id="sketchLayer"></g>
+              <g id="previewLayer" class="sketch-preview"></g>
+            </g>
+          </svg>
+          <div class="viewport-note" id="viewportNote">High-fidelity isolated editor workspace. Chili3D runtime is not bundled; this surface is ready for a safe swap-in.</div>
+          <div class="view-gizmo" aria-label="View axes">
+            <span class="gizmo-axis x"></span>
+            <span class="gizmo-axis y"></span>
+            <span class="gizmo-axis z"></span>
+            <span class="gizmo-dot x">X</span>
+            <span class="gizmo-dot y">Y</span>
+            <span class="gizmo-dot z">Z</span>
+            <span class="gizmo-dot o"></span>
+            <span class="gizmo-dot a"></span>
+            <span class="gizmo-dot b"></span>
+          </div>
+          <div class="view-controls" aria-label="View controls">
+            <button class="view-control" type="button" data-view="iso" title="Isometric">Iso</button>
+            <button class="view-control" type="button" data-view="top" title="Top">Top</button>
+            <button class="view-control" type="button" data-view="fit" title="Fit">Fit</button>
+            <button class="view-control" type="button" data-view="zoom-in" title="Zoom in">+</button>
+            <button class="view-control" type="button" data-view="zoom-out" title="Zoom out">-</button>
+          </div>
+          <div class="act-bar">
+            <button class="act-btn" type="button" data-act="0">Act 0</button>
+            <button class="act-btn" type="button" data-act="1">Act 1</button>
+          </div>
+          <div class="file-preview-overlay" id="filePreviewOverlay">
+            <div class="file-preview-head">
+              <span id="filePreviewTitle">Imported file</span>
+              <button type="button" class="icon-btn" id="closeFilePreviewBtn">Close</button>
+            </div>
+            <div class="file-preview-body" id="filePreviewBody"></div>
+          </div>
+          <div class="drag-overlay" id="dragOverlay">Drop CAD file to import</div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="statusbar">
+      <div class="status-left" id="statusText">Middle mouse button to pan the view, Shift + Middle button to rotate the view, Middle button to scroll the zoom view</div>
+      <div class="snap-row">
+        <label><input type="checkbox" checked> End</label>
+        <label><input type="checkbox" checked> Middle</label>
+        <label><input type="checkbox" checked> Center</label>
+        <label><input type="checkbox" checked> Perpendicular</label>
+        <label><input type="checkbox" checked> Intersection</label>
+        <label><input type="checkbox" checked> Tracking</label>
+      </div>
+    </footer>
+  </div>
+
+  <input id="fileInput" class="hidden-input" type="file">
+  <script src="./chili3d-adapter.js"></script>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const rawFlag = window.ENABLE_CHILI3D_EDITOR ?? 'false';
+    const ENABLE_CHILI3D_EDITOR = ['1', 'true', 'on', 'yes'].includes(String(rawFlag).trim().toLowerCase());
+    const API = normalizeApiBase(params.get('api') || localStorage.getItem('api_base') || '/api');
+    const fileId = params.get('file_id') || '';
+    const incomingFilename = params.get('filename') || '';
+    const incomingFormat = (params.get('format') || incomingFilename.split('.').pop() || '').toLowerCase();
+    const rawDownloadUrl = params.get('download_url') || (fileId ? `${API}/files/${encodeURIComponent(fileId)}/download` : '');
+    const downloadUrl = normalizeDownloadUrl(rawDownloadUrl);
+
+    const toolGroups = {
+      Drawing: ['Line', 'Arc', 'Rectangle', 'Circle', 'Ellipse', 'Polygon'],
+      Primitives: ['Box', 'Cylinder', 'Sphere', 'Cone', 'Pyramid', 'ThickSolid'],
+      Modify: ['Move', 'Rotate', 'Mirror', 'Split', 'Break', 'Trim', 'Fillet', 'Chamfer'],
+      Converter: ['Extrude', 'Prism', 'Revolve', 'Sweep'],
+      Boolean: ['Cut', 'Fuse', 'Common'],
+      Measure: ['Length', 'Angle', 'Select'],
+      ImportExport: ['Import', 'Export'],
+    };
+
+    const icons = {
+      Line: '<line x1="3" y1="19" x2="19" y2="3"/>',
+      Arc: '<path d="M5 18 A13 13 0 0 1 18 5"/><circle cx="5" cy="18" r="1"/><circle cx="18" cy="5" r="1"/>',
+      Rectangle: '<rect x="4" y="6" width="15" height="11"/>',
+      Circle: '<circle cx="11" cy="11" r="8"/>',
+      Ellipse: '<ellipse cx="11" cy="11" rx="8" ry="5"/>',
+      Polygon: '<path d="M11 3 L19 9 L16 19 L6 19 L3 9 Z"/>',
+      Box: '<path d="M5 8 L12 4 L19 8 L19 16 L12 20 L5 16 Z"/><path d="M5 8 L12 12 L19 8"/><path d="M12 12 L12 20"/>',
+      Cylinder: '<ellipse cx="11" cy="6" rx="7" ry="3"/><path d="M4 6 V16 C4 18 18 18 18 16 V6"/>',
+      Sphere: '<circle cx="11" cy="11" r="8"/><ellipse cx="11" cy="11" rx="8" ry="3"/><path d="M11 3 C15 7 15 15 11 19 C7 15 7 7 11 3"/>',
+      Cone: '<ellipse cx="11" cy="17" rx="7" ry="3"/><path d="M4 17 L11 3 L18 17"/>',
+      Pyramid: '<path d="M4 17 L11 4 L18 17 L11 20 Z"/><path d="M11 4 L11 20"/>',
+      ThickSolid: '<path d="M4 7 L13 3 L19 8 L10 13 Z"/><path d="M4 7 V13 L10 19 L10 13"/><path d="M19 8 V14 L10 19"/>',
+      Move: '<path d="M11 3 V19 M3 11 H19 M11 3 L8 6 M11 3 L14 6 M19 11 L16 8 M19 11 L16 14 M11 19 L8 16 M11 19 L14 16 M3 11 L6 8 M3 11 L6 14"/>',
+      Rotate: '<path d="M17 7 A7 7 0 1 0 18 14"/><path d="M17 7 H12 M17 7 V2"/>',
+      Mirror: '<path d="M11 3 V19"/><path d="M4 7 L9 11 L4 15 Z"/><path d="M18 7 L13 11 L18 15 Z"/>',
+      Split: '<path d="M4 6 H18 M4 16 H18 M11 3 V19"/>',
+      Break: '<path d="M4 15 L9 10 M13 6 L18 11"/><path d="M9 10 L8 6 M13 6 L16 5"/>',
+      Trim: '<path d="M4 17 L18 3"/><path d="M7 4 H17 V14"/>',
+      Fillet: '<path d="M5 18 V10 A5 5 0 0 1 10 5 H18"/>',
+      Chamfer: '<path d="M5 18 V10 L10 5 H18"/>',
+      Extrude: '<path d="M5 15 L11 19 L17 15 L11 11 Z"/><path d="M11 11 V3"/><path d="M8 6 L11 3 L14 6"/>',
+      Prism: '<path d="M5 17 L11 4 L17 17 Z"/><path d="M8 17 L14 17"/>',
+      Revolve: '<path d="M7 17 C15 18 19 14 15 10 C12 8 8 8 6 11"/><path d="M13 4 V19"/>',
+      Sweep: '<path d="M4 16 C8 5 15 5 19 15"/><circle cx="5" cy="16" r="2"/>',
+      Cut: '<path d="M5 6 L17 6 L17 18 L5 18 Z"/><path d="M9 3 L20 14"/>',
+      Fuse: '<circle cx="9" cy="11" r="6"/><circle cx="15" cy="11" r="6"/>',
+      Common: '<circle cx="9" cy="11" r="6"/><circle cx="15" cy="11" r="6"/><path d="M12 6 C15 8 15 14 12 16 C9 14 9 8 12 6Z" fill="currentColor" stroke="none"/>',
+      Length: '<path d="M4 18 L18 4"/><path d="M4 14 V18 H8 M14 4 H18 V8"/>',
+      Angle: '<path d="M5 18 H18"/><path d="M5 18 L16 7"/><path d="M9 18 A5 5 0 0 1 10.5 14.5"/>',
+      Select: '<path d="M5 3 L18 12 L12 14 L9 20 Z"/>',
+      Import: '<path d="M11 3 V15"/><path d="M7 11 L11 15 L15 11"/><path d="M4 19 H18"/>',
+      Export: '<path d="M11 15 V3"/><path d="M7 7 L11 3 L15 7"/><path d="M4 19 H18"/>',
+    };
+
+    const objects = [
+      { id: 'bottom', name: 'Bottom', type: 'Workplane', visible: true, color: '#a8c76a', translation: '0.000000, 0.000000, 0.000000', scale: '1.000000, 1.000000, 1.000000', rotation: '0.000000, 0.000000, 0.000000', material: 'Construction' },
+      { id: 'top', name: 'Top', type: 'Editable Shape', visible: true, color: '#e85f98', translation: '99.390457, 215.102890, 0.000000', scale: '1.000000, 1.000000, 1.000000', rotation: '0.000000, 0.000000, 0.000000', material: 'LightGray' },
+      { id: 'main-body', name: 'Main Body', type: 'Solid', visible: true, color: '#37c3e6', translation: '12.500000, 0.000000, 0.000000', scale: '1.000000, 1.000000, 1.000000', rotation: '0.000000, 0.000000, 0.000000', material: 'Cyan Resin' },
+      { id: 'top-cylinder', name: 'Cylinder 001', type: 'Cylinder', visible: true, color: '#37c3e6', translation: '64.000000, 22.000000, 96.000000', scale: '1.000000, 1.000000, 1.000000', rotation: '0.000000, 0.000000, 0.000000', material: 'Cyan Resin' },
+      { id: 'right-bracket', name: 'Right Bracket', type: 'Solid', visible: true, color: '#37c3e6', translation: '108.000000, -18.000000, 24.000000', scale: '1.000000, 1.000000, 1.000000', rotation: '0.000000, 0.000000, 12.000000', material: 'Cyan Resin' },
+      { id: 'front-pad', name: 'Front Pad Hole', type: 'Pocket', visible: true, color: '#37c3e6', translation: '42.000000, -44.000000, 12.000000', scale: '1.000000, 1.000000, 1.000000', rotation: '0.000000, 0.000000, 0.000000', material: 'Cyan Resin' },
+      { id: 'lower-post', name: 'Lower Post', type: 'Cylinder', visible: true, color: '#37c3e6', translation: '38.000000, -82.000000, -18.000000', scale: '1.000000, 1.000000, 1.000000', rotation: '0.000000, 0.000000, 0.000000', material: 'Cyan Resin' },
+      { id: 'back-cap', name: 'Section Face', type: 'Selected Face', visible: true, color: '#e85f98', translation: '-72.000000, 5.000000, 0.000000', scale: '1.000000, 1.000000, 1.000000', rotation: '0.000000, 0.000000, 0.000000', material: 'Selection Pink' },
+    ];
+
+    const state = {
+      selectedId: 'top',
+      activeTool: 'Select',
+      activeTab: 'Startup',
+      filename: incomingFilename || 'undefined 1',
+      format: incomingFormat || 'cad',
+      fileId: fileId || 'sample',
+      loadedBlob: null,
+      loadStatus: fileId ? 'Waiting for file download' : 'Sample document',
+      objectUrl: '',
+      filePreviewUrl: '',
+      viewport: { x: 0, y: 0, scale: 1 },
+      undoStack: [],
+      redoStack: [],
+      sketchEntities: [
+        { id: 'sketch-1', name: 'Line 001', kind: 'line', visible: true, color: '#0f172a', x1: 160, y1: 140, x2: 290, y2: 180, rotation: 0 },
+        { id: 'sketch-2', name: 'Rectangle 001', kind: 'rect', visible: true, color: '#0ea5e9', x: 155, y: 205, w: 132, h: 78, rotation: 0 },
+        { id: 'sketch-3', name: 'Circle 001', kind: 'circle', visible: true, color: '#f59e0b', cx: 225, cy: 340, r: 34, rotation: 0 },
+      ],
+      sketchCounter: 4,
+      interaction: { mode: 'idle', start: null, current: null, entityId: null, original: null },
+    };
+
+    const $ = (id) => document.getElementById(id);
+
+    function normalizeApiBase(value) {
+      const raw = String(value || '').replace(/\/$/, '');
+      if (/^https?:\/\//i.test(raw)) return raw;
+      if (raw === '/api' && ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname)) {
+        return 'http://127.0.0.1:8000';
+      }
+      if (raw.startsWith('/')) return `${window.location.origin}${raw}`;
+      return raw || '/api';
+    }
+
+    function normalizeDownloadUrl(url) {
+      if (!url) return '';
+      if (/^https?:\/\//i.test(url)) return url;
+      if (url.startsWith('/api/') && /^https?:\/\//i.test(API)) {
+        return `${API.replace(/\/$/, '')}${url.slice(4)}`;
+      }
+      if (url.startsWith('/api/') && ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname)) {
+        return `http://127.0.0.1:8000${url.slice(4)}`;
+      }
+      if (url.startsWith('/')) {
+        return `${window.location.origin}${url}`;
+      }
+      return new URL(url, window.location.href).href;
+    }
+
+    function authHeaders() {
+      return { Authorization: `Bearer ${localStorage.getItem('token') || ''}` };
+    }
+
+    function svgIcon(name) {
+      return `<svg class="tool-svg" viewBox="0 0 22 22" aria-hidden="true">${icons[name] || icons.Select}</svg>`;
+    }
+
+    function renderTools() {
+      Object.entries(toolGroups).forEach(([group, names]) => {
+        const mount = document.querySelector(`[data-group="${group}"]`);
+        if (!mount) return;
+        mount.innerHTML = names.map((name) => {
+          const disabled = false;
+          return `<button class="tool ${state.activeTool === name ? 'active' : ''} ${disabled ? 'disabled' : ''}" type="button" data-tool="${name}" ${disabled ? 'aria-disabled="true"' : ''} title="${name}${disabled ? ' (coming soon)' : ''}">
+            ${svgIcon(name)}
+            <span class="tool-label">${name}</span>
+          </button>`;
+        }).join('');
+      });
+    }
+
+    function renderTree() {
+      const documentName = escapeHtml(state.filename || 'undefined 1');
+      const importedRows = state.loadedBlob ? `<div class="tree-row level-1 ${state.selectedId === 'imported-file' ? 'selected' : ''}" data-select="imported-file">
+        <span>File</span><span class="tree-name">${documentName}</span><button class="eye" data-visibility="imported-file" type="button">show</button>
+      </div>` : '';
+      const sketchRows = state.sketchEntities.map((entity) => `<div class="tree-row level-2 ${state.selectedId === entity.id ? 'selected' : ''}" data-select="${entity.id}">
+        <span>2D</span>
+        <span class="tree-name">${escapeHtml(entity.name)}</span>
+        <button class="eye" data-visibility="${entity.id}" type="button">${entity.visible ? 'show' : 'hide'}</button>
+      </div>`).join('');
+      const rows = objects.map((obj) => `<div class="tree-row level-1 ${state.selectedId === obj.id ? 'selected' : ''}" data-select="${obj.id}">
+        <span>${obj.type === 'Workplane' ? 'WP' : 'SH'}</span>
+        <span class="tree-name">${escapeHtml(obj.name)}</span>
+        <button class="eye" data-visibility="${obj.id}" type="button">${obj.visible ? 'show' : 'hide'}</button>
+      </div>`).join('');
+
+      $('itemsTree').innerHTML = `
+        <div class="tree-row ${state.selectedId === 'document' ? 'selected' : ''}" data-select="document">
+          <span>Doc</span><span class="tree-name">${documentName}</span><button class="eye" type="button">show</button>
+        </div>
+        ${importedRows}
+        <div class="tree-row level-1 ${state.selectedId === 'sketch-root' ? 'selected' : ''}" data-select="sketch-root">
+          <span>SK</span><span class="tree-name">Sketch / Editable 2D</span><button class="eye" type="button">show</button>
+        </div>
+        ${sketchRows}
+        ${rows}
+      `;
+    }
+
+    function objectById(id) {
+      if (id === 'document') {
+        return {
+          id: 'document',
+          name: state.filename || 'undefined 1',
+          type: 'Document',
+          color: '#37c3e6',
+          translation: '0.000000, 0.000000, 0.000000',
+          scale: '1.000000, 1.000000, 1.000000',
+          rotation: '0.000000, 0.000000, 0.000000',
+          material: 'Document',
+        };
+      }
+      if (id === 'imported-file') {
+        return {
+          id,
+          name: state.filename,
+          type: 'Imported File',
+          color: '#22c55e',
+          translation: '0.000000, 0.000000, 0.000000',
+          scale: '1.000000, 1.000000, 1.000000',
+          rotation: '0.000000, 0.000000, 0.000000',
+          material: state.format.toUpperCase(),
+        };
+      }
+      if (id === 'sketch-root') {
+        return {
+          id,
+          name: 'Sketch / Editable 2D',
+          type: 'Sketch',
+          color: '#0ea5e9',
+          translation: '0.000000, 0.000000, 0.000000',
+          scale: '1.000000, 1.000000, 1.000000',
+          rotation: '0.000000, 0.000000, 0.000000',
+          material: `${state.sketchEntities.length} entities`,
+        };
+      }
+      const sketch = state.sketchEntities.find((entity) => entity.id === id);
+      if (sketch) {
+        const box = entityBounds(sketch);
+        return {
+          id: sketch.id,
+          name: sketch.name,
+          type: sketch.kind.toUpperCase(),
+          color: sketch.color || '#0ea5e9',
+          translation: `${fmtNum(box.cx)}, ${fmtNum(box.cy)}, 0.000000`,
+          scale: `${fmtNum(box.w || 1)}, ${fmtNum(box.h || 1)}, 1.000000`,
+          rotation: `0.000000, 0.000000, ${fmtNum(sketch.rotation || 0)}`,
+          material: sketch.kind,
+        };
+      }
+      return objects.find((obj) => obj.id === id) || objects[1];
+    }
+
+    function updateProperties() {
+      const obj = objectById(state.selectedId);
+      $('propName').value = obj.name;
+      $('propTranslation').value = obj.translation;
+      $('propScale').value = obj.scale;
+      $('propRotation').value = obj.rotation;
+      $('propMaterial').textContent = obj.material;
+      $('propMaterial').style.background = obj.color;
+      $('propColor').value = normalizeColor(obj.color);
+      $('propFileId').value = state.fileId || 'sample';
+      $('propFormat').value = (state.format || 'cad').toUpperCase();
+      $('propLoadStatus').value = state.loadStatus;
+      $('documentNameInput').value = state.filename || 'undefined 1';
+    }
+
+    function normalizeColor(value) {
+      if (/^#[0-9a-f]{6}$/i.test(value)) return value;
+      return '#37c3e6';
+    }
+
+    function fmtNum(value) {
+      return Number(value || 0).toFixed(6);
+    }
+
+    function entityBounds(entity) {
+      const pts = entityPoints(entity);
+      if (!pts.length) return { minX: 0, minY: 0, maxX: 0, maxY: 0, cx: 0, cy: 0, w: 0, h: 0 };
+      const xs = pts.map((p) => p.x);
+      const ys = pts.map((p) => p.y);
+      const minX = Math.min(...xs);
+      const maxX = Math.max(...xs);
+      const minY = Math.min(...ys);
+      const maxY = Math.max(...ys);
+      return { minX, minY, maxX, maxY, cx: (minX + maxX) / 2, cy: (minY + maxY) / 2, w: maxX - minX, h: maxY - minY };
+    }
+
+    function entityPoints(entity) {
+      if (!entity) return [];
+      if (entity.kind === 'line') return [{ x: entity.x1, y: entity.y1 }, { x: entity.x2, y: entity.y2 }];
+      if (entity.kind === 'rect' || entity.kind === 'box' || entity.kind === 'thickSolid') {
+        return [{ x: entity.x, y: entity.y }, { x: entity.x + entity.w, y: entity.y + entity.h }];
+      }
+      if (entity.kind === 'circle' || entity.kind === 'sphere') {
+        return [{ x: entity.cx - entity.r, y: entity.cy - entity.r }, { x: entity.cx + entity.r, y: entity.cy + entity.r }];
+      }
+      if (entity.kind === 'ellipse' || entity.kind === 'cylinder') {
+        return [{ x: entity.cx - entity.rx, y: entity.cy - entity.ry }, { x: entity.cx + entity.rx, y: entity.cy + entity.ry }];
+      }
+      if (entity.kind === 'arc') return [{ x: entity.x1, y: entity.y1 }, { x: entity.mx, y: entity.my }, { x: entity.x2, y: entity.y2 }];
+      if (Array.isArray(entity.points)) return entity.points.map(([x, y]) => ({ x, y }));
+      return [];
+    }
+
+    function renderSketchEntities() {
+      const layer = $('sketchLayer');
+      layer.innerHTML = state.sketchEntities.map(renderSketchEntity).join('');
+      updateModelSelection();
+    }
+
+    function renderSketchEntity(entity) {
+      const selected = state.selectedId === entity.id ? 'selected' : '';
+      const hidden = entity.visible === false ? 'hidden' : '';
+      const box = entityBounds(entity);
+      const transform = entity.rotation ? ` transform="rotate(${entity.rotation} ${box.cx} ${box.cy})"` : '';
+      return `<g class="sketch-entity ${selected} ${hidden}" data-sketch-id="${entity.id}"${transform}>${entityMarkup(entity)}</g>`;
+    }
+
+    function entityMarkup(entity) {
+      const color = entity.color || '#0ea5e9';
+      const fill = `style="stroke:${color};fill:${hexToRgba(color, .2)}"`;
+      const wire = `style="stroke:${color}"`;
+      const extrude = entity.extruded ? extrudeMarkup(entity) : '';
+      const cut = entity.cut ? cutMarkup(entity) : '';
+      if (entity.kind === 'line') return `${extrude}<line class="sketch-wire" ${wire} x1="${entity.x1}" y1="${entity.y1}" x2="${entity.x2}" y2="${entity.y2}"/>${revolveMarkup(entity)}`;
+      if (entity.kind === 'rect') {
+        if (entity.corner === 'chamfer') {
+          const c = Math.min(Math.abs(entity.w), Math.abs(entity.h), 24);
+          const x = entity.x, y = entity.y, w = entity.w, h = entity.h;
+          return `${extrude}<path class="sketch-fill" ${fill} d="M${x + c} ${y} L${x + w - c} ${y} L${x + w} ${y + c} L${x + w} ${y + h - c} L${x + w - c} ${y + h} L${x + c} ${y + h} L${x} ${y + h - c} L${x} ${y + c} Z"/>${cut}`;
+        }
+        const rx = entity.corner === 'fillet' ? Math.min(Math.abs(entity.w), Math.abs(entity.h), 22) : 0;
+        return `${extrude}<rect class="sketch-fill" ${fill} x="${entity.x}" y="${entity.y}" width="${entity.w}" height="${entity.h}" rx="${rx}"/>${cut}`;
+      }
+      if (entity.kind === 'circle' || entity.kind === 'sphere') {
+        const helpers = entity.kind === 'sphere'
+          ? `<ellipse class="sketch-helper" cx="${entity.cx}" cy="${entity.cy}" rx="${entity.r}" ry="${entity.r / 3}"/><ellipse class="sketch-helper" cx="${entity.cx}" cy="${entity.cy}" rx="${entity.r / 3}" ry="${entity.r}"/>`
+          : '';
+        return `${extrude}<circle class="sketch-fill" ${fill} cx="${entity.cx}" cy="${entity.cy}" r="${entity.r}"/>${helpers}${cut}`;
+      }
+      if (entity.kind === 'ellipse') return `${extrude}<ellipse class="sketch-fill" ${fill} cx="${entity.cx}" cy="${entity.cy}" rx="${entity.rx}" ry="${entity.ry}"/>${cut}`;
+      if (entity.kind === 'arc') return `<path class="sketch-wire" ${wire} d="M${entity.x1} ${entity.y1} Q${entity.mx} ${entity.my} ${entity.x2} ${entity.y2}"/>`;
+      if (entity.kind === 'polygon') return `${extrude}<polygon class="sketch-fill" ${fill} points="${entity.points.map((p) => p.join(',')).join(' ')}"/>${cut}`;
+      if (entity.kind === 'box' || entity.kind === 'thickSolid') return boxMarkup(entity, fill);
+      if (entity.kind === 'cylinder') return cylinderMarkup(entity, fill);
+      if (entity.kind === 'cone') return coneMarkup(entity, fill);
+      if (entity.kind === 'pyramid') return pyramidMarkup(entity, fill);
+      if (entity.kind === 'sweep') return `<path class="sketch-fill" ${fill} d="M${entity.x1} ${entity.y1} C${entity.x1 + 80} ${entity.y1 - 70}, ${entity.x2 - 80} ${entity.y2 + 70}, ${entity.x2} ${entity.y2}" stroke-width="22" stroke-linecap="round"/>`;
+      if (entity.kind === 'polyline') return `<polyline class="sketch-wire" ${wire} points="${entity.points.map((p) => p.join(',')).join(' ')}"/>`;
+      return '';
+    }
+
+    function boxMarkup(entity, fill) {
+      const d = entity.depth || 28;
+      const x = entity.x, y = entity.y, w = entity.w, h = entity.h;
+      return `<path class="sketch-fill" ${fill} d="M${x} ${y} H${x + w} V${y + h} H${x} Z M${x + d} ${y - d} H${x + w + d} V${y + h - d} H${x + d} Z M${x} ${y} L${x + d} ${y - d} M${x + w} ${y} L${x + w + d} ${y - d} M${x + w} ${y + h} L${x + w + d} ${y + h - d} M${x} ${y + h} L${x + d} ${y + h - d}"/>`;
+    }
+
+    function cylinderMarkup(entity, fill) {
+      const h = entity.h || entity.ry * 2.4;
+      return `<path class="sketch-fill" ${fill} d="M${entity.cx - entity.rx} ${entity.cy} V${entity.cy + h} C${entity.cx - entity.rx} ${entity.cy + h + entity.ry}, ${entity.cx + entity.rx} ${entity.cy + h + entity.ry}, ${entity.cx + entity.rx} ${entity.cy + h} V${entity.cy} C${entity.cx + entity.rx} ${entity.cy + entity.ry}, ${entity.cx - entity.rx} ${entity.cy + entity.ry}, ${entity.cx - entity.rx} ${entity.cy} Z"/><ellipse class="sketch-helper" cx="${entity.cx}" cy="${entity.cy}" rx="${entity.rx}" ry="${entity.ry}"/>`;
+    }
+
+    function coneMarkup(entity, fill) {
+      return `<path class="sketch-fill" ${fill} d="M${entity.cx} ${entity.cy - entity.h} L${entity.cx - entity.rx} ${entity.cy} C${entity.cx - entity.rx} ${entity.cy + entity.ry}, ${entity.cx + entity.rx} ${entity.cy + entity.ry}, ${entity.cx + entity.rx} ${entity.cy} Z"/><ellipse class="sketch-helper" cx="${entity.cx}" cy="${entity.cy}" rx="${entity.rx}" ry="${entity.ry}"/>`;
+    }
+
+    function pyramidMarkup(entity, fill) {
+      const cx = entity.x + entity.w / 2;
+      const topY = entity.y - Math.abs(entity.h) * .65;
+      return `<path class="sketch-fill" ${fill} d="M${entity.x} ${entity.y} L${entity.x + entity.w} ${entity.y} L${entity.x + entity.w * .82} ${entity.y + entity.h} L${entity.x + entity.w * .18} ${entity.y + entity.h} Z M${entity.x} ${entity.y} L${cx} ${topY} L${entity.x + entity.w} ${entity.y} M${cx} ${topY} L${entity.x + entity.w * .82} ${entity.y + entity.h} M${cx} ${topY} L${entity.x + entity.w * .18} ${entity.y + entity.h}"/>`;
+    }
+
+    function extrudeMarkup(entity) {
+      const box = entityBounds(entity);
+      return `<rect class="sketch-helper" x="${box.minX + 18}" y="${box.minY - 18}" width="${Math.max(box.w, 1)}" height="${Math.max(box.h, 1)}"/>`;
+    }
+
+    function revolveMarkup(entity) {
+      if (!entity.revolved) return '';
+      const box = entityBounds(entity);
+      return `<ellipse class="sketch-helper" cx="${box.cx}" cy="${box.cy}" rx="${Math.max(box.w, 18)}" ry="${Math.max(box.h / 2, 12)}"/>`;
+    }
+
+    function cutMarkup(entity) {
+      if (!entity.cut) return '';
+      const box = entityBounds(entity);
+      const r = Math.max(Math.min(box.w, box.h) / 6, 7);
+      return `<circle class="sketch-helper" cx="${box.cx}" cy="${box.cy}" r="${r}"/><line class="sketch-helper" x1="${box.cx - r}" y1="${box.cy - r}" x2="${box.cx + r}" y2="${box.cy + r}"/>`;
+    }
+
+    function hexToRgba(hex, alpha) {
+      const raw = normalizeColor(hex).slice(1);
+      const r = parseInt(raw.slice(0, 2), 16);
+      const g = parseInt(raw.slice(2, 4), 16);
+      const b = parseInt(raw.slice(4, 6), 16);
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+
+    function updateModelSelection() {
+      document.querySelectorAll('.part').forEach((part) => {
+        part.classList.toggle('selected', part.dataset.id === state.selectedId);
+        const obj = objects.find((item) => item.id === part.dataset.id);
+        part.classList.toggle('hidden', Boolean(obj && !obj.visible));
+      });
+      document.querySelectorAll('.sketch-entity').forEach((entity) => {
+        entity.classList.toggle('selected', entity.dataset.sketchId === state.selectedId);
+        const model = state.sketchEntities.find((item) => item.id === entity.dataset.sketchId);
+        entity.classList.toggle('hidden', Boolean(model && !model.visible));
+      });
+    }
+
+    function selectObject(id) {
+      state.selectedId = id;
+      renderTree();
+      updateProperties();
+      updateModelSelection();
+      setStatus(`Selected ${objectById(id).name}. Tool: ${state.activeTool}`);
+    }
+
+    function setStatus(message, isError = false) {
+      $('statusText').textContent = message;
+      $('viewportNote').textContent = message;
+      $('viewportNote').classList.toggle('error', isError);
+    }
+
+    function setFilePreview(blob, reason = '') {
+      const overlay = $('filePreviewOverlay');
+      const body = $('filePreviewBody');
+      const title = $('filePreviewTitle');
+      if (state.filePreviewUrl) URL.revokeObjectURL(state.filePreviewUrl);
+      state.filePreviewUrl = blob ? URL.createObjectURL(blob) : '';
+      title.textContent = state.filename || 'Imported file';
+
+      if (!blob) {
+        overlay.classList.remove('show');
+        body.innerHTML = '';
+        return;
+      }
+
+      const format = (state.format || '').toLowerCase();
+      overlay.classList.add('show');
+      if (['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp'].includes(format)) {
+        body.innerHTML = `<img src="${state.filePreviewUrl}" alt="${escapeHtml(state.filename)} preview">`;
+        return;
+      }
+      if (format === 'svg') {
+        body.innerHTML = `<iframe title="${escapeHtml(state.filename)} preview" src="${state.filePreviewUrl}"></iframe>`;
+        return;
+      }
+      if (format === 'pdf') {
+        body.innerHTML = `<iframe title="${escapeHtml(state.filename)} preview" src="${state.filePreviewUrl}"></iframe>`;
+        return;
+      }
+
+      body.innerHTML = `<div class="file-card">
+        <strong>${escapeHtml(state.filename || 'File loaded')}</strong>
+        <div>${escapeHtml(reason || `${format.toUpperCase() || 'CAD'} file loaded. Original export is available.`)}</div>
+        <div style="margin-top:8px;color:#64748b">Editable import now supports backend scan conversion plus DXF, SVG, OBJ and STL browser loaders. STEP/IGES still require the future OCCT/Chili3D runtime bridge.</div>
+      </div>`;
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '').replace(/[&<>"']/g, (ch) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;',
+      }[ch]));
+    }
+
+    function setActiveTool(name) {
+      const button = [...document.querySelectorAll('[data-tool]')].find((item) => item.dataset.tool === name);
+      if (button?.classList.contains('disabled')) {
+        setStatus(`${name} exists in the ribbon but is disabled in this POC.`);
+        return;
+      }
+      if (name === 'Import') {
+        $('fileInput').click();
+        return;
+      }
+      if (name === 'Export') {
+        exportCurrentDrawing();
+        return;
+      }
+      if (runInstantTool(name)) {
+        renderTools();
+        return;
+      }
+      state.activeTool = name;
+      renderTools();
+      setStatus(`${name} tool active.`);
+    }
+
+    function runInstantTool(name) {
+      const selected = state.sketchEntities.find((entity) => entity.id === state.selectedId);
+      if (['Rotate', 'Mirror', 'Split', 'Break', 'Trim', 'Fillet', 'Chamfer', 'Extrude', 'Prism', 'Revolve', 'Sweep', 'Cut', 'Fuse', 'Common', 'Length', 'Angle'].includes(name)) {
+        if (!selected && !['Prism', 'Sweep'].includes(name)) {
+          setStatus(`${name}: önce bir 2D entity seçin.`);
+          return true;
+        }
+        if (!['Length', 'Angle', 'Prism', 'Sweep'].includes(name)) pushHistory();
+        if (name === 'Rotate') selected.rotation = ((selected.rotation || 0) + 15) % 360;
+        if (name === 'Mirror') mirrorEntity(selected);
+        if (name === 'Split') splitEntity(selected);
+        if (name === 'Break') breakEntity(selected);
+        if (name === 'Trim') trimEntity(selected);
+        if (name === 'Fillet') selected.corner = 'fillet';
+        if (name === 'Chamfer') selected.corner = 'chamfer';
+        if (name === 'Extrude') selected.extruded = !selected.extruded;
+        if (name === 'Prism') addEntity(makeEntityFromDrag('box', { x: 620, y: 410 }, { x: 750, y: 500 }));
+        if (name === 'Revolve') selected.revolved = !selected.revolved;
+        if (name === 'Sweep') addEntity({ id: nextSketchId(), name: 'Sweep 001', kind: 'sweep', visible: true, color: '#14b8a6', x1: 520, y1: 185, x2: 760, y2: 230, rotation: 0 });
+        if (name === 'Cut') selected.cut = !selected.cut;
+        if (name === 'Fuse') duplicateSelected(selected, 26, -18, true);
+        if (name === 'Common') selected.color = '#8b5cf6';
+        if (name === 'Length') setStatus(`Length: ${measureEntity(selected).toFixed(2)} units.`);
+        if (name === 'Angle') setStatus(`Angle/Rotation: ${(selected.rotation || 0).toFixed(2)} deg.`);
+        renderSketchEntities();
+        renderTree();
+        updateProperties();
+        if (!['Length', 'Angle'].includes(name)) setStatus(`${name} uygulandı: ${objectById(state.selectedId).name}.`);
+        return true;
+      }
+      return false;
+    }
+
+    function nextSketchId() {
+      const id = `sketch-${state.sketchCounter}`;
+      state.sketchCounter += 1;
+      return id;
+    }
+
+    function addEntity(entity) {
+      pushHistory();
+      state.sketchEntities.push(entity);
+      state.selectedId = entity.id;
+      renderSketchEntities();
+      renderTree();
+      updateProperties();
+      return entity;
+    }
+
+    function snapshot() {
+      return JSON.stringify({ sketchEntities: state.sketchEntities, selectedId: state.selectedId, sketchCounter: state.sketchCounter });
+    }
+
+    function restoreSnapshot(raw) {
+      const data = JSON.parse(raw);
+      state.sketchEntities = data.sketchEntities || [];
+      state.selectedId = data.selectedId || 'sketch-root';
+      state.sketchCounter = data.sketchCounter || state.sketchEntities.length + 1;
+      renderSketchEntities();
+      renderTree();
+      updateProperties();
+    }
+
+    function pushHistory() {
+      state.undoStack.push(snapshot());
+      if (state.undoStack.length > 60) state.undoStack.shift();
+      state.redoStack = [];
+    }
+
+    function undo() {
+      if (!state.undoStack.length) {
+        setStatus('Undo stack empty.');
+        return;
+      }
+      state.redoStack.push(snapshot());
+      restoreSnapshot(state.undoStack.pop());
+      setStatus('Undo applied.');
+    }
+
+    function redo() {
+      if (!state.redoStack.length) {
+        setStatus('Redo stack empty.');
+        return;
+      }
+      state.undoStack.push(snapshot());
+      restoreSnapshot(state.redoStack.pop());
+      setStatus('Redo applied.');
+    }
+
+    function drawingKindForTool(tool) {
+      return {
+        Line: 'line',
+        Arc: 'arc',
+        Rectangle: 'rect',
+        Circle: 'circle',
+        Ellipse: 'ellipse',
+        Polygon: 'polygon',
+        Box: 'box',
+        Cylinder: 'cylinder',
+        Sphere: 'sphere',
+        Cone: 'cone',
+        Pyramid: 'pyramid',
+        ThickSolid: 'thickSolid',
+      }[tool] || '';
+    }
+
+    function makeEntityFromDrag(kind, start, end, options = {}) {
+      const x1 = start.x, y1 = start.y, x2 = end.x, y2 = end.y;
+      const minX = Math.min(x1, x2);
+      const minY = Math.min(y1, y2);
+      const w = Math.max(Math.abs(x2 - x1), 1);
+      const h = Math.max(Math.abs(y2 - y1), 1);
+      const cx = (x1 + x2) / 2;
+      const cy = (y1 + y2) / 2;
+      const color = '#0ea5e9';
+      const id = options.preview ? 'preview' : nextSketchId();
+      const label = options.preview ? 'Preview' : `${titleCase(kind)} ${state.sketchCounter - 1}`;
+      const base = { id, name: label, kind, visible: true, color, rotation: 0 };
+      if (kind === 'line') return { ...base, x1, y1, x2, y2, color: '#111827' };
+      if (kind === 'rect') return { ...base, x: minX, y: minY, w, h };
+      if (kind === 'circle') return { ...base, cx: x1, cy: y1, r: Math.max(Math.hypot(x2 - x1, y2 - y1), 3), color: '#f59e0b' };
+      if (kind === 'ellipse') return { ...base, cx, cy, rx: Math.max(w / 2, 3), ry: Math.max(h / 2, 3), color: '#2563eb' };
+      if (kind === 'arc') return { ...base, x1, y1, x2, y2, mx: cx, my: minY - Math.max(h * .45, 24), color: '#7c3aed' };
+      if (kind === 'polygon') return { ...base, points: regularPolygon(cx, cy, Math.max(w, h) / 2, 6), color: '#22c55e' };
+      if (kind === 'box' || kind === 'thickSolid') return { ...base, x: minX, y: minY, w, h, depth: kind === 'thickSolid' ? 46 : 28 };
+      if (kind === 'cylinder') return { ...base, cx, cy: minY, rx: Math.max(w / 2, 8), ry: Math.max(h / 7, 5), h: Math.max(h, 24) };
+      if (kind === 'sphere') return { ...base, cx, cy, r: Math.max(Math.min(w, h) / 2, 8), color: '#38bdf8' };
+      if (kind === 'cone') return { ...base, cx, cy: y2, rx: Math.max(w / 2, 8), ry: Math.max(h / 9, 5), h: Math.max(h, 24), color: '#38bdf8' };
+      if (kind === 'pyramid') return { ...base, x: minX, y: minY, w, h, color: '#38bdf8' };
+      return base;
+    }
+
+    function titleCase(value) {
+      return String(value).replace(/([A-Z])/g, ' $1').replace(/^./, (ch) => ch.toUpperCase()).trim();
+    }
+
+    function regularPolygon(cx, cy, r, sides) {
+      const pts = [];
+      for (let i = 0; i < sides; i += 1) {
+        const a = -Math.PI / 2 + (Math.PI * 2 * i) / sides;
+        pts.push([cx + Math.cos(a) * r, cy + Math.sin(a) * r]);
+      }
+      return pts;
+    }
+
+    function moveEntity(entity, dx, dy) {
+      if (entity.kind === 'line') { entity.x1 += dx; entity.y1 += dy; entity.x2 += dx; entity.y2 += dy; return; }
+      if (entity.kind === 'rect' || entity.kind === 'box' || entity.kind === 'thickSolid' || entity.kind === 'pyramid') { entity.x += dx; entity.y += dy; return; }
+      if (entity.kind === 'circle' || entity.kind === 'ellipse' || entity.kind === 'cylinder' || entity.kind === 'sphere' || entity.kind === 'cone') { entity.cx += dx; entity.cy += dy; return; }
+      if (entity.kind === 'arc') { entity.x1 += dx; entity.y1 += dy; entity.x2 += dx; entity.y2 += dy; entity.mx += dx; entity.my += dy; return; }
+      if (entity.kind === 'sweep') { entity.x1 += dx; entity.y1 += dy; entity.x2 += dx; entity.y2 += dy; return; }
+      if (Array.isArray(entity.points)) entity.points = entity.points.map(([x, y]) => [x + dx, y + dy]);
+    }
+
+    function mirrorEntity(entity) {
+      const box = entityBounds(entity);
+      const cx = box.cx;
+      if (entity.kind === 'line') {
+        entity.x1 = cx - (entity.x1 - cx);
+        entity.x2 = cx - (entity.x2 - cx);
+      } else if (entity.kind === 'rect' || entity.kind === 'box' || entity.kind === 'thickSolid' || entity.kind === 'pyramid') {
+        entity.x = cx - (entity.x + entity.w - cx);
+      } else if (entity.kind === 'arc') {
+        entity.x1 = cx - (entity.x1 - cx);
+        entity.x2 = cx - (entity.x2 - cx);
+        entity.mx = cx - (entity.mx - cx);
+      } else if (entity.kind === 'sweep') {
+        entity.x1 = cx - (entity.x1 - cx);
+        entity.x2 = cx - (entity.x2 - cx);
+      } else if (Array.isArray(entity.points)) {
+        entity.points = entity.points.map(([x, y]) => [cx - (x - cx), y]);
+      }
+    }
+
+    function splitEntity(entity) {
+      if (entity.kind !== 'line') {
+        duplicateSelected(entity, 18, 18, false);
+        return;
+      }
+      const mx = (entity.x1 + entity.x2) / 2;
+      const my = (entity.y1 + entity.y2) / 2;
+      const second = { ...entity, id: nextSketchId(), name: `${entity.name} split`, x1: mx + 4, y1: my + 4 };
+      entity.x2 = mx - 4;
+      entity.y2 = my - 4;
+      state.sketchEntities.push(second);
+    }
+
+    function breakEntity(entity) {
+      if (entity.kind === 'line') splitEntity(entity);
+      else entity.visible = false;
+    }
+
+    function trimEntity(entity) {
+      if (entity.kind === 'line') {
+        entity.x2 = entity.x1 + (entity.x2 - entity.x1) * .82;
+        entity.y2 = entity.y1 + (entity.y2 - entity.y1) * .82;
+      } else if (entity.kind === 'rect') {
+        entity.w *= .86;
+        entity.h *= .86;
+      } else if (entity.r) {
+        entity.r *= .86;
+      }
+    }
+
+    function duplicateSelected(entity, dx, dy, fuseColor) {
+      const copy = cloneEntity(entity);
+      copy.id = nextSketchId();
+      copy.name = `${entity.name} copy`;
+      if (fuseColor) copy.color = '#14b8a6';
+      moveEntity(copy, dx, dy);
+      state.sketchEntities.push(copy);
+      state.selectedId = copy.id;
+    }
+
+    function cloneEntity(entity) {
+      return JSON.parse(JSON.stringify(entity));
+    }
+
+    function measureEntity(entity) {
+      if (entity.kind === 'line') return Math.hypot(entity.x2 - entity.x1, entity.y2 - entity.y1);
+      if (entity.kind === 'circle' || entity.kind === 'sphere') return 2 * Math.PI * entity.r;
+      if (entity.kind === 'rect' || entity.kind === 'box' || entity.kind === 'thickSolid') return 2 * (Math.abs(entity.w) + Math.abs(entity.h));
+      const box = entityBounds(entity);
+      return Math.hypot(box.w, box.h);
+    }
+
+    function toggleVisibility(id) {
+      const sketch = state.sketchEntities.find((item) => item.id === id);
+      if (sketch) {
+        sketch.visible = !sketch.visible;
+        renderTree();
+        renderSketchEntities();
+        setStatus(`${sketch.name} visibility ${sketch.visible ? 'on' : 'off'}.`);
+        return;
+      }
+      const obj = objects.find((item) => item.id === id);
+      if (!obj) return;
+      obj.visible = !obj.visible;
+      renderTree();
+      updateModelSelection();
+      setStatus(`${obj.name} visibility ${obj.visible ? 'on' : 'off'}.`);
+    }
+
+    function applyViewportTransform() {
+      const group = document.getElementById('sceneGroup');
+      group.setAttribute('transform', `translate(${30 + state.viewport.x} ${state.viewport.y}) scale(${state.viewport.scale})`);
+    }
+
+    function setView(view) {
+      if (view === 'zoom-in') state.viewport.scale = Math.min(1.8, state.viewport.scale + .08);
+      if (view === 'zoom-out') state.viewport.scale = Math.max(.72, state.viewport.scale - .08);
+      if (view === 'fit') state.viewport = { x: 0, y: 0, scale: 1 };
+      if (view === 'top') state.viewport = { x: -20, y: 18, scale: .96 };
+      if (view === 'iso') state.viewport = { x: 0, y: 0, scale: 1 };
+      applyViewportTransform();
+      setStatus(`View changed: ${view}.`);
+    }
+
+    async function fetchProfileAxisFile() {
+      if (!downloadUrl) {
+        state.loadStatus = 'Sample document';
+        updateProperties();
+        setStatus('Sample model loaded. Open a file or use the app detail modal to pass Profile Axis file metadata.');
+        return;
+      }
+
+      state.loadStatus = 'Loading file';
+      updateProperties();
+      setStatus(`Loading ${state.filename || 'selected file'} from Profile Axis...`);
+      try {
+        const response = await fetch(downloadUrl, { headers: authHeaders() });
+        if (response.status === 401) throw new Error('Session expired. Please sign in again.');
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({}));
+          throw new Error(data.detail || `Download failed with ${response.status}`);
+        }
+        state.loadedBlob = await response.blob();
+        state.loadStatus = `Loaded ${formatBytes(state.loadedBlob.size)}`;
+        const result = await loadBlobAsEditableSketch(state.loadedBlob, state.filename, state.format);
+        updateProperties();
+        renderTree();
+        await renderImportedFile();
+        setFilePreview(state.loadedBlob, result.previewReason);
+        setStatus(`Loaded ${state.filename}. ${result.status}`);
+      } catch (error) {
+        state.loadStatus = 'Load failed';
+        updateProperties();
+        setStatus(`Could not load file: ${error.message}`, true);
+      }
+    }
+
+    async function renderImportedFile() {
+      const mount = $('importedPreview');
+      mount.innerHTML = '';
+      if (state.format === 'dxf' && state.sketchEntities.length) return;
+      if (!state.loadedBlob || state.format !== 'dxf' || state.loadedBlob.size > 12 * 1024 * 1024) return;
+      const text = await state.loadedBlob.text();
+      const overlay = buildDxfOverlay(text);
+      if (overlay) mount.innerHTML = overlay;
+    }
+
+    function buildDxfOverlay(text) {
+      const entities = parseDxfEntities(text);
+      if (!entities.length) return '';
+      const points = [];
+      entities.forEach((entity) => {
+        if (entity.type === 'LINE') points.push([entity.x1, entity.y1], [entity.x2, entity.y2]);
+        if (entity.type === 'CIRCLE') points.push([entity.cx - entity.r, entity.cy - entity.r], [entity.cx + entity.r, entity.cy + entity.r]);
+      });
+      const xs = points.map((p) => p[0]);
+      const ys = points.map((p) => p[1]);
+      const minX = Math.min(...xs);
+      const maxX = Math.max(...xs);
+      const minY = Math.min(...ys);
+      const maxY = Math.max(...ys);
+      const scale = Math.min(210 / Math.max(maxX - minX, 1), 150 / Math.max(maxY - minY, 1));
+      const sx = (x) => 115 + (x - minX) * scale;
+      const sy = (y) => 620 - (y - minY) * scale;
+      return entities.map((entity) => {
+        if (entity.type === 'LINE') {
+          return `<line class="import-overlay" x1="${sx(entity.x1).toFixed(2)}" y1="${sy(entity.y1).toFixed(2)}" x2="${sx(entity.x2).toFixed(2)}" y2="${sy(entity.y2).toFixed(2)}"/>`;
+        }
+        return `<circle class="import-overlay" cx="${sx(entity.cx).toFixed(2)}" cy="${sy(entity.cy).toFixed(2)}" r="${Math.max(entity.r * scale, 1).toFixed(2)}"/>`;
+      }).join('');
+    }
+
+    function parseDxfEntities(text) {
+      const raw = text.split(/\r?\n/).map((line) => line.trim());
+      const pairs = [];
+      for (let i = 0; i < raw.length - 1; i += 2) pairs.push({ code: raw[i], value: raw[i + 1] });
+      const entities = [];
+      for (let i = 0; i < pairs.length; i += 1) {
+        if (pairs[i].code !== '0' || !['LINE', 'CIRCLE'].includes(pairs[i].value)) continue;
+        const type = pairs[i].value;
+        const entity = { type };
+        for (i += 1; i < pairs.length && pairs[i].code !== '0'; i += 1) {
+          const value = Number(pairs[i].value);
+          if (!Number.isFinite(value)) continue;
+          if (type === 'LINE') {
+            if (pairs[i].code === '10') entity.x1 = value;
+            if (pairs[i].code === '20') entity.y1 = value;
+            if (pairs[i].code === '11') entity.x2 = value;
+            if (pairs[i].code === '21') entity.y2 = value;
+          }
+          if (type === 'CIRCLE') {
+            if (pairs[i].code === '10') entity.cx = value;
+            if (pairs[i].code === '20') entity.cy = value;
+            if (pairs[i].code === '40') entity.r = value;
+          }
+        }
+        i -= 1;
+        if (type === 'LINE' && [entity.x1, entity.y1, entity.x2, entity.y2].every(Number.isFinite)) entities.push(entity);
+        if (type === 'CIRCLE' && [entity.cx, entity.cy, entity.r].every(Number.isFinite)) entities.push(entity);
+      }
+      return entities;
+    }
+
+    function parseDxfToSketchEntities(text) {
+      const raw = text.split(/\r?\n/).map((line) => line.trim());
+      const pairs = [];
+      for (let i = 0; i < raw.length - 1; i += 2) pairs.push({ code: raw[i], value: raw[i + 1] });
+      const parsed = [];
+      let counter = 1;
+      const add = (entity) => {
+        entity.id = `sketch-${counter}`;
+        entity.name = entity.name || `${titleCase(entity.kind)} ${counter}`;
+        entity.visible = true;
+        entity.rotation = 0;
+        entity.color = entity.color || '#0ea5e9';
+        parsed.push(entity);
+        counter += 1;
+      };
+
+      for (let i = 0; i < pairs.length; i += 1) {
+        if (pairs[i].code !== '0') continue;
+        const type = pairs[i].value;
+        if (!['LINE', 'CIRCLE', 'ARC', 'LWPOLYLINE'].includes(type)) continue;
+        const entity = { points: [] };
+
+        for (i += 1; i < pairs.length && pairs[i].code !== '0'; i += 1) {
+          const code = pairs[i].code;
+          const value = Number(pairs[i].value);
+          if (!Number.isFinite(value)) continue;
+          if (type === 'LINE') {
+            entity.kind = 'line';
+            entity.color = '#111827';
+            if (code === '10') entity.x1 = value;
+            if (code === '20') entity.y1 = value;
+            if (code === '11') entity.x2 = value;
+            if (code === '21') entity.y2 = value;
+          } else if (type === 'CIRCLE') {
+            entity.kind = 'circle';
+            entity.color = '#f59e0b';
+            if (code === '10') entity.cx = value;
+            if (code === '20') entity.cy = value;
+            if (code === '40') entity.r = value;
+          } else if (type === 'ARC') {
+            entity.kind = 'arc';
+            entity.color = '#7c3aed';
+            if (code === '10') entity.cx = value;
+            if (code === '20') entity.cy = value;
+            if (code === '40') entity.r = value;
+            if (code === '50') entity.startAngle = value;
+            if (code === '51') entity.endAngle = value;
+          } else if (type === 'LWPOLYLINE') {
+            entity.kind = 'polyline';
+            entity.color = '#22c55e';
+            if (code === '70') entity.closed = Boolean(value & 1);
+            if (code === '10') entity.points.push([value, null]);
+            if (code === '20' && entity.points.length) entity.points[entity.points.length - 1][1] = value;
+          }
+        }
+        i -= 1;
+
+        if (type === 'LINE' && [entity.x1, entity.y1, entity.x2, entity.y2].every(Number.isFinite)) add(entity);
+        if (type === 'CIRCLE' && [entity.cx, entity.cy, entity.r].every(Number.isFinite)) add(entity);
+        if (type === 'ARC' && [entity.cx, entity.cy, entity.r].every(Number.isFinite)) {
+          const a1 = ((entity.startAngle || 0) * Math.PI) / 180;
+          const a2 = ((entity.endAngle || 180) * Math.PI) / 180;
+          const mid = (a1 + a2) / 2;
+          add({
+            kind: 'arc',
+            color: entity.color,
+            x1: entity.cx + Math.cos(a1) * entity.r,
+            y1: entity.cy + Math.sin(a1) * entity.r,
+            x2: entity.cx + Math.cos(a2) * entity.r,
+            y2: entity.cy + Math.sin(a2) * entity.r,
+            mx: entity.cx + Math.cos(mid) * entity.r,
+            my: entity.cy + Math.sin(mid) * entity.r,
+          });
+        }
+        if (type === 'LWPOLYLINE') {
+          entity.points = entity.points.filter(([x, y]) => Number.isFinite(x) && Number.isFinite(y));
+          if (entity.points.length >= 2) {
+            entity.kind = entity.closed ? 'polygon' : 'polyline';
+            add(entity);
+          }
+        }
+      }
+      return parsed;
+    }
+
+    function fitSketchEntities(entities) {
+      if (!entities.length) return entities;
+      const all = entities.flatMap(entityPoints);
+      if (!all.length) return entities;
+      const xs = all.map((p) => p.x);
+      const ys = all.map((p) => p.y);
+      const minX = Math.min(...xs);
+      const maxX = Math.max(...xs);
+      const minY = Math.min(...ys);
+      const maxY = Math.max(...ys);
+      const w = Math.max(maxX - minX, 1);
+      const h = Math.max(maxY - minY, 1);
+      const scale = Math.min(320 / w, 240 / h, 5);
+      const target = { x: 165, y: 160 };
+      const fitted = entities.map(cloneEntity);
+      fitted.forEach((entity) => scaleEntity(entity, scale, minX, minY, target.x, target.y));
+      return fitted;
+    }
+
+    function scaleEntity(entity, scale, minX, minY, targetX, targetY) {
+      const tx = (x) => targetX + (x - minX) * scale;
+      const ty = (y) => targetY + (y - minY) * scale;
+      if (entity.kind === 'line') {
+        entity.x1 = tx(entity.x1); entity.y1 = ty(entity.y1); entity.x2 = tx(entity.x2); entity.y2 = ty(entity.y2);
+      } else if (entity.kind === 'circle' || entity.kind === 'sphere') {
+        entity.cx = tx(entity.cx); entity.cy = ty(entity.cy); entity.r *= scale;
+      } else if (entity.kind === 'arc') {
+        entity.x1 = tx(entity.x1); entity.y1 = ty(entity.y1); entity.x2 = tx(entity.x2); entity.y2 = ty(entity.y2); entity.mx = tx(entity.mx); entity.my = ty(entity.my);
+      } else if (Array.isArray(entity.points)) {
+        entity.points = entity.points.map(([x, y]) => [tx(x), ty(y)]);
+      }
+    }
+
+    function formatBytes(bytes) {
+      const units = ['B', 'KB', 'MB', 'GB'];
+      let value = bytes;
+      let unit = 0;
+      while (value >= 1024 && unit < units.length - 1) {
+        value /= 1024;
+        unit += 1;
+      }
+      return `${value.toFixed(unit ? 1 : 0)} ${units[unit]}`;
+    }
+
+    function parseTriple(value) {
+      const parts = String(value).split(',').map((part) => Number(part.trim()));
+      return [
+        Number.isFinite(parts[0]) ? parts[0] : 0,
+        Number.isFinite(parts[1]) ? parts[1] : 0,
+        Number.isFinite(parts[2]) ? parts[2] : 0,
+      ];
+    }
+
+    function exportOriginal() {
+      if (!state.loadedBlob) {
+        const demo = new Blob(['Profile Axis CAD Editor sample document'], { type: 'text/plain' });
+        downloadBlob(demo, 'profile_axis_cad_editor_sample.txt');
+        setStatus('Exported sample document marker.');
+        return;
+      }
+      downloadBlob(state.loadedBlob, state.filename || `file_${state.fileId}.${state.format || 'cad'}`);
+      setStatus('Original file exported.');
+    }
+
+    function exportCurrentDrawing() {
+      const dxf = buildDxfFromSketch();
+      const base = (state.filename || 'cad_editor').replace(/\.[^.]+$/, '');
+      downloadBlob(new Blob([dxf], { type: 'application/dxf;charset=utf-8' }), `${base}_edited.dxf`);
+      setStatus(`Exported ${state.sketchEntities.length} editable entities as DXF.`);
+    }
+
+    function buildDxfFromSketch() {
+      const lines = ['0', 'SECTION', '2', 'ENTITIES'];
+      state.sketchEntities.filter((entity) => entity.visible !== false).forEach((entity) => {
+        appendEntityDxf(lines, entity);
+      });
+      lines.push('0', 'ENDSEC', '0', 'EOF');
+      return `${lines.join('\n')}\n`;
+    }
+
+    function appendEntityDxf(lines, entity) {
+      const layer = 'CAD_EDITOR';
+      const line = (x1, y1, x2, y2) => lines.push('0', 'LINE', '8', layer, '10', fmtDxf(x1), '20', fmtDxf(y1), '11', fmtDxf(x2), '21', fmtDxf(y2));
+      if (entity.kind === 'line') return line(entity.x1, entity.y1, entity.x2, entity.y2);
+      if (entity.kind === 'circle' || entity.kind === 'sphere') return lines.push('0', 'CIRCLE', '8', layer, '10', fmtDxf(entity.cx), '20', fmtDxf(entity.cy), '40', fmtDxf(entity.r));
+      if (entity.kind === 'ellipse' || entity.kind === 'cylinder') {
+        const pts = regularPolygon(entity.cx, entity.cy, Math.max(entity.rx, entity.ry), 48).map(([x, y]) => [entity.cx + (x - entity.cx), entity.cy + ((y - entity.cy) * entity.ry / Math.max(entity.rx, 1))]);
+        return appendPolylineDxf(lines, pts, true);
+      }
+      if (entity.kind === 'arc') {
+        lines.push('0', 'ARC', '8', layer, '10', fmtDxf((entity.x1 + entity.x2) / 2), '20', fmtDxf((entity.y1 + entity.y2) / 2), '40', fmtDxf(Math.hypot(entity.x2 - entity.x1, entity.y2 - entity.y1) / 2), '50', '0', '51', '180');
+        return;
+      }
+      if (entity.kind === 'rect' || entity.kind === 'box' || entity.kind === 'thickSolid' || entity.kind === 'pyramid') {
+        const x = entity.x, y = entity.y, w = entity.w, h = entity.h;
+        return appendPolylineDxf(lines, [[x, y], [x + w, y], [x + w, y + h], [x, y + h]], true);
+      }
+      if (entity.kind === 'cone') {
+        return appendPolylineDxf(lines, [[entity.cx, entity.cy - entity.h], [entity.cx + entity.rx, entity.cy], [entity.cx - entity.rx, entity.cy]], true);
+      }
+      if (entity.kind === 'polygon' || entity.kind === 'polyline') return appendPolylineDxf(lines, entity.points, entity.kind === 'polygon');
+      if (entity.kind === 'sweep') return line(entity.x1, entity.y1, entity.x2, entity.y2);
+    }
+
+    function appendPolylineDxf(lines, points, closed) {
+      lines.push('0', 'LWPOLYLINE', '8', 'CAD_EDITOR', '90', String(points.length), '70', closed ? '1' : '0');
+      points.forEach(([x, y]) => lines.push('10', fmtDxf(x), '20', fmtDxf(y)));
+    }
+
+    function fmtDxf(value) {
+      return Number(value || 0).toFixed(6);
+    }
+
+    function downloadBlob(blob, filename) {
+      if (state.objectUrl) URL.revokeObjectURL(state.objectUrl);
+      state.objectUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = state.objectUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    function openExistingPreview() {
+      if (fileId) sessionStorage.setItem('profileAxis.detailFileId', fileId);
+      window.location.href = '../index.html';
+    }
+
+    async function importLocalFile(file) {
+      if (!file) return;
+      state.loadedBlob = file;
+      state.filename = file.name;
+      state.format = (file.name.split('.').pop() || 'cad').toLowerCase();
+      state.fileId = 'local';
+      state.loadStatus = `Loaded ${formatBytes(file.size)}`;
+      const result = await loadBlobAsEditableSketch(file, state.filename, state.format);
+      renderTree();
+      updateProperties();
+      await renderImportedFile();
+      setFilePreview(file, result.previewReason);
+      setStatus(`Imported local file ${file.name}. ${result.status}`);
+    }
+
+    function getSvgPoint(event) {
+      const svg = document.querySelector('.model-svg');
+      const point = svg.createSVGPoint();
+      point.x = event.clientX;
+      point.y = event.clientY;
+      const matrix = document.getElementById('sceneGroup').getScreenCTM().inverse();
+      const out = point.matrixTransform(matrix);
+      return { x: out.x, y: out.y };
+    }
+
+    function onViewportPointerDown(event) {
+      const sketchTarget = event.target.closest?.('[data-sketch-id]');
+      const drawKind = drawingKindForTool(state.activeTool);
+      if (sketchTarget && !drawKind) {
+        selectObject(sketchTarget.dataset.sketchId);
+        if (state.activeTool === 'Move') {
+          pushHistory();
+          state.interaction = {
+            mode: 'move',
+            start: getSvgPoint(event),
+            entityId: sketchTarget.dataset.sketchId,
+            original: cloneEntity(state.sketchEntities.find((item) => item.id === sketchTarget.dataset.sketchId)),
+          };
+          event.currentTarget.setPointerCapture(event.pointerId);
+        }
+        return;
+      }
+
+      const kind = drawKind;
+      if (!kind) return;
+      const start = getSvgPoint(event);
+      state.interaction = { mode: 'draw', kind, start, current: start };
+      renderPreview(makeEntityFromDragPreview(kind, start, start));
+      event.currentTarget.setPointerCapture(event.pointerId);
+    }
+
+    function onViewportPointerMove(event) {
+      if (state.interaction.mode === 'draw') {
+        const current = getSvgPoint(event);
+        state.interaction.current = current;
+        renderPreview(makeEntityFromDragPreview(state.interaction.kind, state.interaction.start, current));
+        return;
+      }
+      if (state.interaction.mode === 'move') {
+        const current = getSvgPoint(event);
+        const original = cloneEntity(state.interaction.original);
+        const dx = current.x - state.interaction.start.x;
+        const dy = current.y - state.interaction.start.y;
+        moveEntity(original, dx, dy);
+        const idx = state.sketchEntities.findIndex((item) => item.id === state.interaction.entityId);
+        if (idx >= 0) state.sketchEntities[idx] = original;
+        renderSketchEntities();
+        updateProperties();
+      }
+    }
+
+    function onViewportPointerUp(event) {
+      if (state.interaction.mode === 'draw') {
+        const start = state.interaction.start;
+        const end = getSvgPoint(event);
+        clearPreview();
+        if (Math.hypot(end.x - start.x, end.y - start.y) > 4) {
+          const entity = makeEntityFromDrag(state.interaction.kind, start, end);
+          addEntity(entity);
+          setStatus(`${entity.name} created. Export writes it to DXF.`);
+        }
+      }
+      if (state.interaction.mode === 'move') {
+        setStatus(`${objectById(state.interaction.entityId).name} moved.`);
+      }
+      state.interaction = { mode: 'idle', start: null, current: null, entityId: null, original: null };
+    }
+
+    function makeEntityFromDragPreview(kind, start, end) {
+      return makeEntityFromDrag(kind, start, end, { preview: true });
+    }
+
+    function renderPreview(entity) {
+      $('previewLayer').innerHTML = renderSketchEntity(entity).replace('data-sketch-id="preview"', '');
+    }
+
+    function clearPreview() {
+      $('previewLayer').innerHTML = '';
+    }
+
+    function wireEvents() {
+      document.querySelectorAll('.ribbon-tab').forEach((tab) => {
+        tab.addEventListener('click', () => {
+          document.querySelectorAll('.ribbon-tab').forEach((item) => item.classList.remove('active'));
+          tab.classList.add('active');
+          state.activeTab = tab.dataset.tab;
+          setStatus(`${state.activeTab} ribbon tab active.`);
+        });
+      });
+
+      document.querySelector('.ribbon-groups').addEventListener('click', (event) => {
+        const tool = event.target.closest('[data-tool]');
+        if (tool) setActiveTool(tool.dataset.tool);
+      });
+
+      document.querySelectorAll('[data-action]').forEach((button) => {
+        button.addEventListener('click', () => {
+          const action = button.dataset.action;
+          if (action === 'home') setView('fit');
+          if (action === 'undo') undo();
+          if (action === 'redo') redo();
+        });
+      });
+
+      $('itemsTree').addEventListener('click', (event) => {
+        const visibility = event.target.closest('[data-visibility]');
+        if (visibility) {
+          event.stopPropagation();
+          toggleVisibility(visibility.dataset.visibility);
+          return;
+        }
+        const row = event.target.closest('[data-select]');
+        if (row) selectObject(row.dataset.select);
+      });
+
+      document.querySelectorAll('.part').forEach((part) => {
+        part.addEventListener('click', (event) => {
+          event.stopPropagation();
+          if (drawingKindForTool(state.activeTool)) return;
+          selectObject(part.dataset.id);
+        });
+      });
+
+      document.querySelectorAll('[data-view]').forEach((button) => {
+        button.addEventListener('click', () => setView(button.dataset.view));
+      });
+
+      document.querySelectorAll('[data-act]').forEach((button) => {
+        button.addEventListener('click', () => setStatus(`Activated workspace action ${button.dataset.act}.`));
+      });
+
+      $('titleImportBtn').addEventListener('click', () => $('fileInput').click());
+      $('titleExportBtn').addEventListener('click', exportCurrentDrawing);
+      $('originalExportBtn').addEventListener('click', exportOriginal);
+      $('fallbackPreviewBtn').addEventListener('click', openExistingPreview);
+      $('closeFilePreviewBtn').addEventListener('click', () => setFilePreview(null));
+      $('fileInput').addEventListener('change', (event) => importLocalFile(event.target.files[0]));
+      $('documentNameInput').addEventListener('input', (event) => {
+        state.filename = event.target.value || 'undefined 1';
+        renderTree();
+        updateProperties();
+      });
+
+      $('propName').addEventListener('input', (event) => {
+        const sketch = state.sketchEntities.find((item) => item.id === state.selectedId);
+        const obj = sketch || objects.find((item) => item.id === state.selectedId);
+        if (!obj) return;
+        if (sketch) pushHistory();
+        obj.name = event.target.value || obj.name;
+        renderTree();
+      });
+
+      $('propColor').addEventListener('input', (event) => {
+        const sketch = state.sketchEntities.find((item) => item.id === state.selectedId);
+        const obj = sketch || objects.find((item) => item.id === state.selectedId);
+        if (!obj) return;
+        if (sketch) pushHistory();
+        obj.color = event.target.value;
+        $('propMaterial').style.background = obj.color;
+        renderSketchEntities();
+      });
+
+      $('propTranslation').addEventListener('change', (event) => {
+        const sketch = state.sketchEntities.find((item) => item.id === state.selectedId);
+        if (!sketch) return;
+        pushHistory();
+        const [x, y] = parseTriple(event.target.value);
+        const box = entityBounds(sketch);
+        moveEntity(sketch, x - box.cx, y - box.cy);
+        renderSketchEntities();
+        updateProperties();
+      });
+
+      $('propRotation').addEventListener('change', (event) => {
+        const sketch = state.sketchEntities.find((item) => item.id === state.selectedId);
+        if (!sketch) return;
+        pushHistory();
+        const [, , rz] = parseTriple(event.target.value);
+        sketch.rotation = rz;
+        renderSketchEntities();
+        updateProperties();
+      });
+
+      const dragOverlay = $('dragOverlay');
+      const viewport = $('viewport');
+      viewport.addEventListener('pointerdown', onViewportPointerDown);
+      viewport.addEventListener('pointermove', onViewportPointerMove);
+      viewport.addEventListener('pointerup', onViewportPointerUp);
+      viewport.addEventListener('pointercancel', onViewportPointerUp);
+      viewport.addEventListener('dragover', (event) => {
+        event.preventDefault();
+        dragOverlay.classList.add('show');
+      });
+      viewport.addEventListener('dragleave', () => dragOverlay.classList.remove('show'));
+      viewport.addEventListener('drop', (event) => {
+        event.preventDefault();
+        dragOverlay.classList.remove('show');
+        importLocalFile(event.dataTransfer.files[0]);
+      });
+
+      window.addEventListener('beforeunload', () => {
+        if (state.objectUrl) URL.revokeObjectURL(state.objectUrl);
+        if (state.filePreviewUrl) URL.revokeObjectURL(state.filePreviewUrl);
+      });
+    }
+
+    async function boot() {
+      if (!ENABLE_CHILI3D_EDITOR) {
+        document.body.innerHTML = `
+          <main style="min-height:100vh;display:grid;place-items:center;background:#0f172a;color:#e5e7eb;font:14px/1.45 Inter,ui-sans-serif,system-ui;padding:24px">
+            <section style="max-width:560px;border:1px solid #334155;border-radius:10px;background:#111827;padding:22px;box-shadow:0 12px 40px rgba(0,0,0,.28)">
+              <h1 style="margin:0 0 10px;font-size:20px">CAD Editor experiment disabled</h1>
+              <p style="margin:0 0 16px;color:#cbd5e1">ENABLE_CHILI3D_EDITOR is false. The failed Chili3D/CAD editor experiment is isolated and inactive.</p>
+              <a href="../index.html" style="display:inline-flex;align-items:center;height:34px;padding:0 14px;border-radius:7px;background:#2563eb;color:white;text-decoration:none;font-weight:700">Back to Profile Axis</a>
+            </section>
+          </main>`;
+        return;
+      }
+
+      renderTools();
+      renderTree();
+      renderSketchEntities();
+      updateProperties();
+      updateModelSelection();
+      wireEvents();
+
+      if (incomingFilename) {
+        state.filename = incomingFilename;
+        state.format = incomingFormat || 'cad';
+        state.fileId = fileId || 'selected';
+        updateProperties();
+        renderTree();
+      }
+
+      const adapter = window.ProfileAxisChili3DAdapter ? new window.ProfileAxisChili3DAdapter({ mount: $('viewport'), log: setStatus }) : null;
+      if (!adapter || !adapter.isAvailable()) {
+        setStatus('Real Chili3D runtime is not bundled because of AGPL/build risk; using isolated high-fidelity editor workspace.');
+      }
+
+      await fetchProfileAxisFile();
+    }
+
+    boot();
+  </script>
+</body>
+</html>

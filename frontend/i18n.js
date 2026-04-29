@@ -13,6 +13,7 @@ const TRANSLATIONS = {
     'nav.image_to_contour': 'Görsel → Kontur',
     'nav.categories': 'Kategoriler',
     'nav.scan_cad': 'Tara → CAD',
+    'nav.cad_editor': 'CAD Editör',
     'nav.job_history': 'İş Geçmişi',
     'nav.engineering_team': 'Mühendislik Ekibi',
     // Common
@@ -221,6 +222,10 @@ const TRANSLATIONS = {
     'scan.export_btn': 'DXF İndir',
     'scan.index_btn': 'Arşive Ekle',
     'scan.original': 'Orijinal',
+    'scan.cad_editor_title': 'CAD Editör',
+    'scan.cad_editor_waiting': 'Dönüştürme bekleniyor',
+    'scan.cad_editor_ready': 'Düzenlemeye hazır',
+    'scan.cad_editor_open': 'CAD Editör\'de Aç',
     'scan.vector_editor': 'Vektör Editör',
     'scan.draw': 'Çiz',
     'scan.modify': 'Değiştir',
@@ -234,9 +239,15 @@ const TRANSLATIONS = {
     'scan.selection_panel': 'Seçim',
     'scan.no_selection': 'Henüz seçim yok',
     'scan.cmd_prompt': 'Komut:',
-    'scan.cmd_placeholder': 'Komut veya kısayol yazıp Enter (örn: L, C, REC, M, E, TR)',
+    'scan.cmd_placeholder': 'Komut, koordinat veya kısayol yazın (L, C, REC, 10,20, @5,0, 25<45)',
     'scan.tool_label': 'Araç:',
     'scan.layer_label': 'Katman:',
+    'acad.empty_title': 'Çizim yok',
+    'acad.empty_sub': 'Tara → CAD ile profil oluşturun veya boş çizime başlayın.',
+    'acad.pick_file': 'Dosya Seç',
+    'acad.blank_start': 'Boş Çizim',
+    'acad.untitled': 'Yeni çizim',
+    'acad.visible': 'görünür',
     // Login page
     'login.title': 'CAD Arama Motoru',
     'login.sub': 'DWG/DXF dosyalarınızda benzerlik araması',
@@ -269,6 +280,7 @@ const TRANSLATIONS = {
     'nav.image_to_contour': 'Image to Contour',
     'nav.categories': 'Categories',
     'nav.scan_cad': 'Scan → CAD',
+    'nav.cad_editor': 'CAD Editor',
     'nav.job_history': 'Job History',
     'nav.engineering_team': 'Engineering Team',
     // Common
@@ -477,6 +489,10 @@ const TRANSLATIONS = {
     'scan.export_btn': 'Download DXF',
     'scan.index_btn': 'Add to Archive',
     'scan.original': 'Original',
+    'scan.cad_editor_title': 'CAD Editor',
+    'scan.cad_editor_waiting': 'Waiting for conversion',
+    'scan.cad_editor_ready': 'Ready to edit',
+    'scan.cad_editor_open': 'Open in CAD Editor',
     'scan.vector_editor': 'Vector Editor',
     'scan.draw': 'Draw',
     'scan.modify': 'Modify',
@@ -490,9 +506,15 @@ const TRANSLATIONS = {
     'scan.selection_panel': 'Selection',
     'scan.no_selection': 'No selection yet',
     'scan.cmd_prompt': 'Command:',
-    'scan.cmd_placeholder': 'Type command or shortcut then Enter (e.g. L, C, REC, M, E, TR)',
+    'scan.cmd_placeholder': 'Type a command, coordinate, or shortcut (L, C, REC, 10,20, @5,0, 25<45)',
     'scan.tool_label': 'Tool:',
     'scan.layer_label': 'Layer:',
+    'acad.empty_title': 'No drawing',
+    'acad.empty_sub': 'Create a profile with Scan → CAD or start a blank drawing.',
+    'acad.pick_file': 'Pick File',
+    'acad.blank_start': 'Blank Drawing',
+    'acad.untitled': 'Untitled drawing',
+    'acad.visible': 'visible',
     // Login page
     'login.title': 'CAD Search Engine',
     'login.sub': 'Similarity search for DWG/DXF files',
@@ -524,6 +546,8 @@ function setLang(lang) {
   currentLang = lang;
   localStorage.setItem('lang', lang);
   applyI18n();
+  if (typeof scanUpdateCadEditorPanel === 'function') scanUpdateCadEditorPanel();
+  if (typeof acadUpdateDocInfo === 'function') acadUpdateDocInfo();
   updateLangBtn();
 }
 

@@ -19,7 +19,7 @@ class CadQueryAdapter(BaseCADAdapter):
         profile_type = payload.get("profile_type") or "rectangular_profile"
         return self._placeholder(
             "generate-parametric",
-            "CadQuery adapter boundary is ready; Faz 1 returns a deterministic fallback plan.",
+            "CadQuery adapter boundary is ready; Phase 2 returns a deterministic fallback plan.",
             supported=True,
             data={
                 "profile_type": profile_type,
@@ -28,7 +28,7 @@ class CadQueryAdapter(BaseCADAdapter):
                 "fallback_model": {
                     "kind": profile_type,
                     "status": "not_generated",
-                    "reason": "CadQuery runtime is intentionally not wired in Faz 1.",
+                    "reason": "CadQuery runtime is intentionally not wired in Phase 2.",
                 },
             },
         )

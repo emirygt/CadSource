@@ -207,6 +207,59 @@ def _select_bw_section_profile_mask(rgba: Image.Image) -> Tuple[Optional[np.ndar
     return full, None
 
 
+def _select_solid_bw_profile_mask(rgba: Image.Image) -> Tuple[Optional[np.ndarray], Optional[str]]:
+    """Detect a single filled monochrome part silhouette without cropping it."""
+    try:
+        import cv2
+    except Exception:
+        return None, "opencv kullanilamiyor."
+
+    gray = np.array(rgba.convert("L"), dtype=np.uint8)
+    image_h, image_w = gray.shape
+    if image_h <= 20 or image_w <= 20:
+        return None, "Gorsel boyutu cok kucuk."
+
+    _, binary = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+    foreground = (binary > 0).astype(np.uint8)
+    ink_ratio = float(foreground.mean())
+    if ink_ratio < 0.004 or ink_ratio > 0.40:
+        return None, "Siyah-beyaz dolu profil icin uygun doluluk orani yok."
+
+    num, labels, stats, _ = cv2.connectedComponentsWithStats(foreground, 8)
+    if num <= 1:
+        return None, "Siyah-beyaz profil bileseni bulunamadi."
+
+    areas = stats[1:, cv2.CC_STAT_AREA]
+    total_area = int(areas.sum())
+    if total_area <= 0:
+        return None, "Siyah-beyaz profil maskesi bos."
+
+    largest_offset = int(np.argmax(areas)) + 1
+    largest_area = int(stats[largest_offset, cv2.CC_STAT_AREA])
+    x = int(stats[largest_offset, cv2.CC_STAT_LEFT])
+    y = int(stats[largest_offset, cv2.CC_STAT_TOP])
+    w = int(stats[largest_offset, cv2.CC_STAT_WIDTH])
+    h = int(stats[largest_offset, cv2.CC_STAT_HEIGHT])
+    dominance = largest_area / max(total_area, 1)
+    bbox_fill = largest_area / max(w * h, 1)
+    width_ratio = w / image_w
+    height_ratio = h / image_h
+
+    touches_page_frame = (
+        x <= image_w * 0.02
+        and y <= image_h * 0.02
+        and (x + w) >= image_w * 0.98
+        and (y + h) >= image_h * 0.98
+    )
+    if touches_page_frame:
+        return None, "Sayfa cercevesi profil olarak secilmedi."
+
+    if dominance < 0.65 or bbox_fill < 0.08 or width_ratio < 0.20 or height_ratio < 0.06:
+        return None, "Tek parca dolu profil guveni dusuk."
+
+    return labels == largest_offset, None
+
+
 def select_foreground_mask(
     image: Image.Image,
     mode: str = "all",
@@ -237,10 +290,16 @@ def select_foreground_mask(
         mask = colored
 
     if mask is None:
-        bw_mask, bw_note = _select_bw_section_profile_mask(rgba)
+        bw_mask, bw_note = _select_solid_bw_profile_mask(rgba)
         if bw_mask is not None:
             mask = bw_mask
-            source = "bw_section_profile"
+            source = "solid_bw_profile"
+        else:
+            bw_mask, bw_note = _select_bw_section_profile_mask(rgba)
+        if bw_mask is not None:
+            mask = bw_mask
+            if source is None:
+                source = "bw_section_profile"
         elif mode == "auto":
             return None, ForegroundSelection(
                 mode, False, "legacy_fallback",

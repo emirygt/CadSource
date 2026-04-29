@@ -17,6 +17,10 @@ frontend/.env
 LOCAL_GITHUB_CREDENTIALS.md
 *.local.md
 secrets/
+*.pem
+*.key
+id_rsa
+id_ed25519
 
 # macOS
 .DS_Store

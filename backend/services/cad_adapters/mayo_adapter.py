@@ -18,7 +18,7 @@ class MayoAdapter(BaseCADAdapter):
     def convert(self, payload: Dict[str, Any]) -> CadAdapterResult:
         return self._placeholder(
             "convert",
-            "Mayo-style converter boundary is ready; no binary is bundled or invoked in Faz 1.",
+            "Mayo-style converter boundary is ready; no binary is bundled or invoked in Phase 2.",
             supported=True,
             data={
                 "source_format": payload.get("source_format"),
