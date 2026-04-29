@@ -2643,7 +2643,7 @@
           <div id="dbListView" class="db-table-wrap">
             <table>
               <thead>
-                <tr>
+                <tr id="dbTableHead">
                   <th style="width:30px;text-align:center"><input id="dbSelectAll" type="checkbox" onchange="toggleDbSelectAll(this.checked)" style="accent-color:var(--blue);cursor:pointer"></th>
                   <th style="width:48px"></th>
                   <th data-i18n="table.filename">Dosya Adı</th>
@@ -2654,7 +2654,7 @@
                   <th data-i18n="table.size">Boyut</th>
                   <th data-i18n="table.status">Durum</th>
                   <th data-i18n="table.added">Eklenme</th>
-                  <th data-i18n="table.action">İşlem</th>
+                  <th data-i18n="table.action" class="db-th-action">İşlem</th>
                 </tr>
               </thead>
               <tbody id="dbTableBody">
@@ -4001,22 +4001,44 @@ async function saveFileAttr(fileId) {
 }
 
 // ───────── ATTRIBUTE FILTER SEARCH ─────────
-// Required attribute names for DB-page warning logic
+// Attribute definitions for DB-page columns + warning logic
+let _dbAttrDefs = [];
 let _requiredAttrNames = [];
-async function loadRequiredAttrNames() {
+
+async function loadDbAttrDefs() {
   try {
     const defs = await fetch(`${API}/attributes/definitions`, { headers: authH() }).then(r => r.json());
-    _requiredAttrNames = (defs || []).filter(d => d.required).map(d => d.name);
+    _dbAttrDefs = defs || [];
+    _requiredAttrNames = _dbAttrDefs.filter(d => d.required).map(d => d.name);
+    updateDbTableHeader();
+    if (dbLastFiles.length) renderDbTable(dbLastFiles);
   } catch (_) {}
 }
 
+function updateDbTableHeader() {
+  const tr = document.getElementById('dbTableHead');
+  if (!tr) return;
+  tr.querySelectorAll('th[data-attr-col]').forEach(el => el.remove());
+  const actionTh = tr.querySelector('.db-th-action');
+  const thStyle = 'white-space:nowrap;font-size:11px;font-weight:700;color:#64748b;letter-spacing:0.04em;text-transform:uppercase;padding:10px 12px';
+  for (const def of _dbAttrDefs) {
+    const th = document.createElement('th');
+    th.setAttribute('data-attr-col', def.name);
+    th.style.cssText = thStyle;
+    th.textContent = def.name + (def.unit ? ` (${def.unit})` : '');
+    tr.insertBefore(th, actionTh);
+  }
+  const totalCols = 11 + _dbAttrDefs.length;
+  document.querySelectorAll('#dbTableBody td[colspan]').forEach(td => td.setAttribute('colspan', totalCols));
+}
+
 function _fileMissingAttrs(file) {
-  if (!_requiredAttrNames.length) return [];
+  if (!_dbAttrDefs.length) return [];
   const attrs = file.attributes || {};
-  return _requiredAttrNames.filter(name => {
-    const v = attrs[name];
+  return _dbAttrDefs.filter(d => d.required).filter(d => {
+    const v = attrs[d.name];
     return v === null || v === undefined || String(v).trim() === '' || v === false;
-  });
+  }).map(d => d.name);
 }
 
 let _asAttrDefs = [];
@@ -4326,7 +4348,7 @@ function navCadEditor(el) {
 function switchTab(name) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-' + name).classList.add('active');
-  if (name === 'db')        { loadDbFiles(); loadCategoriesIntoSelect(); loadRequiredAttrNames(); }
+  if (name === 'db')        { loadDbFiles(); loadCategoriesIntoSelect(); loadDbAttrDefs(); }
   if (name === 'search')    { loadCategoriesIntoSelect(); loadHistory(); setTimeout(initSearchControls, 0); }
   if (name === 'approved')  { setProductsViewMode('split'); loadApprovedFiles(); }
   if (name === 'contour')   initContourTab();
@@ -6077,15 +6099,24 @@ function renderDbTable(files) {
       : `<div style="width:44px;height:32px;border-radius:4px;border:1px solid var(--border);background:#f1f5f9;display:flex;align-items:center;justify-content:center"><span style="font-size:9px;color:var(--text3)">${fmt.toUpperCase()}</span></div>`;
     const hasData = f.has_file_data;
     const attrObj = f.attributes || {};
-    const attrChipsList = Object.entries(attrObj).filter(([,v]) => v !== null && v !== '' && v !== false).slice(0, 5).map(([k,v]) =>
-      `<span style="font-size:10px;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:3px;padding:1px 6px;color:#475569;white-space:nowrap">${escHtml(k)}: <b>${escHtml(String(v))}</b></span>`
-    ).join('');
     const missing = _fileMissingAttrs(f);
-    const warnIcon = missing.length ? `<span title="Eksik: ${missing.join(', ')}" style="color:#dc2626;font-size:13px;margin-left:4px;cursor:default">⚠</span>` : '';
-    return `<tr class="clickable-row" onclick="showDetailModal(${f.id})" style="${missing.length ? 'border-left:3px solid #fca5a5' : ''}">
+    const hasMissing = missing.length > 0;
+    const attrCells = _dbAttrDefs.map(def => {
+      const v = attrObj[def.name];
+      const isEmpty = v === null || v === undefined || String(v).trim() === '' || v === false;
+      if (isEmpty) {
+        return def.required
+          ? `<td style="color:#dc2626;font-size:11px;white-space:nowrap">⚠ eksik</td>`
+          : `<td style="color:#cbd5e1;font-size:12px">—</td>`;
+      }
+      const display = v === true ? 'Evet' : v === false ? 'Hayır' : String(v);
+      return `<td style="font-size:12px;color:#334155;white-space:nowrap;max-width:140px;overflow:hidden;text-overflow:ellipsis" title="${escHtml(display)}">${escHtml(display)}</td>`;
+    }).join('');
+    const totalCols = 11 + _dbAttrDefs.length;
+    return `<tr class="clickable-row" onclick="showDetailModal(${f.id})" style="${hasMissing ? 'border-left:3px solid #fca5a5' : ''}">
       <td style="text-align:center" onclick="event.stopPropagation()"><input id="dbSel_${f.id}" type="checkbox" ${checked} onchange="toggleDbSelect(${f.id}, this.checked)" style="accent-color:var(--blue);cursor:pointer"></td>
       <td style="padding:4px 8px">${thumb}</td>
-      <td><div class="td-filename" title="${f.filepath}">${f.filename}${warnIcon}</div>${attrChipsList ? '<div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:3px">'+attrChipsList+'</div>' : ''}</td>
+      <td><div class="td-filename" title="${f.filepath}">${f.filename}</div></td>
       <td><span class="td-format ${fmtColor[fmt]||''}">${fmt.toUpperCase()}</span></td>
       <td>${catBadge}</td>
       <td>${(f.entity_count||0).toLocaleString('tr')}</td>
@@ -6093,6 +6124,7 @@ function renderDbTable(files) {
       <td>${size}</td>
       <td>${approvedBadge}</td>
       <td class="td-date">${date}</td>
+      ${attrCells}
       <td style="display:flex;gap:6px;align-items:center" onclick="event.stopPropagation()">
         ${favoriteButton(f)}
         <button class="del-btn" style="background:rgba(59,130,246,0.12);color:var(--blue);border-color:rgba(59,130,246,0.3)" onclick="downloadFile(${f.id},'${f.filename.replace(/'/g,"\\'")}')">↓</button>
