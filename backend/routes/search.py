@@ -892,6 +892,7 @@ def list_files(
     entity_types: Optional[str] = Query(default=None),
     duplicate_status: Optional[str] = Query(default=None),
     group_id: Optional[int] = Query(default=None),
+    has_missing_attrs: Optional[bool] = Query(default=None),
     sort_by: str = Query(default="indexed_at"),
     sort_dir: str = Query(default="desc"),
     tenant: dict = Depends(get_current_tenant),
@@ -1002,6 +1003,14 @@ def list_files(
             SELECT 1 FROM cad_file_group_members gm
             WHERE gm.file_id = f.id AND gm.group_id = :group_id
         ))"""
+        count_clauses.append(clause)
+        list_clauses.append(clause)
+    if has_missing_attrs is True:
+        clause = """EXISTS (
+            SELECT 1 FROM attribute_definitions ad
+            WHERE ad.required = TRUE
+            AND (f.attributes->>ad.name IS NULL OR TRIM(f.attributes->>ad.name) = '')
+        )"""
         count_clauses.append(clause)
         list_clauses.append(clause)
 

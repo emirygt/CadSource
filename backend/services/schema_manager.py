@@ -135,6 +135,24 @@ CREATE TABLE IF NOT EXISTS {schema}.attribute_definitions (
     sort_order INTEGER DEFAULT 0,
     created_at TIMESTAMP DEFAULT NOW()
 );
+
+INSERT INTO {schema}.attribute_definitions (name, data_type, options, required, sort_order)
+SELECT t.name, t.dt, t.opts::jsonb, TRUE, t.so
+FROM (VALUES
+    ('Application',   'text',   '[]',                                                       10),
+    ('Function',      'text',   '[]',                                                       20),
+    ('Product Form',  'text',   '[]',                                                       30),
+    ('Malzeme',       'text',   '[]',                                                       40),
+    ('Kesit tipi',    'text',   '[]',                                                       50),
+    ('Seri / sistem', 'text',   '[]',                                                       60),
+    ('Kod',           'text',   '[]',                                                       70),
+    ('Onay durumu',   'select', '["Taslak","Incelemede","Onayli","Reddedildi"]',            80),
+    ('Revizyon',      'text',   '[]',                                                       90),
+    ('Belge tipi',    'select', '["Teknik Cizim","Montaj Cizimi","Parca Listesi","Sema"]', 100)
+) AS t(name, dt, opts, so)
+WHERE NOT EXISTS (
+    SELECT 1 FROM {schema}.attribute_definitions WHERE name = t.name
+);
 """
 
 
