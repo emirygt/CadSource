@@ -383,24 +383,30 @@ def init_db():
                     SELECT 1 FROM {schema}.attribute_definitions WHERE name = t.name
                 )
             """))
-            # Migrate attribute values from numeric-ID keys to name keys (one-time, idempotent)
+            # Migrate: remap numeric-ID keys to names; if name already exists, keep name-keyed value
             conn.execute(text(f"""
                 UPDATE {schema}.cad_files
                 SET attributes = (
-                    SELECT COALESCE(jsonb_object_agg(
-                        CASE
-                            WHEN kv.key ~ '^[0-9]+$' THEN COALESCE(
-                                (SELECT ad.name FROM {schema}.attribute_definitions ad WHERE ad.id::text = kv.key),
-                                kv.key
-                            )
-                            ELSE kv.key
-                        END,
-                        kv.value
-                    ), '{{}}'::jsonb)
-                    FROM jsonb_each(COALESCE(attributes, '{{}}'::jsonb)) AS kv(key, value)
+                    SELECT COALESCE(jsonb_object_agg(sub.mapped_key, sub.value), '{{}}'::jsonb)
+                    FROM (
+                        SELECT DISTINCT ON (mapped_key)
+                            CASE WHEN kv.key ~ '^[0-9]+$' THEN
+                                COALESCE(
+                                    (SELECT ad.name FROM {schema}.attribute_definitions ad WHERE ad.id::text = kv.key),
+                                    kv.key
+                                )
+                            ELSE kv.key END AS mapped_key,
+                            kv.value,
+                            CASE WHEN kv.key ~ '^[0-9]+$' THEN 0 ELSE 1 END AS prio
+                        FROM jsonb_each(COALESCE(attributes, '{{}}'::jsonb)) AS kv(key, value)
+                        ORDER BY mapped_key, prio DESC
+                    ) sub
                 )
                 WHERE attributes IS NOT NULL
-                  AND attributes::text ~ '"[0-9]+\s*":';
+                  AND EXISTS (
+                      SELECT 1 FROM jsonb_object_keys(COALESCE(attributes, '{{}}'::jsonb)) k
+                      WHERE k ~ '^[0-9]+$'
+                  );
             """))
         conn.commit()
 
