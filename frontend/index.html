@@ -1124,7 +1124,7 @@
     .scan-status-bar span { font-family: var(--font-mono); }
 
     /* ═══════════════ Professional CAD Workbench editor ═══════════════ */
-    .acad-overlay { position: fixed; inset: 0; background: #151719; z-index: 9000; display: flex; flex-direction: column; color: #d7d9dc; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    .acad-overlay { position: fixed; inset: 0; background: #151719; z-index: 9000; display: flex; flex-direction: column; color: #d7d9dc; font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
     .acad-overlay.hidden { display: none; }
     .acad-topbar { background: #23262b; border-bottom: 1px solid #3a3d44; flex-shrink: 0; display: flex; flex-direction: column; }
     .acad-ribbon-head { min-height: 38px; display: flex; align-items: center; gap: 10px; padding: 6px 10px; border-bottom: 1px solid #343841; background: #202328; }
@@ -1174,7 +1174,7 @@
     .acad-layer-row .lico.off { color: #4a4d55; }
     .acad-canvas-area { position: relative; background: #151719; overflow: hidden; min-width: 0; }
     .acad-svg-root { width: 100%; height: 100%; display: block; cursor: crosshair; }
-    .acad-coords-tip { position: absolute; pointer-events: none; background: #1e2023; border: 1px solid #ffb400; color: #ffb400; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 11px; padding: 2px 6px; border-radius: 3px; z-index: 10; }
+    .acad-coords-tip { position: absolute; pointer-events: none; background: #1e2023; border: 1px solid #ffb400; color: #ffb400; font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 11px; padding: 2px 6px; border-radius: 3px; z-index: 10; }
     .acad-empty-state { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; pointer-events: none; }
     .acad-empty-card { pointer-events: auto; width: min(420px, calc(100% - 48px)); border: 1px solid #3a3d44; background: rgba(37,40,45,0.94); border-radius: 8px; padding: 18px; box-shadow: 0 20px 60px rgba(0,0,0,0.35); text-align: center; }
     .acad-empty-title { color: #f8fafc; font-weight: 700; font-size: 15px; margin-bottom: 6px; }
@@ -1188,14 +1188,14 @@
     .acad-prop-row b { color: #f3f4f6; font-weight: 650; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: right; }
     .acad-health-pill { display: inline-flex; align-items: center; gap: 6px; padding: 5px 8px; border-radius: 4px; border: 1px solid #33564a; background: rgba(34,197,94,0.08); color: #7dd3a7; font-size: 11px; font-weight: 650; }
     .acad-bottom { background: #202328; border-top: 1px solid #3a3d44; flex-shrink: 0; display: flex; flex-direction: column; }
-    .acad-cmd-history { max-height: 74px; overflow-y: auto; padding: 4px 10px; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 11px; color: #9ca0a9; line-height: 1.5; }
+    .acad-cmd-history { max-height: 74px; overflow-y: auto; padding: 4px 10px; font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 11px; color: #9ca0a9; line-height: 1.5; }
     .acad-cmd-history .cmd-in { color: #ffb400; }
     .acad-cmd-history .cmd-err { color: #ef4444; }
     .acad-cmd-history .cmd-ok { color: #22c55e; }
     .acad-cmd-line { display: flex; align-items: center; padding: 6px 10px; border-top: 1px solid #3a3d44; gap: 6px; }
-    .acad-cmd-prompt { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 12px; color: #ffb400; font-weight: 600; white-space: nowrap; }
-    .acad-cmd-input { flex: 1; background: transparent; border: none; color: #d7d9dc; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 13px; outline: none; }
-    .acad-status-bar { background: #1e2023; border-top: 1px solid #3a3d44; padding: 3px 10px; display: flex; gap: 14px; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 10px; color: #9ca0a9; flex-wrap: wrap; align-items: center; }
+    .acad-cmd-prompt { font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 12px; color: #ffb400; font-weight: 600; white-space: nowrap; }
+    .acad-cmd-input { flex: 1; background: transparent; border: none; color: #d7d9dc; font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 13px; outline: none; }
+    .acad-status-bar { background: #1e2023; border-top: 1px solid #3a3d44; padding: 3px 10px; display: flex; gap: 14px; font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 10px; color: #9ca0a9; flex-wrap: wrap; align-items: center; }
     .acad-status-bar .sep { color: #4a4d55; }
     .acad-status-bar .hl { color: #ffb400; }
     .acad-snap-marker { pointer-events: none; }
@@ -9620,7 +9620,7 @@ function scanRenderSVG() {
         ${(e.splines || []).map(mkSpline).join('')}
       </g>
       <!-- Sol üstte ölçek + boyut etiketi -->
-      <g font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="${Math.max(viewW, viewH) / 90}" fill="#64748b">
+      <g font-family="DM Sans, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="${Math.max(viewW, viewH) / 90}" fill="#64748b">
         <text x="${viewX + 4}" y="${viewY + Math.max(viewW, viewH) / 45}">
           ${w.toFixed(1)} × ${h.toFixed(1)} · ${e.lines?.length||0} L · ${e.circles?.length||0} C · ${e.arcs?.length||0} A
         </text>
@@ -10012,8 +10012,8 @@ function acadRender() {
   if (o.x >= -50 && o.x <= W + 50 && o.y >= -50 && o.y <= H + 50) {
     parts.push(`<line x1="${o.x - 14}" y1="${o.y}" x2="${o.x + 14}" y2="${o.y}" stroke="#ef4444" stroke-width="1.2"/>`);
     parts.push(`<line x1="${o.x}" y1="${o.y - 14}" x2="${o.x}" y2="${o.y + 14}" stroke="#22c55e" stroke-width="1.2"/>`);
-    parts.push(`<text x="${o.x + 16}" y="${o.y - 4}" fill="#ef4444" font-size="9" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">X</text>`);
-    parts.push(`<text x="${o.x + 4}" y="${o.y - 16}" fill="#22c55e" font-size="9" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">Y</text>`);
+    parts.push(`<text x="${o.x + 16}" y="${o.y - 4}" fill="#ef4444" font-size="9" font-family="DM Sans, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">X</text>`);
+    parts.push(`<text x="${o.x + 4}" y="${o.y - 16}" fill="#22c55e" font-size="9" font-family="DM Sans, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">Y</text>`);
   }
 
   // Entity'leri çiz
@@ -10144,7 +10144,7 @@ function acadRenderEntity(ent, type, index, color, sw) {
     const h = (ent.height || 10) * acadState.zoom;
     const rot = ent.rotation || 0;
     const esc = String(ent.text || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    return `<text x="${p.x}" y="${p.y}" fill="${color}" font-size="${h}" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" transform="rotate(${-rot} ${p.x} ${p.y})">${esc}</text>`;
+    return `<text x="${p.x}" y="${p.y}" fill="${color}" font-size="${h}" font-family="DM Sans, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" transform="rotate(${-rot} ${p.x} ${p.y})">${esc}</text>`;
   }
   if (type === 'xline') {
     // Sonsuz çizgi: ekrandaki görünür alanı kapsayacak şekilde hesapla
@@ -10179,7 +10179,7 @@ function acadRenderEntity(ent, type, index, color, sw) {
            `<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" fill="none"/>` +
            `<line x1="${b.x}" y1="${b.y}" x2="${c.x}" y2="${c.y}" fill="none"/>` +
            `<polygon points="${a.x},${a.y} ${lx},${ly} ${rx},${ry}"/>` +
-           `<text x="${c.x + 4}" y="${c.y - 2}" font-size="11" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" stroke="none">${esc}</text></g>`;
+           `<text x="${c.x + 4}" y="${c.y - 2}" font-size="11" font-family="DM Sans, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" stroke="none">${esc}</text></g>`;
   }
   return '';
 }
@@ -10230,7 +10230,7 @@ function acadRenderDimension(ent, color, sw) {
   out += arrow(da.x, da.y, db.x, db.y);
   out += arrow(db.x, db.y, da.x, da.y);
   // Metin
-  out += `<text x="${mid.x}" y="${mid.y - 4}" fill="${color}" font-size="11" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" text-anchor="middle" transform="rotate(${textAngle} ${mid.x} ${mid.y})">${text}</text>`;
+  out += `<text x="${mid.x}" y="${mid.y - 4}" fill="${color}" font-size="11" font-family="DM Sans, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" text-anchor="middle" transform="rotate(${textAngle} ${mid.x} ${mid.y})">${text}</text>`;
   return out;
 }
 
