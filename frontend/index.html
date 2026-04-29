@@ -38,8 +38,8 @@
     body {
       background: var(--bg);
       color: var(--text);
-      font-family: var(--font-body);
-      font-size: 14px;
+      font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 13px;
       line-height: 1.5;
       min-height: 100vh;
       height: 100vh;
@@ -1293,7 +1293,7 @@
     .analytics-insights-head p { font-size: 13px; color: #64748b; }
 
     /* Page Header Unified Styles */
-    .page-header { display: flex; justify-content: flex-start; align-items: center; padding: 24px 32px; background: var(--nav-bg); border-bottom: 1px solid #1C3248; width: 100% !important; max-width: none !important; margin: 0 !important; flex-shrink: 0; position: relative; }
+    .page-header { display: flex; justify-content: flex-start; align-items: center; padding: 24px 32px; background: var(--nav-bg); border-bottom: 1px solid #1C3248; width: 100% !important; max-width: none !important; margin: 0 !important; flex-shrink: 0; position: sticky; top: 0; z-index: 60; }
     .page-header > div:first-child { text-align: left; }
     .ph-actions { position: absolute; right: 32px; display: flex; align-items: center; gap: 8px; }
     .ph-title {
@@ -1338,36 +1338,36 @@
     }
 
     /* Main content typography scale - sidebar navigation is intentionally untouched. */
-    .page.active { font-size: 15px; }
-    .analytics-primary-btn { font-size: 14px; }
-    .analytics-searchbox input { font-size: 14px; }
-    .empty-title { font-size: 17px; }
-    .empty-sub { font-size: 14px; }
-    .results-title { font-size: 17px; }
-    .results-meta { font-size: 13px; }
-    .query-info-title { font-size: 12px; }
-    .query-file-name { font-size: 22px; }
+    .page.active { font-size: 13px; }
+    .analytics-primary-btn { font-size: 13px; }
+    .analytics-searchbox input { font-size: 13px; }
+    .empty-title { font-size: 15px; }
+    .empty-sub { font-size: 13px; }
+    .results-title { font-size: 15px; }
+    .results-meta { font-size: 12px; }
+    .query-info-title { font-size: 11px; }
+    .query-file-name { font-size: 20px; }
     .qstat-label { font-size: 11px; }
     .qstat-val { font-size: 18px; }
-    .card-name { font-size: 15px; }
+    .card-name { font-size: 13px; }
     .card-path, .cstat, .sim-bar-label, .reason-section-title { font-size: 11px; }
     table th { font-size: 12px; }
-    table td { font-size: 13.5px; }
-    .td-filename { font-size: 14px; }
+    table td { font-size: 12.5px; }
+    .td-filename { font-size: 13px; }
     .db-files-header h2,
-    .db-upload-card h2 { font-size: 17px; }
+    .db-upload-card h2 { font-size: 15px; }
     .db-upload-card p,
     .db-drop p,
     .db-upload-status,
     .db-pagination span,
-    .db-empty { font-size: 13.5px; }
-    .db-drop h3 { font-size: 15.5px; }
+    .db-empty { font-size: 12.5px; }
+    .db-drop h3 { font-size: 14px; }
     .db-search-box,
     .fl-toolbar-search input,
     .fl-filter-btn,
     .fl-folder-btn { font-size: 14px; }
     .fl-section-label { font-size: 12px; }
-    .fl-card-name { font-size: 14.5px; }
+    .fl-card-name { font-size: 13px; }
     .fl-card-meta,
     .fl-card-tag,
     .fl-card-badge,
@@ -1376,35 +1376,35 @@
     #page-analytics [data-i18n="dash.differences"],
     #page-analytics [data-i18n="dash.pending_reviews"],
     #page-analytics [data-i18n="dash.exports"] {
-      font-size: 13px !important;
+      font-size: 12px !important;
     }
     #kpiTotal,
     #kpiIndexed,
     #kpiClip,
     #kpiAvgEnt {
-      font-size: 34px !important;
+      font-size: 30px !important;
       line-height: 1.05;
     }
     #kpiTotal + div,
     #kpiIndexed + div,
     #kpiClip + div,
     #kpiAvgEnt + div {
-      font-size: 14px !important;
+      font-size: 13px !important;
     }
     #page-analytics .analytics-quick-section h2,
     #page-analytics .analytics-table-head h2 {
-      font-size: 20px !important;
+      font-size: 18px !important;
     }
     #page-analytics .analytics-quick-title {
-      font-size: 16.5px !important;
+      font-size: 15px !important;
       line-height: 1.25;
     }
     #page-analytics .analytics-quick-sub {
-      font-size: 14px !important;
+      font-size: 13px !important;
       line-height: 1.45;
     }
     #page-analytics .analytics-preview-table thead th { font-size: 12px; }
-    #page-analytics .analytics-preview-table tbody td { font-size: 14px; }
+    #page-analytics .analytics-preview-table tbody td { font-size: 13px; }
 
     #page-search .sidebar {
       padding: 22px;
@@ -1481,30 +1481,30 @@
       background: linear-gradient(90deg, transparent, rgba(141,164,194,0.42), transparent);
     }
 
-    #page-contour .contour-head h2 { font-size: 22px; }
-    #page-contour .contour-head p { font-size: 15px; line-height: 1.6; }
-    #page-contour .contour-drop-title { font-size: 16.5px; font-weight: 700; }
+    #page-contour .contour-head h2 { font-size: 19px; }
+    #page-contour .contour-head p { font-size: 13.5px; line-height: 1.55; }
+    #page-contour .contour-drop-title { font-size: 14.5px; font-weight: 700; }
     #page-contour .contour-drop-sub,
-    #page-contour .contour-fname { font-size: 14px; }
+    #page-contour .contour-fname { font-size: 12.5px; }
     #page-contour .contour-field label,
-    #page-contour .section-label { font-size: 14px; font-weight: 800; }
+    #page-contour .section-label { font-size: 12.5px; font-weight: 800; }
     #page-contour .contour-field input,
     #page-contour .contour-field select {
-      font-size: 15px;
-      padding: 10px 12px;
-      min-height: 42px;
+      font-size: 13px;
+      padding: 8px 10px;
+      min-height: 38px;
     }
-    #page-contour .contour-check { font-size: 14.5px; line-height: 1.45; }
+    #page-contour .contour-check { font-size: 13px; line-height: 1.45; }
     #page-contour .contour-check input { width: 16px; height: 16px; }
-    #page-contour .contour-btn { font-size: 14px; padding: 10px 14px; }
+    #page-contour .contour-btn { font-size: 12.5px; padding: 8px 12px; }
     #page-contour .contour-mini-note,
     #page-contour .contour-calib-info,
     #page-contour .contour-quality-item,
     #page-contour .contour-warning,
-    #page-contour .contour-msg { font-size: 14px; }
-    #page-contour .contour-empty { font-size: 15px; font-weight: 600; }
-    #page-contour .contour-stat .lbl { font-size: 12px; }
-    #page-contour .contour-stat .val { font-size: 16px; }
+    #page-contour .contour-msg { font-size: 12.5px; }
+    #page-contour .contour-empty { font-size: 13px; font-weight: 600; }
+    #page-contour .contour-stat .lbl { font-size: 11px; }
+    #page-contour .contour-stat .val { font-size: 14px; }
 
     #page-cat .cat-add-card h2,
     #page-cat .cat-list-header { font-size: 16px; }
@@ -8121,7 +8121,7 @@ function initChartDefaults() {
   if (typeof Chart === 'undefined') return;
   Chart.defaults.color = '#8b93a8';
   Chart.defaults.borderColor = 'rgba(255,255,255,0.06)';
-  Chart.defaults.font.family = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+  Chart.defaults.font.family = "'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
   Chart.defaults.font.size = 11;
 }
 
