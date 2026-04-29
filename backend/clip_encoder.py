@@ -97,6 +97,27 @@ def encode_png(png_bytes: bytes) -> Optional[np.ndarray]:
     return encode_image_bytes(png_bytes)
 
 
+def encode_text(text: str) -> Optional[np.ndarray]:
+    """Text query → 512-D L2-normalized CLIP text vector."""
+    try:
+        _load_model()
+        import torch
+        inputs = _processor(
+            text=text, return_tensors="pt",
+            padding=True, truncation=True, max_length=77
+        ).to(_device)
+        with torch.no_grad():
+            features = _model.get_text_features(**inputs)
+        vec = features.squeeze().cpu().numpy().astype(np.float32)
+        norm = np.linalg.norm(vec)
+        if norm > 0:
+            vec = vec / norm
+        return vec
+    except Exception as e:
+        _log.warning("[CLIP] text encode hatası: %s", e)
+        return None
+
+
 def extract_clip_vector(data: dict) -> Optional[np.ndarray]:
     """
     Ana entry point: ezdxf data dict → 512-D CLIP vektörü.

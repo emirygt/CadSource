@@ -19,6 +19,7 @@ from routes.jobs import router as jobs_router
 from routes.reports import router as reports_router
 from routes.model3d import router as model3d_router
 from routes.cad_tools import router as cad_tools_router
+from routes.nl_search import router as nl_search_router
 
 app = FastAPI(
     title="CAD Arama Motoru",
@@ -59,3 +60,4 @@ app.include_router(jobs_router)        # /jobs
 app.include_router(reports_router)     # /reports
 app.include_router(model3d_router)    # /files/{id}/model3d
 app.include_router(cad_tools_router)  # /cad/tools/health, /cad/convert, ...
+app.include_router(nl_search_router)  # /nl-search

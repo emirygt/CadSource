@@ -2220,6 +2220,10 @@
     <span class="nav-ic"><svg viewBox="0 0 24 24"><circle cx="8" cy="8" r="4"></circle><circle cx="16" cy="16" r="4"></circle><path d="M11 8H16M8 11V16"></path></svg></span>
     <span data-i18n="nav.search">Search & Compare</span>
   </div>
+  <div class="tab" id="nav-nl-search" onclick="navGo('nl-search', this)">
+    <span class="nav-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><path d="M8 11h6M11 8v6"/></svg></span>
+    <span data-i18n="nav.nl_search">Doğal Dil Arama</span>
+  </div>
   <div class="tab" onclick="navGo('db', document.getElementById('nav-library')); setTimeout(()=>{ const p=document.getElementById('dbUploadPanel'); if(p&&p.style.display==='none') toggleDbUploadPanel(); },100)">
     <span class="nav-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></span>
     <span data-i18n="nav.upload_files">Upload Files</span>
@@ -3076,6 +3080,32 @@
   </div>
 </div>
 
+<!-- ═══════════════ DOĞAL DİL ARAMA SAYFASI ═══════════════ -->
+<div class="page" id="page-nl-search" style="padding:0; background:#f8fafc; align-items: stretch; flex-direction: column;">
+  <div class="page-header">
+    <div>
+      <h1 class="ph-title" data-i18n="nl_search.title">Doğal Dil Arama</h1>
+      <p class="ph-sub" data-i18n="nl_search.sub">Yazıyla ürün arayın</p>
+    </div>
+    <div class="ph-actions"><span class="enterprise-badge">Enterprise</span></div>
+  </div>
+  <div style="padding:32px; max-width:1200px; width:100%; margin:0 auto;">
+    <div class="cat-add-card" style="margin-bottom:24px">
+      <h2 data-i18n="nl_search.input_label" style="margin-bottom:12px">Ne arıyorsun?</h2>
+      <div style="display:flex;gap:10px;align-items:flex-start">
+        <textarea id="nlQueryInput" rows="2"
+          data-i18n-placeholder="nl_search.placeholder"
+          placeholder='Örn: "A profilinde delik olan ürün var mı?"'
+          style="flex:1;font-family:inherit;font-size:13px;padding:10px 12px;border:1px solid #e2e8f0;border-radius:8px;resize:vertical;line-height:1.5;outline:none"
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();runNLSearch()}"
+        ></textarea>
+        <button class="btn-primary" onclick="runNLSearch()" data-i18n="nl_search.btn" style="flex-shrink:0;margin-top:0">Ara</button>
+      </div>
+    </div>
+    <div id="nlResultsArea"></div>
+  </div>
+</div>
+
 <!-- ═══════════════ ANALİTİK SAYFASI ═══════════════ -->
 <div class="page" id="page-analytics" style="padding:0; background:#f8fafc; align-items: stretch; flex-direction: column;">
   <div class="page-header">
@@ -3727,6 +3757,54 @@ let API_READY = false;
 const token = localStorage.getItem('token');
 if (!token) window.location.href = 'login.html';
 const authH = () => ({ 'Authorization': `Bearer ${localStorage.getItem('token') || ''}` });
+
+// ───────── DOĞAL DİL ARAMA ─────────
+async function runNLSearch() {
+  const textarea = document.getElementById('nlQueryInput');
+  const area = document.getElementById('nlResultsArea');
+  const query = (textarea?.value || '').trim();
+  if (!query) return;
+  area.innerHTML = '<p style="color:#64748b;font-size:13px;padding:8px 0">Aranıyor...</p>';
+  try {
+    const r = await fetch(`${API}/nl-search`, {
+      method: 'POST',
+      headers: { ...authH(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query, top_k: 20, min_similarity: 0.15 }),
+    });
+    if (!r.ok) { area.innerHTML = `<p style="color:#ef4444;font-size:13px">Hata: ${r.status}</p>`; return; }
+    renderNLResults(await r.json());
+  } catch (e) {
+    area.innerHTML = `<p style="color:#ef4444;font-size:13px">Bağlantı hatası: ${e.message}</p>`;
+  }
+}
+
+function renderNLResults(data) {
+  const area = document.getElementById('nlResultsArea');
+  if (!data.results?.length) {
+    area.innerHTML = `<p style="color:#64748b;font-size:13px;padding:8px 0">${t('nl_search.empty') || 'Sonuç bulunamadı'}</p>`;
+    return;
+  }
+  const matchLine = (t('nl_search.matches') || '{n} sonuç').replace('{n}', data.total_matches);
+  const cards = data.results.map(r => {
+    const pct = Math.round(r.similarity * 100);
+    const tone = pct >= 70 ? '#16a34a' : pct >= 50 ? '#ca8a04' : '#dc2626';
+    const preview = r.jpg_preview
+      ? `<img src="data:image/jpeg;base64,${r.jpg_preview}" style="width:100%;height:120px;object-fit:contain;background:#f1f5f9;border-radius:6px;margin-bottom:10px">`
+      : `<div style="width:100%;height:120px;background:#f1f5f9;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:12px;margin-bottom:10px">Önizleme yok</div>`;
+    return `<div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:14px;display:flex;flex-direction:column">
+      ${preview}
+      <div style="font-size:12px;font-weight:600;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${r.filename}">${r.filename}</div>
+      <div style="margin-top:6px;display:flex;align-items:center;gap:6px">
+        <span style="font-size:11px;font-weight:700;color:${tone};background:${tone}18;border-radius:4px;padding:2px 7px">%${pct}</span>
+        ${r.category_name ? `<span style="font-size:11px;color:#64748b">${r.category_name}</span>` : ''}
+      </div>
+      ${r.entity_count ? `<div style="font-size:11px;color:#94a3b8;margin-top:4px">${r.entity_count} entity · ${r.file_format}</div>` : ''}
+    </div>`;
+  }).join('');
+  area.innerHTML = `
+    <p style="font-size:12px;color:#64748b;margin-bottom:14px">${matchLine}</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px">${cards}</div>`;
+}
 
 async function ensureApiBase(force = false) {
   if (!force && API_READY) return API;
