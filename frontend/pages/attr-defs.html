@@ -1,0 +1,41 @@
+<div class="page" id="page-attr-defs" style="padding:0; background:#f8fafc; align-items:stretch; flex-direction:column;">
+  <div class="page-header">
+    <div>
+      <h1 class="ph-title" data-i18n="attr.title">Attribute Tanımları</h1>
+      <p class="ph-sub" data-i18n="attr.sub">Ürünlere özel alanlar tanımlayın</p>
+    </div>
+  </div>
+  <div style="padding:32px; max-width:900px; width:100%; margin:0 auto;">
+
+    <!-- Yeni tanım ekle -->
+    <div class="cat-add-card" style="margin-bottom:24px">
+      <h2 style="font-size:15px;font-weight:600;margin-bottom:14px">Yeni Attribute</h2>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start">
+        <input id="attrNameInput" type="text" maxlength="100"
+          data-i18n-placeholder="attr.new_name" placeholder="Alan adı..."
+          style="flex:1;min-width:150px;font-family:inherit;font-size:13px;padding:8px 12px;border:1px solid #e2e8f0;border-radius:8px;outline:none">
+        <select id="attrTypeSelect" style="font-family:inherit;font-size:13px;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;background:#fff;outline:none">
+          <option value="text" data-i18n="attr.type_text">Metin</option>
+          <option value="number" data-i18n="attr.type_number">Sayı</option>
+          <option value="boolean" data-i18n="attr.type_boolean">Evet/Hayır</option>
+          <option value="select" data-i18n="attr.type_select">Seçenek</option>
+        </select>
+        <input id="attrUnitInput" type="text" maxlength="50"
+          data-i18n-placeholder="attr.unit_placeholder" placeholder="Birim (mm, kg...)"
+          style="width:130px;font-family:inherit;font-size:13px;padding:8px 12px;border:1px solid #e2e8f0;border-radius:8px;outline:none">
+        <input id="attrOptionsInput" type="text"
+          data-i18n-placeholder="attr.options_placeholder" placeholder="Seçenekler (virgülle ayır)"
+          style="width:200px;font-family:inherit;font-size:13px;padding:8px 12px;border:1px solid #e2e8f0;border-radius:8px;outline:none"
+          title="Sadece 'Seçenek' tipi için">
+        <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;white-space:nowrap">
+          <input type="checkbox" id="attrRequiredChk"> <span data-i18n="attr.required">Zorunlu</span>
+        </label>
+        <button class="btn-primary" onclick="addAttrDef()" data-i18n="attr.add">Ekle</button>
+      </div>
+      <div id="attrAddMsg" style="margin-top:8px;font-size:12px;display:none"></div>
+    </div>
+
+    <!-- Liste -->
+    <div id="attrDefList"></div>
+  </div>
+</div>

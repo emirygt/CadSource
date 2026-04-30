@@ -83,9 +83,10 @@ function navCadEditor(el) {
   setTimeout(() => openAcad(), 0);
 }
 
-function switchTab(name) {
+function switchTab(name, skipHistory = false) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-' + name).classList.add('active');
+  if (!skipHistory) history.pushState({ page: name }, '', '/' + name);
   if (name === 'db')        { loadDbFiles(); loadCategoriesIntoSelect(); loadDbAttrDefs(); }
   if (name === 'search')    { loadCategoriesIntoSelect(); loadHistory(); setTimeout(initSearchControls, 0); }
   if (name === 'approved')  { setProductsViewMode('split'); loadApprovedFiles(); }
@@ -98,6 +99,16 @@ function switchTab(name) {
   if (name === 'scan')       scanInit();
   if (name === 'duplicates') loadDuplicatePage();
 }
+
+// ── Path routing ──────────────────────────────────────────────────────────────
+const _VALID_PAGES = new Set(['search','db','approved','contour','cat','nl-search','attr-defs','analytics','activity','duplicates','scan']);
+
+function _routeFromPath() {
+  const name = location.pathname.slice(1);
+  if (_VALID_PAGES.has(name)) switchTab(name, true);
+}
+
+window.addEventListener('popstate', _routeFromPath);
 
 // ── Stats (topbar) ────────────────────────────────────────────────────────────
 async function loadStats() {

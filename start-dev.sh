@@ -65,7 +65,7 @@ if lsof -ti:8080 >/dev/null 2>&1; then
   echo "Frontend zaten calisiyor (port 8080)"
 else
   echo "Frontend baslatiliyor (port 8080)..."
-  python3 -m http.server 8080 --directory "$FRONTEND_DIR" \
+  python3 "$FRONTEND_DIR/spa_server.py" 8080 "$FRONTEND_DIR" \
     > "$FRONTEND_LOG" 2>&1 &
   echo $! > "$FRONTEND_PID"
   sleep 1

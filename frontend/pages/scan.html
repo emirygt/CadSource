@@ -1,0 +1,340 @@
+<div class="page" id="page-scan" style="padding:0; background:#f8fafc; align-items: stretch; flex-direction: column;">
+  <div class="page-header">
+    <div>
+      <h1 class="ph-title" data-i18n="scan.title">Scan → CAD</h1>
+      <p class="ph-sub" data-i18n="scan.sub">Digitize physical parts</p>
+    </div>
+    <div class="ph-actions">
+      <span class="enterprise-badge">Enterprise</span>
+    </div>
+  </div>
+  <div class="scan-layout" style="padding:32px; max-width:1400px; width:100%; margin:0 auto;">
+
+    <!-- Sol panel: yükleme + ayarlar -->
+    <div class="scan-left">
+      <div class="scan-card">
+        <div class="scan-card-title" data-i18n="scan.upload_card">Dosya Yükle</div>
+        <div class="scan-drop" id="scanDrop"
+          ondragover="scanDragOver(event)" ondragleave="scanDragLeave()"
+          ondrop="scanDrop_handler(event)" onclick="document.getElementById('scanFileInput').click()">
+          <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+          <div class="scan-drop-title" data-i18n="scan.drop_title">Sürükle & Bırak</div>
+          <div class="scan-drop-sub" data-i18n="scan.drop_sub">JPG · PNG · PDF · DXF · DWG · BMP · TIFF</div>
+          <div class="scan-drop-fname" id="scanDropFname"></div>
+        </div>
+        <input type="file" id="scanFileInput" accept=".jpg,.jpeg,.png,.bmp,.tiff,.tif,.pdf,.dxf,.dwg" style="display:none" onchange="scanFileSelected(this)">
+
+        <div class="scan-field">
+          <label for="scanForegroundMode" data-i18n="scan.foreground_mode">Çizim Algılama</label>
+          <select id="scanForegroundMode">
+            <option value="part" selected data-i18n="scan.foreground_part">Parça konturu (ölçüsüz)</option>
+            <option value="all" data-i18n="scan.foreground_all">Tüm çizgiler</option>
+            <option value="auto" data-i18n="scan.foreground_auto">Otomatik</option>
+          </select>
+        </div>
+
+        <div class="scan-stats" id="scanStats" style="display:none">
+          <div class="scan-stat"><div class="scan-stat-lbl" data-i18n="scan.stat_lines">Çizgi</div><div class="scan-stat-val" id="sSLines">—</div></div>
+          <div class="scan-stat"><div class="scan-stat-lbl" data-i18n="scan.stat_circles">Çember</div><div class="scan-stat-val" id="sSCircles">—</div></div>
+          <div class="scan-stat"><div class="scan-stat-lbl" data-i18n="scan.stat_arcs">Yay</div><div class="scan-stat-val" id="sSArcs">—</div></div>
+          <div class="scan-stat"><div class="scan-stat-lbl" data-i18n="scan.stat_total">Toplam</div><div class="scan-stat-val" id="sSTotal">—</div></div>
+        </div>
+
+        <div class="scan-actions">
+          <button class="scan-btn primary" id="scanConvertBtn" onclick="scanConvert()" disabled>
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            <span data-i18n="scan.convert_btn">Dönüştür</span>
+          </button>
+          <button class="scan-btn smooth" id="scanSmoothBtn" onclick="scanSmooth()" disabled title="Gürültüyü temizle, eğrileri pürüzsüzleştir">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12c3-6 9-6 12 0s9 6 12 0"/><path d="M3 12c3 6 9 6 12 0s9-6 12 0" opacity=".4"/></svg>
+            <span data-i18n="scan.smooth_btn">İyileştir</span>
+          </button>
+          <button class="scan-btn" id="scanExportBtn" onclick="scanExportDXF()" disabled data-i18n="scan.export_btn">DXF İndir</button>
+          <button class="scan-btn" id="scanIndexBtn" onclick="scanIndexFile()" disabled data-i18n="scan.index_btn">Arşive Ekle</button>
+          <button class="scan-btn" onclick="scanReset()" data-i18n="common.clear">Temizle</button>
+        </div>
+
+        <div class="scan-msg" id="scanMsg"></div>
+      </div>
+
+      <div class="scan-card scan-cad-editor-card">
+        <div class="scan-cad-editor-head">
+          <div class="scan-card-title" data-i18n="scan.cad_editor_title">CAD Editör</div>
+          <span class="scan-cad-editor-chip">CAD PRO</span>
+        </div>
+        <div class="scan-cad-editor-status" id="scanCadEditorStatus">Dönüştürme bekleniyor</div>
+        <button class="scan-btn scan-cad-open-btn" id="scanCadEditorBtn" onclick="openAcad()" disabled>
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h16M5 17l9-9 3 3-9 9H5z"/><path d="M13 9l2-2a2 2 0 0 1 3 3l-2 2"/></svg>
+          <span data-i18n="scan.cad_editor_open">CAD Editör'de Aç</span>
+        </button>
+        <div class="scan-cad-editor-meta" id="scanCadEditorMeta">
+          <span><b>0</b><span data-i18n="scan.stat_lines">Çizgi</span></span>
+          <span><b>0</b><span data-i18n="scan.stat_circles">Çember</span></span>
+          <span><b>0</b><span data-i18n="scan.stat_arcs">Yay</span></span>
+        </div>
+      </div>
+
+      <!-- Orijinal görsel önizleme -->
+      <div class="scan-card" id="scanOriginalCard" style="display:none">
+        <div class="scan-card-title" data-i18n="scan.original">Orijinal</div>
+        <div class="scan-preview-wrap">
+          <img id="scanOriginalImg" src="" alt="original">
+        </div>
+      </div>
+    </div>
+
+    <!-- Sağ panel: canvas editör -->
+    <div class="scan-right">
+      <div class="scan-card scan-editor-card">
+        <div class="scan-editor-header">
+          <div class="scan-card-title" data-i18n="scan.vector_editor">Vektör Editör</div>
+          <div class="scan-editor-tools">
+            <button class="scan-tool-btn active" id="toolSelect" onclick="setTool('select')" title="Seç">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 3l14 9-7 1-4 7z"/></svg>
+            </button>
+            <button class="scan-tool-btn" id="toolLine" onclick="setTool('line')" title="Çizgi Çiz">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="19" x2="19" y2="5"/></svg>
+            </button>
+            <button class="scan-tool-btn" id="toolCircle" onclick="setTool('circle')" title="Çember Çiz">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"/></svg>
+            </button>
+            <button class="scan-tool-btn" id="toolArc" onclick="setTool('arc')" title="Yay Çiz (3 nokta)">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 18 A 15 15 0 0 1 21 18"/></svg>
+            </button>
+            <button class="scan-tool-btn" id="toolMove" onclick="setTool('move')" title="Seçileni Taşı">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20M5 9l-3 3 3 3M19 9l3 3-3 3M9 5l3-3 3 3M9 19l3 3 3-3"/></svg>
+            </button>
+            <div class="scan-tool-sep"></div>
+            <button class="scan-tool-btn" onclick="scanDeleteSelected()" title="Seçileni Sil">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+            </button>
+            <button class="scan-tool-btn" onclick="scanUndo()" title="Geri Al">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7v6h6"/><path d="M3 13A9 9 0 1 0 6 6.7L3 13"/></svg>
+            </button>
+            <div class="scan-tool-sep"></div>
+            <button class="scan-tool-btn" onclick="scanZoom(1.25)" title="Yakınlaş">+</button>
+            <button class="scan-tool-btn" onclick="scanZoom(0.8)" title="Uzaklaş">−</button>
+            <button class="scan-tool-btn" onclick="scanFitView()" title="Sığdır">⊡</button>
+            <div class="scan-tool-sep"></div>
+            <button class="scan-tool-btn" id="scanViewToggleBtn" onclick="toggleScanView()" title="Basit SVG görünümüne geç" style="font-weight:600">SVG</button>
+            <button class="scan-tool-btn" id="scanDownloadSvgBtn" onclick="scanDownloadSvg()" title="SVG olarak indir" style="display:none">↓ SVG</button>
+            <button class="scan-tool-btn" onclick="openAcad()" title="AutoCAD tarzı tam editör (koyu tema, snap, komut satırı, katmanlar)" style="font-weight:700;background:#1e2023;color:#ffb400;border-color:#ffb400">CAD Pro</button>
+          </div>
+        </div>
+        <div class="scan-canvas-wrap" id="scanCanvasWrap" style="position:relative">
+          <canvas id="scanCanvas"></canvas>
+          <div id="scanSvgLayer" style="display:none;width:100%;height:100%;background:#fafbfc;position:relative;overflow:auto"></div>
+          <div class="scan-canvas-empty" id="scanCanvasEmpty">
+            <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="#cbd5e1" stroke-width="1"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+            <div data-i18n="scan.empty">Dosya yükleyip Dönüştür'e basın</div>
+          </div>
+        </div>
+        <div class="scan-status-bar">
+          <span id="scanStatusTool">Araç: Seç</span>
+          <span id="scanStatusCoords">X: — Y: —</span>
+          <span id="scanStatusSel">Seçim: —</span>
+          <span id="scanStatusZoom">Zoom: 100%</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════ CAD PRO WORKBENCH OVERLAY ═══════════════ -->
+<div class="acad-overlay hidden" id="acadOverlay">
+  <div class="acad-topbar">
+    <div class="acad-ribbon-head">
+      <div class="acad-logo">PROFILE AXIS CAD</div>
+      <div class="acad-doc-info">
+        <div class="acad-doc-name" id="acadDocName" data-i18n="scan.cad_editor_title">CAD Editör</div>
+        <div class="acad-doc-meta" id="acadDocMeta">0 entity</div>
+      </div>
+      <div class="acad-menu-strip" aria-label="CAD ribbon">
+        <button class="acad-menu-tab active">File</button>
+        <button class="acad-menu-tab">View</button>
+        <button class="acad-menu-tab">Draw</button>
+        <button class="acad-menu-tab">Modify</button>
+        <button class="acad-menu-tab">Measure</button>
+        <button class="acad-menu-tab">Search</button>
+        <button class="acad-menu-tab">Compare</button>
+        <button class="acad-menu-tab">Export</button>
+      </div>
+      <label class="acad-workbench">
+        Workbench
+        <select id="acadWorkbenchSelect">
+          <option>Search Workbench</option>
+          <option>Compare Workbench</option>
+          <option>Scan-to-CAD Workbench</option>
+          <option>Review Workbench</option>
+          <option>Parametric Workbench</option>
+          <option>Archive Cleanup Workbench</option>
+        </select>
+      </label>
+      <button class="acad-btn-close" onclick="closeAcad()">× <span data-i18n="common.close">Kapat</span></button>
+    </div>
+
+    <div class="acad-ribbon-tools">
+      <div class="acad-tool-grp">
+        <span class="acad-tool-label">File</span>
+        <button class="acad-tool" onclick="acadOpenScanUpload()" title="Dosya seç">OPEN</button>
+        <button class="acad-tool" onclick="acadStartBlankDrawing()" title="Boş çizim">NEW</button>
+      </div>
+
+      <div class="acad-tool-grp">
+        <span class="acad-tool-label" data-i18n="scan.draw">Çiz</span>
+        <button class="acad-tool" data-tool="line" onclick="acadSetTool('line')" title="Line (L)">╱</button>
+        <button class="acad-tool" data-tool="circle" onclick="acadSetTool('circle')" title="Circle (C)">○</button>
+        <button class="acad-tool" data-tool="arc" onclick="acadSetTool('arc')" title="Arc 3pt (A)">⌒</button>
+        <button class="acad-tool" data-tool="rect" onclick="acadSetTool('rect')" title="Rectangle (REC)">▭</button>
+        <button class="acad-tool" data-tool="polyline" onclick="acadSetTool('polyline')" title="Polyline (PL)">PL</button>
+        <button class="acad-tool" data-tool="polygon" onclick="acadSetTool('polygon')" title="Polygon (POL)">POL</button>
+      </div>
+
+      <div class="acad-tool-grp">
+        <span class="acad-tool-label" data-i18n="scan.modify">Değiştir</span>
+        <button class="acad-tool" data-tool="select" onclick="acadSetTool('select')" title="Select (SEL)">SEL</button>
+        <button class="acad-tool" data-tool="move" onclick="acadSetTool('move')" title="Move (M)">M</button>
+        <button class="acad-tool" data-tool="copy" onclick="acadSetTool('copy')" title="Copy (CO)">CO</button>
+        <button class="acad-tool" data-tool="rotate" onclick="acadSetTool('rotate')" title="Rotate (RO)">RO</button>
+        <button class="acad-tool" data-tool="erase" onclick="acadSetTool('erase')" title="Erase (E)">E</button>
+        <button class="acad-tool" data-tool="trim" onclick="acadSetTool('trim')" title="Trim (TR)">TR</button>
+        <button class="acad-tool" data-tool="extend" onclick="acadSetTool('extend')" title="Extend (EX)">EX</button>
+        <button class="acad-tool" data-tool="offset" onclick="acadSetTool('offset')" title="Offset (OFF)">OFF</button>
+      </div>
+
+      <div class="acad-tool-grp">
+        <span class="acad-tool-label" data-i18n="scan.measure">Ölçü</span>
+        <button class="acad-tool" data-tool="dim-lin" onclick="acadSetTool('dim-lin')" title="Linear Dimension (DLI)">DLI</button>
+        <button class="acad-tool" data-tool="dim-ali" onclick="acadSetTool('dim-ali')" title="Aligned Dimension (DAL)">DAL</button>
+      </div>
+
+      <div class="acad-tool-grp">
+        <span class="acad-tool-label">View</span>
+        <button class="acad-tool" onclick="acadZoom(1.25)" title="Zoom In">+</button>
+        <button class="acad-tool" onclick="acadZoom(0.8)" title="Zoom Out">−</button>
+        <button class="acad-tool" onclick="acadFit()" title="Zoom Extents">FIT</button>
+        <button class="acad-tool" onclick="acadUndo()" title="Undo (Ctrl+Z)">↶</button>
+        <button class="acad-tool" onclick="acadRedo()" title="Redo (Ctrl+Y)">↷</button>
+      </div>
+
+      <div class="acad-tool-grp">
+        <span class="acad-tool-label" data-i18n="scan.mode">Mod</span>
+        <button class="acad-tool toggle" id="acadToggleOsnap" onclick="acadToggle('osnap')" title="Object Snap (F3)">OSNAP</button>
+        <button class="acad-tool toggle" id="acadToggleOrtho" onclick="acadToggle('ortho')" title="Ortho (F8)">ORTHO</button>
+        <button class="acad-tool toggle" id="acadToggleGrid" onclick="acadToggle('gridSnap')" title="Grid Snap (F9)">GSNAP</button>
+      </div>
+
+      <div class="acad-tool-grp">
+        <span class="acad-tool-label">Export</span>
+        <button class="acad-btn-save" onclick="acadExportDXF()" title="DXF olarak indir">DXF</button>
+        <button class="acad-btn-save" onclick="acadExportSVG()" title="SVG olarak indir">SVG</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="acad-main">
+    <div class="acad-side">
+      <section class="acad-pane">
+        <div class="acad-side-hdr"><span>Model Tree</span><span id="acadTreeCount">0</span></div>
+        <div class="acad-pane-body">
+          <div id="acadModelTree" class="acad-tree"></div>
+        </div>
+      </section>
+      <section class="acad-pane">
+        <div class="acad-side-hdr">
+          <span data-i18n="scan.layers">Katmanlar</span>
+          <button onclick="acadLayerAdd()" data-i18n="scan.new_layer">+ Yeni</button>
+        </div>
+        <div id="acadLayerList"></div>
+      </section>
+      <section class="acad-pane">
+        <div class="acad-side-hdr"><span>Entities</span><span id="acadEntityTypeCount">0</span></div>
+        <div class="acad-pane-body">
+          <div id="acadEntityTree" class="acad-soft-list"></div>
+        </div>
+      </section>
+      <section class="acad-pane">
+        <div class="acad-side-hdr"><span>Search / Similar</span></div>
+        <div class="acad-pane-body">
+          <div class="acad-soft-list">
+            <div class="acad-soft-item"><strong>Search results</strong><span id="acadSearchResultCount">—</span></div>
+            <div class="acad-soft-item"><strong>Similar files</strong><span id="acadSimilarFileCount">—</span></div>
+            <div class="acad-soft-item"><strong>Duplicate groups</strong><span id="acadDuplicateGroupCount">—</span></div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="acad-canvas-area" id="acadCanvasArea">
+      <svg id="acadSvg" class="acad-svg-root"
+           onmousedown="acadMouseDown(event)"
+           onmousemove="acadMouseMove(event)"
+           onmouseup="acadMouseUp(event)"
+           onwheel="acadWheel(event)"
+           oncontextmenu="return false"></svg>
+      <div class="acad-coords-tip" id="acadCoordsTip" style="display:none"></div>
+      <div class="acad-empty-state" id="acadEmptyState">
+        <div class="acad-empty-card">
+          <div class="acad-empty-title" data-i18n="acad.empty_title">Çizim yok</div>
+          <div class="acad-empty-sub" data-i18n="acad.empty_sub">Tara → CAD ile profil oluşturun veya boş çizime başlayın.</div>
+          <div class="acad-empty-actions">
+            <button class="acad-btn-save" onclick="acadOpenScanUpload()" data-i18n="acad.pick_file">Dosya Seç</button>
+            <button class="acad-tool" onclick="acadStartBlankDrawing()" data-i18n="acad.blank_start">Boş Çizim</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <aside class="acad-props">
+      <section class="acad-pane">
+        <div class="acad-side-hdr" data-i18n="scan.selection_panel">Seçim</div>
+        <div id="acadSelectionInfo" class="acad-pane-body acad-prop-table" data-i18n="scan.no_selection">Henüz seçim yok</div>
+      </section>
+      <section class="acad-pane">
+        <div class="acad-side-hdr">Properties</div>
+        <div id="acadPropertyInfo" class="acad-pane-body acad-prop-table"></div>
+      </section>
+      <section class="acad-pane">
+        <div class="acad-side-hdr">Geometry Stats</div>
+        <div id="acadGeometryStats" class="acad-pane-body acad-prop-table"></div>
+      </section>
+      <section class="acad-pane">
+        <div class="acad-side-hdr">Review / Audit</div>
+        <div class="acad-pane-body">
+          <div class="acad-soft-list">
+            <div class="acad-soft-item"><strong>Similarity</strong><span id="acadSimilarityScore">—</span></div>
+            <div class="acad-soft-item"><strong>Duplicate</strong><span id="acadDuplicateStatus">—</span></div>
+            <div class="acad-soft-item"><strong>Revision</strong><span id="acadRevisionStatus">—</span></div>
+            <div class="acad-soft-item"><strong>CAD Health</strong><span id="acadCadHealth">Ready</span></div>
+          </div>
+        </div>
+      </section>
+    </aside>
+  </div>
+
+  <div class="acad-bottom">
+    <div class="acad-cmd-history" id="acadCmdHistory"></div>
+    <div class="acad-cmd-line">
+      <span class="acad-cmd-prompt" id="acadCmdPrompt" data-i18n="scan.cmd_prompt">Komut:</span>
+      <input class="acad-cmd-input" id="acadCmdInput" autocomplete="off" spellcheck="false"
+             onkeydown="acadCmdKey(event)" data-i18n-placeholder="scan.cmd_placeholder" placeholder="Komut, koordinat veya kısayol yazın (L, C, REC, 10,20, @5,0, 25<45)">
+    </div>
+    <div class="acad-status-bar">
+      <span>X: <span id="acadCoordX" class="hl">0.00</span></span>
+      <span>Y: <span id="acadCoordY" class="hl">0.00</span></span>
+      <span class="sep">|</span>
+      <span>Araç: <span id="acadStatusTool" class="hl">Seç</span></span>
+      <span class="sep">|</span>
+      <span>Katman: <span id="acadStatusLayer" class="hl">0</span></span>
+      <span class="sep">|</span>
+      <span>Zoom: <span id="acadStatusZoom" class="hl">100%</span></span>
+      <span class="sep">|</span>
+      <span id="acadStatusModes" class="hl">OSNAP · ORTHO · GSNAP</span>
+      <span class="sep">|</span>
+      <span id="acadEntityCount">0 entity</span>
+      <span class="sep">|</span>
+      <span>Job: <span id="acadJobStatus" class="hl">idle</span></span>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,246 @@
+<div class="page" id="page-db" style="background:#f8fafc;">
+  <div class="page-header">
+    <div>
+      <h1 class="ph-title" data-i18n="db.title">File Library</h1>
+      <p class="ph-sub" data-i18n="db.sub">Manage and organize your CAD files and technical drawings</p>
+    </div>
+    <div class="ph-actions">
+      <span class="enterprise-badge">Enterprise</span>
+    </div>
+  </div>
+
+  <!-- Upload Panel (collapsible) -->
+  <div id="dbUploadPanel" class="fl-upload-panel" style="display:none">
+    <div class="fl-upload-inner">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div>
+          <h3 style="font-size:15px;font-weight:600;color:#0f172a;margin:0" data-i18n="db.upload_panel_title">Upload Files</h3>
+          <p style="font-size:12px;color:#64748b;margin:4px 0 0" data-i18n="db.upload_panel_sub">DWG, DXF, PDF or image files. Bulk upload supported.</p>
+        </div>
+        <button onclick="toggleDbUploadPanel()" style="background:transparent;border:none;color:#64748b;cursor:pointer;padding:4px 8px;font-size:20px;line-height:1;border-radius:6px" data-i18n-title="common.close" title="Close">×</button>
+      </div>
+      <div class="db-drop" id="dbDrop"
+        ondragover="dbDragOver(event)" ondragleave="dbDragLeave()"
+        ondrop="dbDropped(event)" onclick="document.getElementById('dbFileInput').click()">
+        <div class="db-drop-icon">
+          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        </div>
+        <h3 id="dbDropTitle" data-i18n="db.drop_title">Dosyaları buraya sürükleyin</h3>
+        <p id="dbDropSub" data-i18n="db.drop_sub">veya tıklayarak seçin — birden fazla dosya seçebilirsiniz</p>
+        <div class="formats">
+          <span class="fmt-badge fmt-dwg">DWG</span>
+          <span class="fmt-badge fmt-dxf">DXF</span>
+          <span class="fmt-badge fmt-pdf">PDF</span>
+          <span class="fmt-badge" style="background:rgba(34,197,94,0.15);color:#16a34a">JPG</span>
+          <span class="fmt-badge" style="background:rgba(234,179,8,0.15);color:#ca8a04">ZIP</span>
+          <span class="fmt-badge" style="background:rgba(234,179,8,0.15);color:#ca8a04">RAR</span>
+        </div>
+        <div class="db-drop-preview" id="dbDropPreview">
+          <img id="dbDropPreviewImg" alt="Seçilen görsel önizleme">
+          <div class="db-drop-preview-name" id="dbDropPreviewName"></div>
+        </div>
+      </div>
+      <div style="margin-top:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <label style="font-size:12px;color:var(--text3);white-space:nowrap" data-i18n="db.category_label">Kategori:</label>
+        <select id="dbCategorySelect" style="background:var(--bg3);border:1px solid var(--border2);border-radius:6px;color:var(--text);padding:6px 10px;font-size:12px;outline:none;min-width:160px">
+          <option value="" data-i18n="db.category_optional">— Kategori seçin (isteğe bağlı) —</option>
+        </select>
+      </div>
+      <div class="db-selected-files" id="dbSelectedFiles">
+        <h4 id="dbSelectedCount"></h4>
+        <div class="db-file-chips" id="dbFileChips"></div>
+        <div class="db-archive-preview" id="dbArchivePreview">
+          <div class="db-archive-preview-head">
+            <span data-i18n="db.archive_preview_label">Arşiv içindeki dosyalar (yüklemeden önce)</span>
+            <span id="dbArchiveCount"></span>
+          </div>
+          <div class="db-archive-list" id="dbArchiveList"></div>
+        </div>
+        <div class="db-image-preview" id="dbImagePreview">
+          <div class="db-image-preview-title" data-i18n="db.image_preview_label">Seçilen görsel önizlemesi</div>
+          <div class="db-image-preview-grid" id="dbImagePreviewGrid"></div>
+        </div>
+      </div>
+      <div class="db-progress" id="dbProgress">
+        <div class="db-progress-label" id="dbProgressLabel" data-i18n="db.uploading">Yükleniyor...</div>
+        <div class="db-progress-bar-wrap"><div class="db-progress-bar" id="dbProgressBar"></div></div>
+        <div class="db-upload-stats">
+          <span><span data-i18n="db.success_count">Başarılı</span>: <span class="ok-count" id="dbOkCount">0</span></span>
+          <span><span data-i18n="db.fail_count">Hatalı</span>: <span class="fail-count" id="dbFailCount">0</span></span>
+        </div>
+        <div class="db-upload-queue" id="dbUploadQueue"></div>
+        <div class="db-error-list" id="dbErrorList"></div>
+      </div>
+      <div class="db-actions">
+        <button class="btn-primary" id="dbUploadBtn" onclick="startDbUpload()" disabled data-i18n="db.upload_btn">Yükle ve İndeksle</button>
+        <button class="btn-secondary" id="dbClearBtn" onclick="clearDbSelection()" style="display:none" data-i18n="common.clear">Temizle</button>
+      </div>
+      <div id="dbUploadStatus" class="db-upload-status"></div>
+    </div>
+  </div>
+
+  <input type="file" id="dbFileInput" accept=".dxf,.dwg,.pdf,.jpg,.jpeg,.png,.zip,.rar" multiple style="display:none" onchange="dbFilesSelected(event)">
+
+  <!-- Filtre Bar -->
+  <div id="dbFilterBar" style="display:none;background:#fff;border-bottom:1px solid #e2e8f0;padding:10px 32px;display:none;align-items:center;gap:14px;flex-wrap:wrap">
+    <span style="font-size:12px;font-weight:600;color:#475569">Format:</span>
+    <label style="font-size:12px;display:flex;align-items:center;gap:4px"><input type="checkbox" class="db-fmt-filter" value="dwg" onchange="applyDbFilters()"> DWG</label>
+    <label style="font-size:12px;display:flex;align-items:center;gap:4px"><input type="checkbox" class="db-fmt-filter" value="dxf" onchange="applyDbFilters()"> DXF</label>
+    <label style="font-size:12px;display:flex;align-items:center;gap:4px"><input type="checkbox" class="db-fmt-filter" value="pdf" onchange="applyDbFilters()"> PDF</label>
+    <label style="font-size:12px;display:flex;align-items:center;gap:4px"><input type="checkbox" class="db-fmt-filter" value="jpg" onchange="applyDbFilters()"> JPG</label>
+    <div style="width:1px;height:18px;background:#e2e8f0"></div>
+    <span style="font-size:12px;font-weight:600;color:#475569">Kategori:</span>
+    <select id="dbFilterCategory" style="font-size:12px;border:1px solid #e2e8f0;border-radius:6px;padding:4px 8px;outline:none;color:#334155" onchange="applyDbFilters()">
+      <option value="">Tümü</option>
+    </select>
+    <div style="width:1px;height:18px;background:#e2e8f0"></div>
+    <span style="font-size:12px;font-weight:600;color:#475569">Duplicate:</span>
+    <select id="dbFilterDup" style="font-size:12px;border:1px solid #e2e8f0;border-radius:6px;padding:4px 8px;outline:none;color:#334155" onchange="applyDbFilters()">
+      <option value="">Tümü</option>
+      <option value="unique">Unique</option>
+      <option value="exact_duplicate">Tam Kopya</option>
+      <option value="revision_candidate">Revizyon Adayı</option>
+    </select>
+    <select id="dbFilterPreview" style="font-size:12px;border:1px solid #e2e8f0;border-radius:6px;padding:4px 8px;outline:none;color:#334155" onchange="applyDbFilters()">
+      <option value="">Preview: Tümü</option>
+      <option value="yes">Preview Var</option>
+      <option value="no">Preview Yok</option>
+    </select>
+    <select id="dbFilterClip" style="font-size:12px;border:1px solid #e2e8f0;border-radius:6px;padding:4px 8px;outline:none;color:#334155" onchange="applyDbFilters()">
+      <option value="">CLIP: Tümü</option>
+      <option value="yes">CLIP Var</option>
+      <option value="no">CLIP Yok</option>
+    </select>
+    <div style="width:1px;height:18px;background:#e2e8f0"></div>
+    <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;color:#dc2626;font-weight:600">
+      <input type="checkbox" id="dbFilterMissingAttrs" onchange="applyDbFilters()" style="accent-color:#dc2626">
+      <span>⚠ Eksik Attribute</span>
+    </label>
+    <button onclick="clearDbFilters()" style="font-size:12px;color:#dc2626;background:none;border:none;cursor:pointer;padding:4px 8px">Temizle ✕</button>
+    <span id="dbFilterActiveCount" style="font-size:11px;color:#0ea5e9;font-weight:600"></span>
+  </div>
+  <div class="db-filter-strip" style="display:flex;align-items:center;gap:8px">
+    <button onclick="toggleDbFilterBar()" style="font-size:12px;color:#4b5563;background:#f2f0ec;border:1.5px solid #e3dfd8;border-radius:8px;padding:5px 12px;cursor:pointer;display:flex;align-items:center;gap:6px;font-family:var(--font-ui);transition:all 0.15s" onmouseover="this.style.background='#edeae4'" onmouseout="this.style.background='#f2f0ec'">
+      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+      Filtrele <span id="dbFilterToggleBadge" style="display:none;background:#1a1a1a;color:#fff;border-radius:10px;padding:1px 7px;font-size:10px;font-weight:600"></span>
+    </button>
+  </div>
+
+  <!-- Figma-style layout: left sidebar + main -->
+  <div class="fl-layout">
+
+    <!-- Left sidebar: folders + storage -->
+    <div class="fl-sidebar">
+      <!-- Upload butonu sidebar'da -->
+      <div style="padding:12px 8px 4px">
+        <button onclick="toggleDbUploadPanel()" style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 12px;background:#1a1a1a;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:background 0.15s;font-family:var(--font-ui)" onmouseover="this.style.background='#333'" onmouseout="this.style.background='#1a1a1a'">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <span data-i18n="common.upload_files">Upload Files</span>
+        </button>
+      </div>
+      <div class="fl-section-label" data-i18n="common.folders">FOLDERS</div>
+      <div style="padding:0 8px 8px">
+        <button class="fl-folder-btn active" id="flFolderAll" onclick="flSetFolder('all',this)">
+          <svg viewBox="0 0 24 24"><path d="M2 8Q2 6 4 6H9L11 8.5H20Q22 8.5 22 10.5V19Q22 21 20 21H4Q2 21 2 19Z"></path></svg>
+          <span data-i18n="common.all_files">All Files</span>
+          <span class="fl-folder-count" id="flCountAll">—</span>
+        </button>
+        <button class="fl-folder-btn" id="flFolderNew" onclick="flSetFolder('uploaded',this)">
+          <svg viewBox="0 0 24 24"><path d="M2 8Q2 6 4 6H9L11 8.5H20Q22 8.5 22 10.5V19Q22 21 20 21H4Q2 21 2 19Z"></path></svg>
+          <span data-i18n="common.new">New</span>
+          <span class="fl-folder-count" id="flCountNew">—</span>
+        </button>
+        <button class="fl-folder-btn" id="flFolderDraft" onclick="navLibrary('draft',document.getElementById('nav-library-draft'))">
+          <svg viewBox="0 0 24 24"><path d="M2 8Q2 6 4 6H9L11 8.5H20Q22 8.5 22 10.5V19Q22 21 20 21H4Q2 21 2 19Z"></path></svg>
+          <span data-i18n="nav.review_queue">Review Queue</span>
+          <span class="fl-folder-count" id="flCountDraft">—</span>
+        </button>
+        <button class="fl-folder-btn" id="flFolderApproved" onclick="navLibrary('approved',document.getElementById('nav-library-approved'))">
+          <svg viewBox="0 0 24 24"><path d="M2 8Q2 6 4 6H9L11 8.5H20Q22 8.5 22 10.5V19Q22 21 20 21H4Q2 21 2 19Z"></path></svg>
+          <span data-i18n="nav.approved_catalog">Approved Catalog</span>
+          <span class="fl-folder-count" id="flCountApproved">—</span>
+        </button>
+      </div>
+      <div class="fl-storage">
+        <div style="font-size:11px;font-weight:700;color:#64748b;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:10px" data-i18n="common.storage">STORAGE</div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px">
+          <span style="color:#475569" data-i18n="common.total_files">Total files</span>
+          <span style="font-family:var(--font-data);font-weight:600;color:#0f172a" id="flStorageFiles">—</span>
+        </div>
+        <div class="fl-storage-bar-wrap"><div class="fl-storage-bar" id="flStorageBar"></div></div>
+      </div>
+    </div>
+
+    <!-- Main content -->
+    <div class="fl-main">
+      <!-- Toolbar -->
+      <div class="fl-toolbar">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="fl-toolbar-search">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input id="dbSearchBox" data-i18n-placeholder="db.search_placeholder" placeholder="Search files..." oninput="dbSearchDebounce()">
+          </div>
+          <a href="db-filters.html" class="fl-filter-btn">
+            <svg viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+            <span data-i18n="common.filter">Filter</span>
+          </a>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span id="dbSelectedApproveInfo" style="font-size:11px;color:#64748b;white-space:nowrap">0 <span data-i18n="common.selected">selected</span></span>
+          <select id="dbBulkStatusSelect" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;color:#334155;padding:6px 10px;font-size:12px;outline:none">
+            <option value="uploaded" data-i18n="common.new">New</option>
+            <option value="draft" data-i18n="nav.review_queue">Review Queue</option>
+            <option value="approved" data-i18n="nav.approved_catalog">Approved Catalog</option>
+          </select>
+          <button class="pg-btn" id="dbApplyStatusBtn" onclick="applyStatusToDbSelection()" disabled data-i18n="common.apply_status">Apply Status</button>
+          <button class="pg-btn" id="dbReindexBtn" onclick="enqueueSelectedReindex()" disabled>Re-index</button>
+          <button class="pg-btn" onclick="enqueueClipBackfill()">CLIP Backfill</button>
+          <div class="fl-view-toggle">
+            <button class="fl-view-btn" id="flViewGrid" onclick="setDbViewMode('grid')" data-i18n="common.grid">Grid</button>
+            <button class="fl-view-btn active" id="flViewList" onclick="setDbViewMode('list')" data-i18n="common.list">List</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- File list -->
+      <div class="fl-content">
+        <div class="db-files-card">
+          <div class="db-files-header">
+            <h2 id="flFolderTitle">All Files <span id="dbTotalBadge" style="font-size:12px;color:var(--text3);font-weight:400"></span></h2>
+          </div>
+          <div id="dbListView" class="db-table-wrap">
+            <table>
+              <thead>
+                <tr id="dbTableHead">
+                  <th style="width:30px;text-align:center"><input id="dbSelectAll" type="checkbox" onchange="toggleDbSelectAll(this.checked)" style="accent-color:var(--blue);cursor:pointer"></th>
+                  <th style="width:48px"></th>
+                  <th data-i18n="table.filename">Dosya Adı</th>
+                  <th data-i18n="table.format">Format</th>
+                  <th data-i18n="table.category">Kategori</th>
+                  <th data-i18n="table.entity">Entity</th>
+                  <th data-i18n="table.layer">Katman</th>
+                  <th data-i18n="table.size">Boyut</th>
+                  <th data-i18n="table.status">Durum</th>
+                  <th data-i18n="table.added">Eklenme</th>
+                  <th data-i18n="table.action" class="db-th-action">İşlem</th>
+                </tr>
+              </thead>
+              <tbody id="dbTableBody">
+                <tr><td colspan="11" class="db-empty" data-i18n="common.loading">Yükleniyor...</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div id="dbGridView" class="fl-grid" style="display:none"></div>
+          <div class="db-pagination" id="dbPagination" style="display:none">
+            <span id="dbPageInfo"></span>
+            <div class="db-pagination-btns">
+              <button class="pg-btn" id="dbPrevBtn" onclick="dbChangePage(-1)" data-i18n="common.prev">‹ Önceki</button>
+              <button class="pg-btn" id="dbNextBtn" onclick="dbChangePage(1)" data-i18n="common.next">Sonraki ›</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

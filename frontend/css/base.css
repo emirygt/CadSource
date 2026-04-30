@@ -340,6 +340,7 @@
     }
 
     /* ── Layout ── */
+    #app { display: contents; }
     .page { display: none; }
     .page.active {
       display: flex;

@@ -1,0 +1,204 @@
+<div class="page" id="page-contour" style="padding:0; background:#f8fafc; align-items: stretch; flex-direction: column;">
+  <div class="page-header">
+    <div>
+      <h1 class="ph-title" data-i18n="contour.title">Image to Contour</h1>
+      <p class="ph-sub" data-i18n="contour.sub">Generate outline drawings</p>
+    </div>
+    <div class="ph-actions">
+      <span class="enterprise-badge">Enterprise</span>
+    </div>
+  </div>
+  <div class="contour-layout" style="padding:32px; max-width:1400px; width:100%; margin:0 auto;">
+    <div class="contour-card">
+      <div class="contour-head">
+        <h2 data-i18n="contour.card_title">Profesyonel Kontur → DXF</h2>
+        <p data-i18n="contour.card_desc">AI kullanılmaz. Teknik kalibrasyon (2 nokta), katmanlı DXF (OUTER/INNER/HOLES/REF) ve kalite raporu ile üretime uygun çıktı üretir.</p>
+      </div>
+      <div class="contour-grid">
+        <div class="contour-panel">
+          <div class="contour-drop" id="contourDrop"
+            ondragover="contourDragOver(event)" ondragleave="contourDragLeave()"
+            ondrop="contourDropFile(event)" onclick="document.getElementById('contourFileInput').click()">
+            <div class="contour-drop-title" data-i18n="contour.drop_title">Görsel yükle (PNG/JPG/JPEG/BMP/WEBP/TIFF)</div>
+            <div class="contour-drop-sub" data-i18n="contour.drop_sub">Sürükle-bırak veya tıkla</div>
+            <div class="contour-fname" id="contourFname"></div>
+          </div>
+          <input type="file" id="contourFileInput" accept="image/*,.png,.jpg,.jpeg,.bmp,.webp,.tif,.tiff" style="display:none" onchange="contourFileSelected(event)">
+
+          <div class="contour-fields">
+            <div class="contour-field-row">
+              <div class="contour-field">
+                <label for="contourCalibrationMode" data-i18n="contour.calib_mode">Kalibrasyon Modu</label>
+                <select id="contourCalibrationMode" onchange="onContourCalibrationModeChange()">
+                  <option value="auto_scan" data-i18n="contour.calib_auto">Otomatik Tarama Kalibrasyonu (Önerilen)</option>
+                  <option value="factor" data-i18n="contour.calib_factor">Manual Ölçek</option>
+                  <option value="two_point" data-i18n="contour.calib_two_point">2 Nokta Referans</option>
+                </select>
+              </div>
+              <div class="contour-field">
+                <label for="contourScaleInput" data-i18n="contour.scale_factor">Manual Ölçek Çarpanı</label>
+                <input id="contourScaleInput" type="number" min="0.000001" step="0.1" value="1" />
+              </div>
+            </div>
+
+            <div class="contour-field-row">
+              <div class="contour-field">
+                <label for="contourForegroundMode" data-i18n="contour.foreground_mode">Çizim Algılama</label>
+                <select id="contourForegroundMode">
+                  <option value="part" selected data-i18n="contour.foreground_part">Parça konturu (ölçüsüz)</option>
+                  <option value="all" data-i18n="contour.foreground_all">Tüm çizgiler</option>
+                  <option value="auto" data-i18n="contour.foreground_auto">Otomatik</option>
+                </select>
+              </div>
+              <div class="contour-field"></div>
+            </div>
+
+            <div id="contourCalibFields" style="display:none">
+              <div class="contour-field-row">
+                <div class="contour-field">
+                  <label for="contourCalibDistance" data-i18n="contour.real_distance">Gerçek Referans Mesafe</label>
+                  <input id="contourCalibDistance" type="number" min="0.000001" step="0.1" value="100" oninput="updateContourCalibInfo()" />
+                </div>
+                <div class="contour-field">
+                  <label data-i18n="contour.point_select">Nokta Seçimi</label>
+                  <div style="display:flex;gap:4px">
+                    <button class="contour-btn" style="flex:1" onclick="undoContourCalibPoint()" data-i18n="contour.undo_point">Son Noktayı Geri Al</button>
+                    <button class="contour-btn" style="flex:1" onclick="resetContourCalibPoints()" data-i18n="contour.reset_points">Tümünü Sıfırla</button>
+                  </div>
+                </div>
+              </div>
+              <div class="contour-calib-info" id="contourCalibInfo" data-i18n="contour.calib_info">
+                Kalibrasyon için sağ panelde görüntüye tıklayarak P1 ve P2 noktalarını seçin.
+              </div>
+            </div>
+
+            <div class="contour-field-row">
+              <div class="contour-field">
+                <label for="contourUnitSelect" data-i18n="contour.dxf_unit">DXF Birimi</label>
+                <select id="contourUnitSelect">
+                  <option value="mm">Millimeter (mm)</option>
+                  <option value="unitless">Unitless</option>
+                  <option value="cm">Centimeter (cm)</option>
+                  <option value="m">Meter (m)</option>
+                  <option value="in">Inch (in)</option>
+                  <option value="ft">Feet (ft)</option>
+                </select>
+              </div>
+              <div class="contour-field">
+                <label for="contourOriginMode" data-i18n="contour.origin_mode">Koordinat Orijini</label>
+                <select id="contourOriginMode">
+                  <option value="bottom_left">Bottom-Left</option>
+                  <option value="top_left">Top-Left</option>
+                  <option value="center">Center</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="contour-field-row">
+              <div class="contour-field">
+                <label for="contourMinAreaInput" data-i18n="contour.min_area">Min Kontur Alanı (px²)</label>
+                <input id="contourMinAreaInput" type="number" min="0" step="1" value="16" />
+              </div>
+              <div class="contour-field">
+                <label for="contourMinAreaPctInput" data-i18n="contour.min_area_pct">Min Alan Yüzdesi (%)</label>
+                <input id="contourMinAreaPctInput" type="number" min="0" max="50" step="0.01" value="0" title="Görsel alanının yüzdesi olarak minimum kontur alanı. 0 = devre dışı." />
+              </div>
+            </div>
+
+            <div class="contour-field-row">
+              <div class="contour-field">
+                <label for="contourSimplifyInput" data-i18n="contour.simplify">Polyline Sadeleştirme (px)</label>
+                <input id="contourSimplifyInput" type="number" min="0" max="50" step="0.1" value="0.8" />
+              </div>
+              <div class="contour-field">
+                <label for="contourBlurSigmaInput" data-i18n="contour.blur">Gürültü Azaltma (blur σ)</label>
+                <input id="contourBlurSigmaInput" type="number" min="0" max="10" step="0.1" value="0" title="Taranmış görsellerde gürültüyü azaltır. 0 = kapalı, 0.8-1.5 taranmış için önerilir." />
+              </div>
+            </div>
+
+            <div class="contour-field-row">
+              <div class="contour-field">
+                <label for="contourCircleTolerance" data-i18n="contour.circle_tol">Circle Fitting Toleransı</label>
+                <input id="contourCircleTolerance" type="number" min="0" max="0.5" step="0.01" value="0.08" />
+              </div>
+              <div class="contour-field">
+                <label for="contourMinSegInput" data-i18n="contour.min_seg">Min Segment Uzunluğu (çıktı birim)</label>
+                <input id="contourMinSegInput" type="number" min="0" step="0.1" value="0" />
+              </div>
+            </div>
+
+            <div class="contour-field-row">
+              <label class="contour-check"><input type="checkbox" id="contourDetectCircles" checked> <span data-i18n="contour.detect_circles">Daireleri CIRCLE/ELLIPSE olarak yaz</span></label>
+              <label class="contour-check"><input type="checkbox" id="contourDetectArcs"> <span data-i18n="contour.detect_arcs">Yayları ARC olarak yaz</span></label>
+            </div>
+            <div class="contour-field-row" id="contourArcToleranceRow" style="display:none">
+              <div class="contour-field">
+                <label for="contourArcTolerance" data-i18n="contour.arc_tol">Arc Fitting Toleransı</label>
+                <input id="contourArcTolerance" type="number" min="0" max="0.5" step="0.01" value="0.06" />
+              </div>
+              <div class="contour-field"></div>
+            </div>
+            <div class="contour-field-row">
+              <label class="contour-check"><input type="checkbox" id="contourFlipX"> <span data-i18n="contour.flip_x">X eksenini çevir (flip)</span></label>
+              <label class="contour-check"><input type="checkbox" id="contourFlipY"> <span data-i18n="contour.flip_y">Y eksenini çevir (flip)</span></label>
+            </div>
+            <div class="contour-field-row">
+              <label class="contour-check"><input type="checkbox" id="contourExportSvg"> <span data-i18n="contour.export_svg">SVG de üret</span></label>
+              <span class="contour-mini-note" data-i18n="contour.layers_note">Katmanlar: DIŞ / İÇ / DELİKLER / REF</span>
+            </div>
+          </div>
+
+          <div class="contour-actions">
+            <button class="contour-btn primary" id="contourRunBtn" onclick="runContourVectorize()" disabled data-i18n="contour.run_btn">Kontur Çıkar</button>
+            <button class="contour-btn" id="contourDownloadBtn" onclick="downloadContourDxf('raw')" disabled data-i18n="contour.download_raw">Konturlu DXF İndir</button>
+            <button class="contour-btn" id="contourDownloadNetBtn" onclick="downloadContourDxf('net')" disabled data-i18n="contour.download_net">Net DXF İndir</button>
+            <button class="contour-btn" id="contourDownloadSvgBtn" onclick="downloadContourSvg()" disabled style="display:none" data-i18n="contour.download_svg">SVG İndir</button>
+            <button class="contour-btn" onclick="clearContourState()" data-i18n="common.clear">Temizle</button>
+          </div>
+          <div class="contour-msg" id="contourMsg"></div>
+          <div class="contour-stats" id="contourStats" style="display:none">
+            <div class="contour-stat"><div class="lbl" data-i18n="contour.stat_count">Kontur</div><div class="val" id="contourStatCount">—</div></div>
+            <div class="contour-stat"><div class="lbl" data-i18n="contour.stat_points">Nokta</div><div class="val" id="contourStatPoints">—</div></div>
+            <div class="contour-stat"><div class="lbl" data-i18n="contour.stat_size">Görsel</div><div class="val" id="contourStatSize">—</div></div>
+            <div class="contour-stat"><div class="lbl" data-i18n="contour.stat_scale">Birim/Ölçek</div><div class="val" id="contourStatScale">—</div></div>
+          </div>
+          <div class="contour-quality" id="contourQualityBox" style="display:none">
+            <div class="contour-quality-item"><span data-i18n="contour.quality_intersect">Self-Intersection</span><strong id="contourQIntersect">—</strong></div>
+            <div class="contour-quality-item"><span data-i18n="contour.quality_short_seg">Kısa Segment</span><strong id="contourQShortSeg">—</strong></div>
+            <div class="contour-quality-item"><span data-i18n="contour.quality_layers">Katman Özeti</span><strong id="contourQLayers">—</strong></div>
+            <div id="contourQWarnings"></div>
+          </div>
+        </div>
+
+        <div class="contour-panel">
+          <div class="section-label" data-i18n="contour.calib_source">Kalibrasyon Kaynağı (P1/P2 seçim)</div>
+          <div class="contour-source-wrap">
+            <canvas id="contourSourceCanvas" class="contour-source-canvas" onclick="onContourSourceCanvasClick(event)"></canvas>
+            <div class="contour-empty" id="contourSourceEmpty" data-i18n="contour.no_image">Henüz görsel yüklenmedi</div>
+          </div>
+          <div class="section-label" data-i18n="contour.output_preview">Çıktı Önizleme</div>
+          <div class="contour-preview-grid">
+            <div class="contour-preview-col">
+              <div class="contour-mini-note" data-i18n="contour.preview_contour">Konturlu Görsel</div>
+              <div class="contour-preview-wrap" id="contourPreviewWrap">
+                <div class="contour-empty" data-i18n="contour.no_image">Henüz görsel yüklenmedi</div>
+              </div>
+            </div>
+            <div class="contour-preview-col">
+              <div class="contour-mini-note" data-i18n="contour.preview_dim">Ölçülü Görsel</div>
+              <div class="contour-preview-wrap" id="contourPreviewDimWrap">
+                <div class="contour-empty" data-i18n="contour.no_image">Henüz görsel yüklenmedi</div>
+              </div>
+            </div>
+            <div class="contour-preview-col">
+              <div class="contour-mini-note" data-i18n="contour.preview_net">Net Görsel</div>
+              <div class="contour-preview-wrap" id="contourPreviewNetWrap">
+                <div class="contour-empty" data-i18n="contour.no_image">Henüz görsel yüklenmedi</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
