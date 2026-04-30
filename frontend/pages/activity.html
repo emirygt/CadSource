@@ -1,0 +1,42 @@
+<div class="page" id="page-activity" style="padding:0; background:#f8fafc; align-items: stretch; flex-direction: column;">
+  <div class="page-header">
+    <div>
+      <h1 class="ph-title" data-i18n="activity.title">Job History</h1>
+      <p class="ph-sub" data-i18n="activity.sub">View your recent activity</p>
+    </div>
+    <div class="ph-actions">
+      <span class="enterprise-badge">Enterprise</span>
+    </div>
+  </div>
+  <div class="db-layout" style="padding:32px; max-width:1400px; width:100%; margin:0 auto;">
+    <div class="db-files-card">
+      <div class="db-files-header">
+        <h2 data-i18n="activity.log_title">Log History</h2>
+        <button class="pg-btn" onclick="loadActivityLog()" data-i18n="common.refresh">Yenile</button>
+      </div>
+      <div class="db-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th data-i18n="activity.col_date">Tarih</th>
+              <th data-i18n="activity.col_user">Kullanıcı</th>
+              <th data-i18n="activity.col_action">Aksiyon</th>
+              <th data-i18n="activity.col_file">Dosya</th>
+              <th data-i18n="activity.col_detail">Detay</th>
+            </tr>
+          </thead>
+          <tbody id="activityTableBody">
+            <tr><td colspan="5" class="db-empty" data-i18n="common.loading">Yükleniyor...</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="db-pagination" id="activityPagination" style="display:none">
+        <span id="activityPageInfo"></span>
+        <div class="db-pagination-btns">
+          <button class="pg-btn" id="activityPrevBtn" onclick="activityChangePage(-1)" data-i18n="common.prev">‹ Önceki</button>
+          <button class="pg-btn" id="activityNextBtn" onclick="activityChangePage(1)" data-i18n="common.next">Sonraki ›</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

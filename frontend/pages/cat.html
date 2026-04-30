@@ -1,0 +1,57 @@
+<div class="page" id="page-cat" style="padding:0; background:#f8fafc; align-items: stretch; flex-direction: column;">
+  <div class="page-header">
+    <div>
+      <h1 class="ph-title" data-i18n="cat.title">Categories</h1>
+      <p class="ph-sub" data-i18n="cat.sub">Manage file categories</p>
+    </div>
+    <div class="ph-actions">
+      <span class="enterprise-badge">Enterprise</span>
+    </div>
+  </div>
+  <div class="cat-layout" style="padding:32px; max-width:1400px; width:100%; margin:0 auto;">
+
+    <!-- Yeni kategori ekle -->
+    <div class="cat-add-card">
+      <h2 data-i18n="cat.new_category">Yeni Kategori</h2>
+      <div class="cat-add-row">
+        <input class="cat-name-input" id="catNameInput" data-i18n-placeholder="cat.name_placeholder" placeholder="Kategori adı..." maxlength="60"
+          onkeydown="if(event.key==='Enter') addCategory()">
+        <div class="cat-color-wrap">
+          <label data-i18n="common.color">Renk</label>
+          <input type="color" id="catColorInput" value="#6366f1">
+        </div>
+        <button class="btn-primary" onclick="addCategory()" data-i18n="common.add">Ekle</button>
+      </div>
+      <div id="catAddMsg" style="margin-top:8px;font-size:12px;display:none"></div>
+    </div>
+
+    <!-- Excel import -->
+    <div class="cat-add-card">
+      <h2 data-i18n="cat.excel_import">Excel ile Toplu İçe Aktar</h2>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <button class="btn-secondary" onclick="downloadCategoryTemplate()">
+          <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;margin-right:5px;vertical-align:-2px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          <span data-i18n="cat.template_download">Template İndir</span>
+        </button>
+        <label class="btn-primary" style="cursor:pointer;margin:0">
+          <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;margin-right:5px;vertical-align:-2px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+          <span data-i18n="cat.excel_upload">Excel Yükle</span>
+          <input type="file" accept=".xlsx,.xls" style="display:none" onchange="importCategoryExcel(this)">
+        </label>
+        <span id="catImportStatus" style="font-size:12px;color:var(--text3)"></span>
+      </div>
+      <div id="catImportResult" style="display:none;margin-top:12px;font-size:12px;background:#f1f5f9;border-radius:8px;padding:12px 14px"></div>
+    </div>
+
+    <!-- Kategori listesi -->
+    <div class="cat-list-card">
+      <div class="cat-list-header">
+        <span data-i18n="cat.list_header">Kategoriler</span> <span id="catListBadge" style="font-size:12px;color:var(--text3);font-weight:400"></span>
+      </div>
+      <div id="catListBody">
+        <div class="cat-empty" data-i18n="common.loading">Yükleniyor...</div>
+      </div>
+    </div>
+
+  </div>
+</div>

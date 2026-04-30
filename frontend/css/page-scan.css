@@ -1,0 +1,56 @@
+    /* ══════════════════════════════════════════
+       SCAN → CAD SAYFASI
+    ══════════════════════════════════════════ */
+    .scan-layout { display: grid; grid-template-columns: 300px 1fr; gap: 16px; align-items: start; }
+    .scan-left { display: flex; flex-direction: column; gap: 12px; }
+    .scan-right { display: flex; flex-direction: column; }
+    .scan-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+    .scan-card-title { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text3); }
+    .scan-drop { border: 1.5px dashed var(--border2); border-radius: var(--radius); padding: 20px 12px; text-align: center; cursor: pointer; transition: all 0.15s; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+    .scan-drop:hover, .scan-drop.drag { border-color: var(--blue); background: rgba(14,165,233,0.05); }
+    .scan-drop.loaded { border-style: solid; border-color: var(--green); }
+    .scan-drop-title { font-size: 13px; font-weight: 500; }
+    .scan-drop-sub { font-size: 10px; color: var(--text3); }
+    .scan-drop-fname { font-size: 11px; color: var(--green); word-break: break-all; }
+    .scan-field label { display: block; font-size: 10px; color: var(--text3); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .scan-field select { width: 100%; padding: 8px 9px; border: 1px solid var(--border2); border-radius: 7px; background: var(--bg); color: var(--text); font-size: 12px; font-family: inherit; }
+    .scan-field select:focus { border-color: var(--blue); outline: none; }
+    .scan-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+    .scan-stat { background: var(--bg3); border: 1px solid var(--border); border-radius: 7px; padding: 7px 6px; text-align: center; }
+    .scan-stat-lbl { font-size: 9px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; }
+    .scan-stat-val { font-size: 14px; font-weight: 700; margin-top: 2px; }
+    .scan-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+    .scan-btn { padding: 7px 12px; border-radius: 8px; border: 1px solid var(--border2); background: transparent; color: var(--text2); font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 5px; }
+    .scan-btn:hover { border-color: var(--blue); color: var(--blue); }
+    .scan-btn.primary { background: var(--blue); border-color: var(--blue); color: #fff; font-weight: 600; }
+    .scan-btn.primary:hover { background: #0284c7; }
+    .scan-btn:disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
+    .scan-btn.smooth { border-color: #7c3aed; color: #7c3aed; }
+    .scan-btn.smooth:hover { background: rgba(124,58,237,0.08); }
+    .scan-btn.smooth.active { background: #7c3aed; color: #fff; }
+    .scan-msg { font-size: 11px; color: var(--text3); min-height: 16px; }
+    .scan-cad-editor-card { border-color: rgba(15,23,42,0.14); background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%); }
+    .scan-cad-editor-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .scan-cad-editor-chip { font-size: 10px; font-weight: 700; letter-spacing: 0.06em; color: #0f172a; background: #fef3c7; border: 1px solid #fcd34d; border-radius: 6px; padding: 3px 6px; white-space: nowrap; }
+    .scan-cad-editor-status { font-size: 12px; color: var(--text2); line-height: 1.45; }
+    .scan-cad-editor-meta { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+    .scan-cad-editor-meta > span { background: var(--bg3); border: 1px solid var(--border); border-radius: 7px; padding: 6px 5px; font-size: 10px; color: var(--text3); text-align: center; }
+    .scan-cad-editor-meta > span b { display: block; margin-bottom: 2px; font-family: var(--font-data); font-size: 14px; color: var(--text); }
+    .scan-cad-open-btn { width: 100%; justify-content: center; background: #0f172a; border-color: #0f172a; color: #fff; font-weight: 700; }
+    .scan-cad-open-btn:hover { background: #1e293b; border-color: #1e293b; color: #fff; }
+    .scan-cad-open-btn:disabled { background: var(--bg3); border-color: var(--border); color: var(--text3); }
+    .scan-preview-wrap { border: 1px solid var(--border); border-radius: 8px; background: #f1f5f9; overflow: hidden; }
+    .scan-preview-wrap img { width: 100%; height: auto; display: block; }
+    .scan-editor-card { flex: 1; }
+    .scan-editor-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+    .scan-editor-tools { display: flex; align-items: center; gap: 3px; }
+    .scan-tool-btn { width: 28px; height: 28px; border: 1px solid var(--border); border-radius: 6px; background: transparent; color: var(--text2); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+    .scan-tool-btn:hover { border-color: var(--blue); color: var(--blue); background: rgba(14,165,233,0.07); }
+    .scan-tool-btn.active { background: var(--blue); border-color: var(--blue); color: #fff; }
+    .scan-tool-sep { width: 1px; height: 20px; background: var(--border); margin: 0 3px; }
+    .scan-canvas-wrap { position: relative; border: 1px solid var(--border); border-radius: 8px; background: #ffffff; overflow: hidden; min-height: 500px; cursor: crosshair; }
+    .scan-canvas-wrap canvas { display: block; }
+    .scan-canvas-empty { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: var(--text3); font-size: 12px; pointer-events: none; }
+    .scan-status-bar { display: flex; gap: 16px; font-size: 10px; color: var(--text3); padding: 4px 2px 0; flex-wrap: wrap; }
+    .scan-status-bar span { font-family: var(--font-mono); }
+
