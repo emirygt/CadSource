@@ -1,0 +1,49 @@
+    /* ══════════════════════════════════════════
+       KONTUR → DXF SAYFASI
+    ══════════════════════════════════════════ */
+    .contour-layout { padding: 0; max-width: 1460px; margin: 0 auto; }
+    .contour-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+    .contour-head h2 { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+    .contour-head p { font-size: 12px; color: var(--text3); }
+    .contour-grid { display: grid; grid-template-columns: 410px 1fr; gap: 16px; }
+    .contour-panel { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; display: flex; flex-direction: column; gap: 12px; min-height: 420px; }
+    .contour-drop { border: 1.5px dashed var(--border2); border-radius: var(--radius); padding: 24px 14px; text-align: center; cursor: pointer; transition: all 0.15s; }
+    .contour-drop:hover, .contour-drop.drag { border-color: var(--blue); background: rgba(59,130,246,0.06); }
+    .contour-drop.loaded { border-style: solid; border-color: var(--green); }
+    .contour-drop-title { font-size: 13px; font-weight: 500; }
+    .contour-drop-sub { font-size: 11px; color: var(--text3); margin-top: 4px; }
+    .contour-fname { font-size: 11px; color: var(--green); margin-top: 8px; word-break: break-all; }
+    .contour-fields { display: flex; flex-direction: column; gap: 10px; }
+    .contour-field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .contour-field label { display: block; font-size: 11px; color: var(--text3); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .contour-field input, .contour-field select {
+      width: 100%; background: var(--bg3); border: 1px solid var(--border); color: var(--text);
+      border-radius: 6px; padding: 7px 9px; font-size: 12px; outline: none;
+    }
+    .contour-field input[type=checkbox] { width: auto; transform: translateY(1px); accent-color: var(--blue); }
+    .contour-check { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text2); }
+    .contour-field input:focus, .contour-field select:focus { border-color: var(--blue); }
+    .contour-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .contour-btn { padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border2); background: transparent; color: var(--text2); font-size: 12px; cursor: pointer; }
+    .contour-btn:hover { border-color: var(--blue); color: var(--blue); }
+    .contour-btn.primary { background: var(--blue); border-color: var(--blue); color: #fff; font-weight: 600; }
+    .contour-btn.primary:hover { background: var(--blue2); border-color: var(--blue2); color: #fff; }
+    .contour-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .contour-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .contour-stat { background: var(--bg3); border: 1px solid var(--border); border-radius: 7px; padding: 8px 9px; }
+    .contour-stat .lbl { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; }
+    .contour-stat .val { font-size: 13px; font-weight: 600; margin-top: 2px; }
+    .contour-preview-wrap { flex: 1; border: 1px solid var(--border); border-radius: var(--radius); background: #f1f5f9; display: flex; align-items: center; justify-content: center; overflow: auto; min-height: 280px; position: relative; }
+    .contour-preview-wrap img { max-width: 100%; height: auto; display: block; }
+    .contour-preview-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    .contour-preview-col { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+    .contour-source-wrap { border: 1px solid var(--border); border-radius: var(--radius); background: #f1f5f9; min-height: 240px; display: flex; align-items: center; justify-content: center; overflow: auto; }
+    .contour-source-canvas { display: block; max-width: 100%; height: auto; cursor: crosshair; }
+    .contour-mini-note { font-size: 11px; color: var(--text3); }
+    .contour-calib-info { font-size: 11px; color: var(--text2); background: var(--bg3); border: 1px solid var(--border); border-radius: 6px; padding: 8px 9px; }
+    .contour-quality { background: var(--bg3); border: 1px solid var(--border); border-radius: 7px; padding: 9px; display: flex; flex-direction: column; gap: 6px; }
+    .contour-quality-item { font-size: 11px; color: var(--text2); display: flex; justify-content: space-between; gap: 8px; }
+    .contour-warning { font-size: 11px; color: #fbbf24; background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.3); border-radius: 6px; padding: 6px 8px; }
+    .contour-empty { text-align: center; color: var(--text3); font-size: 12px; padding: 20px; }
+    .contour-msg { font-size: 12px; color: var(--text3); min-height: 18px; }
+
