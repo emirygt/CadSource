@@ -1741,29 +1741,9 @@
   </div>
 </div>
 
+<script src="js/core/api.js"></script>
+<script src="js/core/nav.js"></script>
 <script>
-let API = window.API_URL || localStorage.getItem('api_base') || '/api';
-const API_CANDIDATES = (() => {
-  const list = [];
-  if (window.API_URL) list.push(window.API_URL);
-  const saved = localStorage.getItem('api_base');
-  if (saved) list.push(saved);
-  list.push('/api');
-  if (['localhost', '127.0.0.1', '::1', '[::1]'].includes(window.location.hostname)) {
-    list.push('http://127.0.0.1:8000');
-    list.push('http://localhost:8000');
-    list.push('http://[::1]:8000');
-  } else {
-    list.push(`${window.location.protocol}//${window.location.hostname}:8000`);
-  }
-  return [...new Set(list)];
-})();
-let API_READY = false;
-
-const token = localStorage.getItem('token');
-if (!token) window.location.href = 'login.html';
-const authH = () => ({ 'Authorization': `Bearer ${localStorage.getItem('token') || ''}` });
-
 // ───────── ATTRİBUTE TANIMLARI ─────────
 let _attrDefs = [];
 
@@ -2114,166 +2094,7 @@ function resetAttrSearch() {
   const c = document.getElementById('asResultCount'); if (c) c.textContent = '';
 }
 
-async function ensureApiBase(force = false) {
-  if (!force && API_READY) return API;
 
-  const prioritized = [API, ...API_CANDIDATES.filter(b => b !== API)];
-  for (const base of prioritized) {
-    try {
-      const res = await fetch(`${base}/health`, { cache: 'no-store' });
-      const body = (await res.text()).trim();
-      if (res.ok && body.startsWith('{')) {
-        API = base;
-        localStorage.setItem('api_base', API);
-        API_READY = true;
-        return API;
-      }
-    } catch (_) {}
-  }
-  API = API_CANDIDATES[0] || '/api';
-  API_READY = true;
-  return API;
-}
-
-async function parseApiJsonResponse(res, failPrefix) {
-  const raw = await res.text();
-  let data = {};
-  if (raw) {
-    try {
-      data = JSON.parse(raw);
-    } catch (_) {
-      if (raw.trim().startsWith('<')) {
-        throw new Error(`${failPrefix}: API yerine HTML döndü (API adresi yanlış veya backend kapalı).`);
-      }
-      throw new Error(`${failPrefix}: API JSON dönmedi (HTTP ${res.status}).`);
-    }
-  }
-  if (!res.ok) {
-    const detail = data && data.detail ? data.detail : `${failPrefix} (HTTP ${res.status})`;
-    throw new Error(typeof detail === 'string' ? detail : JSON.stringify(detail));
-  }
-  return data;
-}
-
-// ── Tab yönetimi ──────────────────────────────────────────────────────────────
-function setActiveNav(el) {
-  document.querySelectorAll('.tab.active').forEach(t => t.classList.remove('active'));
-  if (el) el.classList.add('active');
-}
-
-function toggleLibraryMenu(forceOpen = null) {
-  const menu = document.getElementById('libraryMenu');
-  const parent = document.getElementById('nav-library');
-  if (!menu || !parent) return;
-  const next = forceOpen === null ? !menu.classList.contains('open') : !!forceOpen;
-  menu.classList.toggle('open', next);
-  parent.classList.toggle('expanded', next);
-}
-
-function toggleDigitalMenu(forceOpen = null) {
-  const menu = document.getElementById('digitalMenu');
-  const parent = document.getElementById('nav-digital');
-  if (!menu || !parent) return;
-  const next = forceOpen === null ? !menu.classList.contains('open') : !!forceOpen;
-  menu.classList.toggle('open', next);
-  parent.classList.toggle('expanded', next);
-}
-
-function apSetFolder(kind, el) {
-  document.querySelectorAll('#page-approved .fl-folder-btn').forEach(b => b.classList.remove('active'));
-  if (el) el.classList.add('active');
-  const draftPanel = document.getElementById('apPanelDraft');
-  const approvedPanel = document.getElementById('apPanelApproved');
-  const titleEl = document.getElementById('approvedPageTitle');
-  const subEl = document.getElementById('approvedPageSub');
-  if (kind === 'approved') {
-    if (draftPanel) draftPanel.style.display = 'none';
-    if (approvedPanel) { approvedPanel.style.display = 'flex'; }
-    if (titleEl) titleEl.textContent = t('approved.approved_title');
-    if (subEl) subEl.textContent = t('approved.approved_sub');
-  } else {
-    if (draftPanel) draftPanel.style.display = 'flex';
-    if (approvedPanel) approvedPanel.style.display = 'none';
-    if (titleEl) titleEl.textContent = t('approved.review_title');
-    if (subEl) subEl.textContent = t('approved.review_sub');
-  }
-}
-
-function setProductsViewMode(mode) {
-  if (mode === 'approved') { apSetFolder('approved', document.getElementById('apFolderApproved')); return; }
-  if (mode === 'draft' || mode === 'split') { apSetFolder('draft', document.getElementById('apFolderDraft')); }
-}
-
-function navGo(target, el) {
-  if (target === 'contour' || target === 'scan') toggleDigitalMenu(true);
-  setActiveNav(el);
-  switchTab(target);
-}
-
-function focusProductsColumn(kind) {
-  apSetFolder(kind, document.getElementById(kind === 'approved' ? 'apFolderApproved' : 'apFolderDraft'));
-}
-
-function navLibrary(kind, el) {
-  toggleLibraryMenu(true);
-  setActiveNav(el);
-  if (kind === 'db') {
-    setProductsViewMode('split');
-    switchTab('db');
-    return;
-  }
-  switchTab('approved');
-  setProductsViewMode(kind);
-  focusProductsColumn(kind);
-}
-
-function navDigital(target, el) {
-  toggleDigitalMenu(true);
-  setActiveNav(el);
-  switchTab(target);
-}
-
-function navCadEditor(el) {
-  toggleDigitalMenu(true);
-  setActiveNav(el);
-  switchTab('scan');
-  setTimeout(() => openAcad(), 0);
-}
-
-function switchTab(name) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById('page-' + name).classList.add('active');
-  if (name === 'db')        { loadDbFiles(); loadCategoriesIntoSelect(); loadDbAttrDefs(); }
-  if (name === 'search')    { loadCategoriesIntoSelect(); loadHistory(); setTimeout(initSearchControls, 0); }
-  if (name === 'approved')  { setProductsViewMode('split'); loadApprovedFiles(); }
-  if (name === 'contour')   initContourTab();
-  if (name === 'cat')       loadCategories();
-  if (name === 'attr-defs') loadAttrDefs();
-  if (name === 'nl-search') loadAttrSearchFilters();
-  if (name === 'analytics') loadAnalytics();
-  if (name === 'activity')   loadActivityLog();
-  if (name === 'scan')       scanInit();
-  if (name === 'duplicates') loadDuplicatePage();
-}
-
-// ── Stats (topbar) ────────────────────────────────────────────────────────────
-async function loadStats() {
-  try {
-    await ensureApiBase(true);
-    const r = await fetch(`${API}/stats`, { headers: authH() });
-    if (r.status === 401) { logout(); return; }
-    const d = await r.json();
-    const totalEl = document.getElementById('totalFiles');
-    if (totalEl) totalEl.textContent = Number(d.total_files || 0).toLocaleString('en-US');
-    document.getElementById('statusDot').style.background = '#22c55e';
-    document.getElementById('statusText').textContent = t('common.connected');
-  } catch {
-    // Backend sonradan ayağa kalktıysa base'i tekrar keşfet.
-    await ensureApiBase(true);
-    document.getElementById('statusDot').style.background = '#ef4444';
-    document.getElementById('statusText').textContent = t('common.no_connection');
-  }
-}
 
 // ══════════════════════════════════════════════════════════════════════════════
 //  ARA SAYFASI
@@ -6481,7 +6302,6 @@ function closeDiffModal() {
   diffState.resultRow = null;
 }
 
-function logout() { localStorage.clear(); window.location.href = 'login.html'; }
 
 async function downloadFile(fileId, filename, fmt) {
   try {
