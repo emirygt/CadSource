@@ -16,6 +16,7 @@
   <link rel="stylesheet" href="css/page-analytics.css?v=20260430" />
   <link rel="stylesheet" href="css/page-scan.css?v=20260430" />
   <link rel="stylesheet" href="css/page-acad.css?v=20260430" />
+  <link rel="stylesheet" href="css/page-image-editor.css?v=20260501" />
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
   <!-- i18n -->
@@ -167,6 +168,10 @@
         <span class="nav-ic"><svg viewBox="0 0 24 24"><path d="M4 20h16"></path><path d="M5 17l9-9 3 3-9 9H5z"></path><path d="M13 9l2-2q2-2 4 0t0 4l-2 2"></path></svg></span>
         <span data-i18n="nav.cad_editor">CAD Editör</span>
       </div>
+      <div class="tab tab-sub" id="nav-image-editor" onclick="navDigital('image-editor', this)">
+        <span class="nav-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></span>
+        <span>Görsel Editör</span>
+      </div>
     </div>
   </div>
   <div class="tab" id="nav-cat" onclick="navGo('cat', this)">
@@ -223,6 +228,7 @@
 <script src="js/pages/page-db.js?v=20260430"></script>
 <script src="js/pages/page-scan.js?v=20260430"></script>
 <script src="js/acad/acad.js?v=20260430"></script>
+<script src="js/pages/page-image-editor.js?v=20260501"></script>
 <script src="js/boot.js?v=20260430"></script>
 
 </body>
