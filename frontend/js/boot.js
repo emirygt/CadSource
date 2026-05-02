@@ -19,7 +19,7 @@ const _PAGE_V = '20260502';
   const startPage = 'analytics';
   history.replaceState({ page: startPage }, '', '/' + startPage);
   switchTab(startPage, true);
-  const navMap = { analytics:'nav-analytics', search:'nav-search', db:'nav-db', approved:'nav-db', contour:'nav-contour', scan:'nav-scan', cat:'nav-cat', 'attr-defs':'nav-attr-defs', activity:'nav-activity', duplicates:'nav-duplicates', 'image-editor':'nav-scan', admin:'nav-admin', reports:'nav-reports', decisions:'nav-decisions-main' };
+  const navMap = { analytics:'nav-analytics', search:'nav-search', db:'nav-db', approved:'nav-db', contour:'nav-contour', scan:'nav-scan', cat:'nav-cat', 'attr-defs':'nav-attr-defs', activity:'nav-activity', duplicates:'nav-duplicates', 'image-editor':'nav-image-editor', admin:'nav-admin', reports:'nav-reports', decisions:'nav-decisions-main' };
   setActiveNav(document.getElementById(navMap[startPage] || 'nav-dashboard'));
   loadStats();
   fetch(`${API}/admin/my-permissions`, { headers: authH() })
