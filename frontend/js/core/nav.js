@@ -15,9 +15,18 @@ function toggleNavGroup(name) {
   const menu = document.getElementById('navGroup-' + name);
   const parent = document.getElementById('navGroupBtn-' + name);
   if (!menu || !parent) return;
-  const next = !menu.classList.contains('open');
-  menu.classList.toggle('open', next);
-  parent.classList.toggle('expanded', next);
+  const opening = !menu.classList.contains('open');
+  if (opening) {
+    document.querySelectorAll('.tab-submenu.open').forEach(m => {
+      if (m.id !== 'navGroup-' + name) {
+        m.classList.remove('open');
+        const btn = m.previousElementSibling;
+        if (btn) btn.classList.remove('expanded');
+      }
+    });
+  }
+  menu.classList.toggle('open', opening);
+  parent.classList.toggle('expanded', opening);
 }
 
 function apSetFolder(kind, el) {
