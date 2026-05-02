@@ -20,6 +20,7 @@
   <link rel="stylesheet" href="css/page-admin.css?v=20260502" />
   <link rel="stylesheet" href="css/page-reports.css?v=20260502" />
   <link rel="stylesheet" href="css/page-attr-defs.css?v=20260502" />
+  <link rel="stylesheet" href="css/page-compare.css?v=20260502" />
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
   <!-- i18n -->
@@ -61,15 +62,125 @@
   </div>
 </div>
 
-<!-- Karşılaştırma Modalı (2.11) -->
-<div class="modal-overlay hidden" id="compareModal" onclick="if(event.target===this)closeCompareModal()">
-  <div class="modal compare-modal" onclick="event.stopPropagation()">
-    <div class="modal-header">
-      <div class="modal-title" id="compareModalTitle">Karşılaştırma</div>
-      <button class="modal-close" onclick="closeCompareModal()">×</button>
+<!-- Karşılaştırma Çalışma Alanı (2.11) — Full-Page Workspace -->
+<div class="cwk-overlay hidden" id="compareModal">
+
+  <!-- Header -->
+  <div class="cwk-header">
+    <button class="cwk-back-btn" onclick="closeCompareModal()">
+      ← Geri
+    </button>
+    <div class="cwk-header-divider"></div>
+    <div class="cwk-title-block">
+      <div class="cwk-title">Karşılaştırma Çalışma Alanı</div>
+      <div class="cwk-subtitle" id="cwkSubtitle">—</div>
     </div>
-    <div class="modal-body compare-body" id="compareModalBody"></div>
+    <div class="cwk-view-tabs">
+      <button class="cwk-tab active" data-tab="overlay" onclick="cwkSetTab('overlay')">Üst Üste</button>
+      <button class="cwk-tab" data-tab="side" onclick="cwkSetTab('side')">Yan Yana</button>
+      <button class="cwk-tab" data-tab="onlyA" onclick="cwkSetTab('onlyA')">Sadece Aranan</button>
+      <button class="cwk-tab" data-tab="onlyB" onclick="cwkSetTab('onlyB')">Sadece Sonuç</button>
+      <button class="cwk-tab" data-tab="diff" onclick="cwkSetTab('diff')">Fark Haritası</button>
+    </div>
+    <div class="cwk-spacer"></div>
+    <button class="cwk-pdf-hdr-btn" onclick="cwkDownloadPdf()">⬇ PDF Rapor</button>
   </div>
+
+  <!-- Body -->
+  <div class="cwk-body">
+
+    <!-- Left Sidebar: Dosya Bilgileri -->
+    <div class="cwk-left">
+      <div class="cwk-section-label">Referans Dosya</div>
+      <div class="cwk-file-card ref" id="cwkRefCard">
+        <div class="cwk-file-icon-row">
+          <div class="cwk-file-icon">📄</div>
+          <div>
+            <div class="cwk-file-name" id="cwkRefName">—</div>
+            <div class="cwk-file-fmt" id="cwkRefFmt">—</div>
+          </div>
+        </div>
+        <div class="cwk-file-desc" id="cwkRefDesc">Yeni Yüklenen Dosya</div>
+      </div>
+      <div class="cwk-meta-grid" id="cwkRefMeta"></div>
+
+      <div class="cwk-section-label" style="margin-top:6px">Karşılaştırılan</div>
+      <div class="cwk-file-card cmp" id="cwkCmpCard">
+        <div class="cwk-file-icon-row">
+          <div class="cwk-file-icon">📄</div>
+          <div>
+            <div class="cwk-file-name" id="cwkCmpName">—</div>
+            <div class="cwk-file-fmt" id="cwkCmpFmt">—</div>
+          </div>
+        </div>
+        <div class="cwk-file-desc" id="cwkCmpDesc"></div>
+      </div>
+      <div class="cwk-meta-grid" id="cwkCmpMeta"></div>
+    </div>
+
+    <!-- Center: Canvas -->
+    <div class="cwk-center">
+      <div class="cwk-canvas-wrap" id="cwkCanvasWrap">
+        <span class="cwk-canvas-loading" id="cwkCanvasLoading">Görüntüler yükleniyor…</span>
+        <canvas id="cwkCanvas" style="display:none"></canvas>
+        <div class="cwk-sim-badge" id="cwkSimBadge" style="display:none">
+          <div class="cwk-sim-badge-label">Benzerlik Skoru</div>
+          <div class="cwk-sim-badge-val" id="cwkSimBadgeVal">—</div>
+        </div>
+        <div class="cwk-diff-legend" id="cwkDiffLegend" style="display:none">
+          <span><span class="cwk-legend-dot" style="background:#22c55e"></span>Eşleşen</span>
+          <span><span class="cwk-legend-dot" style="background:#ef4444"></span>Sadece referans</span>
+          <span><span class="cwk-legend-dot" style="background:#3b82f6"></span>Sadece sonuç</span>
+        </div>
+        <div class="cwk-canvas-dims" id="cwkCanvasDims"></div>
+      </div>
+
+      <!-- Technical Metrics -->
+      <div class="cwk-metrics">
+        <div class="cwk-metrics-title">Teknik Metrikler Karşılaştırması</div>
+        <div class="cwk-metrics-grid" id="cwkMetricsGrid"></div>
+      </div>
+    </div>
+
+    <!-- Right Sidebar: Analiz -->
+    <div class="cwk-right">
+      <div class="cwk-section-label">Neden Benzer?</div>
+      <div class="cwk-reason-list" id="cwkReasonList"></div>
+
+      <div class="cwk-section-label" style="margin-top:4px">Fark Özeti</div>
+      <div class="cwk-diff-list" id="cwkDiffList"></div>
+
+      <div class="cwk-section-label" style="margin-top:4px">Karar Ver</div>
+      <div class="cwk-decision-list">
+        <button class="cwk-decision-btn primary" onclick="cwkDecision('usable',this)">
+          <span class="cwk-decision-icon">✓</span> Mevcut Kalıp Kullanılabilir
+        </button>
+        <button class="cwk-decision-btn" onclick="cwkDecision('substitute',this)">
+          <span class="cwk-decision-icon">ℹ</span> Muadil Olarak Değerlendir
+        </button>
+        <button class="cwk-decision-btn" onclick="cwkDecision('reject',this)">
+          <span class="cwk-decision-icon">✕</span> Uygun Değil
+        </button>
+      </div>
+    </div>
+
+  </div><!-- /cwk-body -->
+
+  <!-- Footer -->
+  <div class="cwk-footer">
+    <div class="cwk-footer-pill" id="cwkFooterPill">
+      <span class="pill-check">✓</span>
+      <span id="cwkFooterPillText">— Benzerlik Skoru</span>
+    </div>
+    <div class="cwk-footer-files" id="cwkFooterFiles">—</div>
+    <div class="cwk-spacer"></div>
+    <button class="cwk-footer-save" onclick="cwkSaveDecision()">✓ Kararı Kaydet</button>
+    <button class="cwk-footer-pdf" onclick="cwkDownloadPdf()">⬇ PDF Rapor Oluştur</button>
+  </div>
+
+  <!-- Hidden image elements for canvas diff -->
+  <img id="cwkImgRef" style="display:none" crossorigin="anonymous">
+  <img id="cwkImgCmp" style="display:none" crossorigin="anonymous">
 </div>
 
 <!-- Fark Görünümü Modalı (Diff Overlay) -->
@@ -266,7 +377,7 @@
 <script src="js/attributes/attr-search.js?v=20260430"></script>
 <script src="js/modals/preview.js?v=20260430"></script>
 <script src="js/modals/detail.js?v=20260430"></script>
-<script src="js/modals/compare.js?v=20260430"></script>
+<script src="js/modals/compare.js?v=20260502"></script>
 <script src="js/pages/page-search.js?v=20260502"></script>
 <script src="js/pages/page-contour.js?v=20260430"></script>
 <script src="js/pages/page-analytics.js?v=20260430"></script>
