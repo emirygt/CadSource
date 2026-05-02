@@ -45,6 +45,10 @@
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h16M4 15h16M10 3L8 21M16 3l-2 18"/></svg>
           Kod ile Ara
         </button>
+        <button class="s-ttab" id="stabAttr" onclick="searchSetTab('attr')">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h10M4 18h7"/><circle cx="18.5" cy="17.5" r="2.5"/><path d="m21 20-1.5-1.5"/></svg>
+          Özellik ile Ara
+        </button>
       </div>
 
       <!-- Code search panel -->
@@ -93,8 +97,76 @@
         <div id="sidebarPreviewSvg"></div>
       </div>
 
+      <!-- Attr search panel -->
+      <div id="searchAttrPanel" style="display:none">
+        <div class="search-card" style="padding:20px 24px">
+          <div class="search-card-title">
+            <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h7"/></svg>
+            <span>Özellik ile Ara</span>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px 20px;margin-bottom:16px">
+            <div style="display:flex;flex-direction:column;gap:5px">
+              <label style="font-size:11px;font-weight:700;color:#64748b;letter-spacing:0.05em;text-transform:uppercase">Kategori</label>
+              <select id="asFilterCat" style="font-family:inherit;font-size:13px;padding:7px 10px;border:1px solid #e2e8f0;border-radius:8px;background:#fff;outline:none;color:#0f172a">
+                <option value="">Tümü</option>
+              </select>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:5px">
+              <label style="font-size:11px;font-weight:700;color:#64748b;letter-spacing:0.05em;text-transform:uppercase">Format</label>
+              <div style="display:flex;gap:10px;flex-wrap:wrap;padding-top:4px">
+                <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="checkbox" class="as-fmt-chk" value="dwg" style="accent-color:#6366f1"> DWG</label>
+                <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="checkbox" class="as-fmt-chk" value="dxf" style="accent-color:#6366f1"> DXF</label>
+                <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="checkbox" class="as-fmt-chk" value="pdf" style="accent-color:#6366f1"> PDF</label>
+                <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="checkbox" class="as-fmt-chk" value="jpg" style="accent-color:#6366f1"> JPG</label>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:5px">
+              <label style="font-size:11px;font-weight:700;color:#64748b;letter-spacing:0.05em;text-transform:uppercase">Entity Sayısı</label>
+              <div style="display:flex;gap:6px;align-items:center">
+                <input id="asEntityMin" type="number" min="0" placeholder="Min" style="width:80px;font-family:inherit;font-size:12px;padding:6px 8px;border:1px solid #e2e8f0;border-radius:7px;outline:none">
+                <span style="color:#94a3b8;font-size:12px">—</span>
+                <input id="asEntityMax" type="number" min="0" placeholder="Max" style="width:80px;font-family:inherit;font-size:12px;padding:6px 8px;border:1px solid #e2e8f0;border-radius:7px;outline:none">
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:5px">
+              <label style="font-size:11px;font-weight:700;color:#64748b;letter-spacing:0.05em;text-transform:uppercase">Genişlik (mm)</label>
+              <div style="display:flex;gap:6px;align-items:center">
+                <input id="asBwMin" type="number" min="0" placeholder="Min" style="width:80px;font-family:inherit;font-size:12px;padding:6px 8px;border:1px solid #e2e8f0;border-radius:7px;outline:none">
+                <span style="color:#94a3b8;font-size:12px">—</span>
+                <input id="asBwMax" type="number" min="0" placeholder="Max" style="width:80px;font-family:inherit;font-size:12px;padding:6px 8px;border:1px solid #e2e8f0;border-radius:7px;outline:none">
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:5px">
+              <label style="font-size:11px;font-weight:700;color:#64748b;letter-spacing:0.05em;text-transform:uppercase">Yükseklik (mm)</label>
+              <div style="display:flex;gap:6px;align-items:center">
+                <input id="asBhMin" type="number" min="0" placeholder="Min" style="width:80px;font-family:inherit;font-size:12px;padding:6px 8px;border:1px solid #e2e8f0;border-radius:7px;outline:none">
+                <span style="color:#94a3b8;font-size:12px">—</span>
+                <input id="asBhMax" type="number" min="0" placeholder="Max" style="width:80px;font-family:inherit;font-size:12px;padding:6px 8px;border:1px solid #e2e8f0;border-radius:7px;outline:none">
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:5px">
+              <label style="font-size:11px;font-weight:700;color:#64748b;letter-spacing:0.05em;text-transform:uppercase">Katman</label>
+              <input id="asLayer" type="text" placeholder="Katman adı..." style="font-family:inherit;font-size:12px;padding:7px 10px;border:1px solid #e2e8f0;border-radius:8px;outline:none">
+            </div>
+          </div>
+          <div id="asCustomFilters" style="display:none;margin-top:4px;padding-top:16px;border-top:1px solid #f1f5f9">
+            <div style="font-size:11px;font-weight:700;color:#64748b;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:12px">Özel Alanlar</div>
+            <div id="asCustomFilterGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px 20px"></div>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:18px;align-items:center">
+            <button class="search-btn search-main-btn" onclick="runAttrSearch(1)" style="width:auto;padding:0 20px">
+              <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+              Ara
+            </button>
+            <button onclick="resetAttrSearch()" style="font-size:12px;color:#dc2626;background:none;border:none;cursor:pointer;padding:4px 8px">Temizle</button>
+            <span id="asResultCount" style="font-size:12px;color:#64748b;margin-left:4px"></span>
+          </div>
+        </div>
+        <div id="nlResultsArea" style="margin-top:16px"></div>
+      </div>
+
       <!-- Settings + search in a two-column row -->
-      <div class="s-bottom-row">
+      <div class="s-bottom-row" id="searchBottomRow">
         <div class="search-card search-settings-card" style="flex:1;min-width:0">
           <div class="search-card-title">
             <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/><circle cx="8" cy="7" r="1.8"/><circle cx="14" cy="12" r="1.8"/><circle cx="10" cy="17" r="1.8"/></svg>

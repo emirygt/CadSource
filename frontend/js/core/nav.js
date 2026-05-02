@@ -93,7 +93,6 @@ function switchTab(name, skipHistory = false) {
   if (name === 'contour')   initContourTab();
   if (name === 'cat')       loadCategories();
   if (name === 'attr-defs') loadAttrDefs();
-  if (name === 'nl-search') loadAttrSearchFilters();
   if (name === 'analytics') loadAnalytics();
   if (name === 'activity')   loadActivityLog();
   if (name === 'scan')       scanInit();
@@ -103,7 +102,7 @@ function switchTab(name, skipHistory = false) {
 }
 
 // ── Path routing ──────────────────────────────────────────────────────────────
-const _VALID_PAGES = new Set(['search','db','approved','contour','cat','nl-search','attr-defs','analytics','activity','duplicates','scan','image-editor','admin']);
+const _VALID_PAGES = new Set(['search','db','approved','contour','cat','attr-defs','analytics','activity','duplicates','scan','image-editor','admin']);
 
 function _routeFromPath() {
   const name = location.pathname.slice(1);

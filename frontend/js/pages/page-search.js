@@ -654,16 +654,21 @@ function drawPreview(canvas, result) {
 
 function searchSetTab(tab) {
   const isUpload = tab === 'upload';
-  const stabUpload = document.getElementById('stabUpload');
-  const stabCode = document.getElementById('stabCode');
-  if (stabUpload) stabUpload.classList.toggle('active', isUpload);
-  if (stabCode) stabCode.classList.toggle('active', !isUpload);
+  const isCode = tab === 'code';
+  const isAttr = tab === 'attr';
+
+  document.getElementById('stabUpload')?.classList.toggle('active', isUpload);
+  document.getElementById('stabCode')?.classList.toggle('active', isCode);
+  document.getElementById('stabAttr')?.classList.toggle('active', isAttr);
 
   const uploadZone = document.getElementById('uploadZone');
   if (uploadZone) uploadZone.style.display = isUpload ? '' : 'none';
 
   const preview = document.getElementById('sidebarPreview');
   if (preview && !isUpload) preview.style.display = 'none';
+
+  const bottomRow = document.getElementById('searchBottomRow');
+  if (bottomRow) bottomRow.style.display = isAttr ? 'none' : '';
 
   const settingsCard = document.querySelector('#page-search .search-settings-card');
   if (settingsCard) settingsCard.style.display = isUpload ? '' : 'none';
@@ -675,7 +680,12 @@ function searchSetTab(tab) {
   if (searchBtnNote) searchBtnNote.style.display = isUpload ? '' : 'none';
 
   const codePanel = document.getElementById('searchCodePanel');
-  if (codePanel) codePanel.style.display = isUpload ? 'none' : '';
+  if (codePanel) codePanel.style.display = isCode ? '' : 'none';
+
+  const attrPanel = document.getElementById('searchAttrPanel');
+  if (attrPanel) attrPanel.style.display = isAttr ? '' : 'none';
+
+  if (isAttr) loadAttrSearchFilters();
 }
 
 async function doCodeSearch() {

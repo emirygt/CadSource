@@ -117,10 +117,6 @@
     <span class="nav-ic"><svg viewBox="0 0 24 24"><circle cx="8" cy="8" r="4"></circle><circle cx="16" cy="16" r="4"></circle><path d="M11 8H16M8 11V16"></path></svg></span>
     <span data-i18n="nav.search">Search & Compare</span>
   </div>
-  <div class="tab" id="nav-nl-search" onclick="navGo('nl-search', this)">
-    <span class="nav-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><path d="M8 11h6M11 8v6"/></svg></span>
-    <span data-i18n="nav.nl_search">Doğal Dil Arama</span>
-  </div>
   <div class="tab" onclick="navGo('db', document.getElementById('nav-library')); setTimeout(()=>{ const p=document.getElementById('dbUploadPanel'); if(p&&p.style.display==='none') toggleDbUploadPanel(); },100)">
     <span class="nav-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></span>
     <span data-i18n="nav.upload_files">Upload Files</span>
@@ -217,7 +213,7 @@
 
 
 <script src="js/core/api.js?v=20260430"></script>
-<script src="js/core/nav.js?v=20260502"></script>
+<script src="js/core/nav.js?v=20260502b"></script>
 <script src="js/pages/page-history.js?v=20260430"></script>
 <script src="js/pages/page-cat.js?v=20260430"></script>
 <script src="js/pages/page-activity.js?v=20260430"></script>
@@ -227,7 +223,7 @@
 <script src="js/modals/preview.js?v=20260430"></script>
 <script src="js/modals/detail.js?v=20260430"></script>
 <script src="js/modals/compare.js?v=20260430"></script>
-<script src="js/pages/page-search.js?v=20260430"></script>
+<script src="js/pages/page-search.js?v=20260502"></script>
 <script src="js/pages/page-contour.js?v=20260430"></script>
 <script src="js/pages/page-analytics.js?v=20260430"></script>
 <script src="js/pages/page-db.js?v=20260430"></script>
@@ -235,7 +231,7 @@
 <script src="js/acad/acad.js?v=20260430"></script>
 <script src="js/pages/page-image-editor.js?v=20260501"></script>
 <script src="js/pages/page-admin.js?v=20260502"></script>
-<script src="js/boot.js?v=20260502"></script>
+<script src="js/boot.js?v=20260502b"></script>
 
 </body>
 </html>
