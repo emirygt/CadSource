@@ -1,8 +1,9 @@
+import json
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session
 from sqlalchemy import text
-from typing import Optional
+from typing import Optional, List
 
 from db import get_db
 from middleware.tenant import get_current_tenant, apply_tenant_schema
@@ -11,6 +12,13 @@ router = APIRouter(prefix="/admin", tags=["admin"])
 
 VALID_ROLES = {"Admin", "Mühendis", "Görüntüleyici"}
 VALID_STATUSES = {"active", "passive"}
+ALL_NAV_ITEMS = [
+    "nav-search","nav-compare","nav-filter",
+    "nav-db-upload","nav-db","nav-cat","nav-attr-defs","nav-duplicates",
+    "nav-contour","nav-scan",
+    "nav-reports","nav-activity","nav-analytics","nav-report",
+    "nav-admin","nav-admin-roles","nav-logs",
+]
 
 
 class MemberIn(BaseModel):
@@ -119,3 +127,45 @@ def delete_member(mid: int, tenant=Depends(get_current_tenant), db: Session = De
     if not r:
         raise HTTPException(404, "Üye bulunamadı")
     return {"ok": True}
+
+
+class NavPermsIn(BaseModel):
+    nav_items: List[str]
+
+
+@router.get("/role-permissions")
+def get_role_perms(tenant=Depends(get_current_tenant), db: Session = Depends(get_db)):
+    apply_tenant_schema(tenant, db)
+    rows = db.execute(text("SELECT role, nav_items FROM role_nav_permissions ORDER BY role")).fetchall()
+    return {r.role: r.nav_items for r in rows}
+
+
+@router.put("/role-permissions/{role}")
+def set_role_perms(role: str, body: NavPermsIn, tenant=Depends(get_current_tenant), db: Session = Depends(get_db)):
+    apply_tenant_schema(tenant, db)
+    if role not in VALID_ROLES:
+        raise HTTPException(400, "Geçersiz rol")
+    invalid = set(body.nav_items) - set(ALL_NAV_ITEMS)
+    if invalid:
+        raise HTTPException(400, f"Geçersiz nav item: {invalid}")
+    db.execute(text("""
+        INSERT INTO role_nav_permissions (role, nav_items) VALUES (:role, :items::jsonb)
+        ON CONFLICT (role) DO UPDATE SET nav_items = :items::jsonb
+    """), {"role": role, "items": json.dumps(body.nav_items)})
+    db.commit()
+    return {"ok": True}
+
+
+@router.get("/my-permissions")
+def my_permissions(tenant=Depends(get_current_tenant), db: Session = Depends(get_db)):
+    apply_tenant_schema(tenant, db)
+    member = db.execute(
+        text("SELECT role FROM tenant_members WHERE email = :e AND status = 'active'"),
+        {"e": tenant["email"]}
+    ).fetchone()
+    role = member.role if member else "Admin"
+    row = db.execute(
+        text("SELECT nav_items FROM role_nav_permissions WHERE role = :r"), {"r": role}
+    ).fetchone()
+    nav_items = row.nav_items if row else ALL_NAV_ITEMS
+    return {"role": role, "nav_items": nav_items}

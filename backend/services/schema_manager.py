@@ -164,6 +164,17 @@ FROM (VALUES
 WHERE NOT EXISTS (
     SELECT 1 FROM {schema}.attribute_definitions WHERE name = t.name
 );
+
+CREATE TABLE IF NOT EXISTS {schema}.role_nav_permissions (
+    role       VARCHAR(30) PRIMARY KEY,
+    nav_items  JSONB NOT NULL DEFAULT '[]'
+);
+
+INSERT INTO {schema}.role_nav_permissions (role, nav_items) VALUES
+    ('Admin',         '["nav-search","nav-compare","nav-filter","nav-db-upload","nav-db","nav-cat","nav-attr-defs","nav-duplicates","nav-contour","nav-scan","nav-reports","nav-activity","nav-analytics","nav-report","nav-admin","nav-admin-roles","nav-logs"]'),
+    ('Mühendis',      '["nav-search","nav-compare","nav-filter","nav-db-upload","nav-db","nav-duplicates","nav-reports"]'),
+    ('Görüntüleyici', '["nav-search","nav-db"]')
+ON CONFLICT DO NOTHING;
 """
 
 

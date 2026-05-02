@@ -23,4 +23,8 @@ const _PAGE_V = '20260430';
   const navMap = { analytics:'nav-analytics', search:'nav-search', db:'nav-db', approved:'nav-db', contour:'nav-contour', scan:'nav-scan', cat:'nav-cat', 'attr-defs':'nav-attr-defs', activity:'nav-activity', duplicates:'nav-duplicates', 'image-editor':'nav-scan', admin:'nav-admin', reports:'nav-reports' };
   setActiveNav(document.getElementById(navMap[startPage] || 'nav-dashboard'));
   loadStats();
+  fetch(`${API}/admin/my-permissions`, { headers: authH() })
+    .then(r => r.ok ? r.json() : null)
+    .then(d => { if (d?.nav_items) applyNavPermissions(d.nav_items); })
+    .catch(() => {});
 })();

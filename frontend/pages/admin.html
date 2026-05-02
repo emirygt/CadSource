@@ -75,6 +75,10 @@
         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
         Kategori Yönetimi
       </button>
+      <button class="adm-tab-btn" data-tab="roles" onclick="admSetTab('roles')">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        Roller &amp; Yetkiler
+      </button>
     </div>
 
     <!-- Users panel -->
@@ -133,6 +137,39 @@
         <div class="adm-sys-card">
           <div class="adm-sys-card-label">API Erişimi</div>
           <div class="adm-sys-card-value">Aktif</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Roles panel -->
+    <div id="admPanelRoles" class="adm-panel" style="display:none">
+      <div class="adm-panel-header">
+        <span class="adm-panel-title">Roller &amp; Yetkiler</span>
+      </div>
+      <div style="display:flex;gap:20px;align-items:flex-start">
+        <!-- Role list -->
+        <div style="display:flex;flex-direction:column;gap:8px;flex-shrink:0;width:200px">
+          <div class="adm-role-card active" data-role="Admin" onclick="admSelectRole('Admin',this)">
+            <span class="adm-role-badge adm-role-admin" style="pointer-events:none">Admin</span>
+            <span style="font-size:12px;color:#64748b;margin-top:2px">Tam erişim</span>
+          </div>
+          <div class="adm-role-card" data-role="Mühendis" onclick="admSelectRole('Mühendis',this)">
+            <span class="adm-role-badge adm-role-engineer" style="pointer-events:none">Mühendis</span>
+            <span style="font-size:12px;color:#64748b;margin-top:2px">Standart erişim</span>
+          </div>
+          <div class="adm-role-card" data-role="Görüntüleyici" onclick="admSelectRole('Görüntüleyici',this)">
+            <span class="adm-role-badge adm-role-viewer" style="pointer-events:none">Görüntüleyici</span>
+            <span style="font-size:12px;color:#64748b;margin-top:2px">Salt okunur</span>
+          </div>
+        </div>
+        <!-- Permission checkboxes -->
+        <div style="flex:1;min-width:0">
+          <div id="admRolePermsTitle" style="font-size:14px;font-weight:700;color:#0f172a;margin-bottom:14px">Admin — Erişim İzinleri</div>
+          <div id="admRolePermsGrid" style="display:flex;flex-direction:column;gap:4px"></div>
+          <button class="adm-add-btn" style="margin-top:18px" onclick="admSaveRolePerms()">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            Kaydet
+          </button>
         </div>
       </div>
     </div>

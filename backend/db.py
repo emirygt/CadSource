@@ -420,6 +420,19 @@ def init_db():
                     created_at   TIMESTAMP DEFAULT NOW()
                 )
             """))
+            conn.execute(text(f"""
+                CREATE TABLE IF NOT EXISTS {schema}.role_nav_permissions (
+                    role      VARCHAR(30) PRIMARY KEY,
+                    nav_items JSONB NOT NULL DEFAULT '[]'
+                )
+            """))
+            conn.execute(text(f"""
+                INSERT INTO {schema}.role_nav_permissions (role, nav_items) VALUES
+                    ('Admin',         '["nav-search","nav-compare","nav-filter","nav-db-upload","nav-db","nav-cat","nav-attr-defs","nav-duplicates","nav-contour","nav-scan","nav-reports","nav-activity","nav-analytics","nav-report","nav-admin","nav-admin-roles","nav-logs"]'),
+                    ('Mühendis',      '["nav-search","nav-compare","nav-filter","nav-db-upload","nav-db","nav-duplicates","nav-reports"]'),
+                    ('Görüntüleyici', '["nav-search","nav-db"]')
+                ON CONFLICT DO NOTHING
+            """))
         conn.commit()
 
     # Default schema (public) için HNSW — tenant schema'larında schema_manager kurar

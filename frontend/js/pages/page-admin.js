@@ -1,4 +1,4 @@
-const _adm = { members: [], editId: null };
+const _adm = { members: [], editId: null, rolePerms: {}, selectedRole: 'Admin' };
 
 function initAdminPage() {
   admSetTab('users');
@@ -7,12 +7,13 @@ function initAdminPage() {
 }
 
 function admSetTab(tab) {
-  const panels = { users: 'admPanelUsers', system: 'admPanelSystem', categories: 'admPanelCategories' };
+  const panels = { users: 'admPanelUsers', system: 'admPanelSystem', categories: 'admPanelCategories', roles: 'admPanelRoles' };
   Object.entries(panels).forEach(([t, id]) => {
     const el = document.getElementById(id);
     if (el) el.style.display = t === tab ? '' : 'none';
   });
   document.querySelectorAll('.adm-tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  if (tab === 'roles') admLoadRolePerms();
 }
 
 async function admLoadStats() {
@@ -165,5 +166,53 @@ async function admDeleteMember(id) {
   if (r.ok) {
     admLoadMembers();
     admLoadStats();
+  }
+}
+
+async function admLoadRolePerms() {
+  try {
+    const r = await fetch(`${API}/admin/role-permissions`, { headers: authH() });
+    if (!r.ok) return;
+    _adm.rolePerms = await r.json();
+    admSelectRole(_adm.selectedRole, document.querySelector(`.adm-role-card[data-role="${_adm.selectedRole}"]`));
+  } catch { /* ignore */ }
+}
+
+function admSelectRole(role, el) {
+  _adm.selectedRole = role;
+  document.querySelectorAll('.adm-role-card').forEach(c => c.classList.toggle('active', c === el));
+  const titleEl = document.getElementById('admRolePermsTitle');
+  if (titleEl) titleEl.textContent = `${role} — Erişim İzinleri`;
+  const allowed = new Set(_adm.rolePerms[role] || []);
+  const grid = document.getElementById('admRolePermsGrid');
+  if (!grid) return;
+  let html = '';
+  NAV_PERM_GROUPS.forEach(({ group, items }) => {
+    html += `<div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;margin:10px 0 4px">${group}</div>`;
+    items.forEach(({ id, label }) => {
+      const chk = allowed.has(id) ? 'checked' : '';
+      html += `<label style="display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:8px;cursor:pointer;transition:background .1s" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background=''">
+        <input type="checkbox" data-nav="${id}" ${chk} style="width:15px;height:15px;accent-color:#2f66eb;cursor:pointer">
+        <span style="font-size:13px;color:#334155">${label}</span>
+      </label>`;
+    });
+  });
+  grid.innerHTML = html;
+}
+
+async function admSaveRolePerms() {
+  const role = _adm.selectedRole;
+  const checked = [...document.querySelectorAll('#admRolePermsGrid input[type=checkbox]:checked')].map(c => c.dataset.nav);
+  const r = await fetch(`${API}/admin/role-permissions/${encodeURIComponent(role)}`, {
+    method: 'PUT',
+    headers: { ...authH(), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ nav_items: checked }),
+  });
+  if (r.ok) {
+    _adm.rolePerms[role] = checked;
+    const btn = document.querySelector('#admPanelRoles .adm-add-btn');
+    if (btn) { const orig = btn.textContent; btn.textContent = '✓ Kaydedildi'; setTimeout(() => btn.innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Kaydet`, 1500); }
+  } else {
+    alert('Kaydetme hatası');
   }
 }

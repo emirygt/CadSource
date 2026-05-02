@@ -1,3 +1,58 @@
+const NAV_PERM_GROUPS = [
+  { group: 'Ara & Karşılaştır', items: [
+    { id: 'nav-search',  label: 'Arama' },
+    { id: 'nav-compare', label: 'Karşılaştırma' },
+    { id: 'nav-filter',  label: 'Filtreleme' },
+  ]},
+  { group: 'Kütüphane', items: [
+    { id: 'nav-db-upload',  label: 'Yükleme & Arşivleme' },
+    { id: 'nav-db',         label: 'Profil / Kalıp Havuzu' },
+    { id: 'nav-cat',        label: 'Kategoriler & Etiketler' },
+    { id: 'nav-attr-defs',  label: 'Attribute Tanımları' },
+    { id: 'nav-duplicates', label: 'Mükerrer Kayıtlar' },
+  ]},
+  { group: 'Dijitalleştirme', items: [
+    { id: 'nav-contour', label: 'Fotoğraftan Kontura' },
+    { id: 'nav-scan',    label: 'Numuneden Çizime Hazırlık' },
+  ]},
+  { group: 'Kararlar & Raporlar', items: [
+    { id: 'nav-reports',   label: 'Raporlar' },
+    { id: 'nav-activity',  label: 'Karar Kayıtları' },
+    { id: 'nav-analytics', label: 'Tasarruf / ROI' },
+    { id: 'nav-report',    label: 'Yönetici Raporu' },
+  ]},
+  { group: 'Yönetim', items: [
+    { id: 'nav-admin',       label: 'Kullanıcılar' },
+    { id: 'nav-admin-roles', label: 'Roller & Yetkiler' },
+    { id: 'nav-logs',        label: 'Loglar' },
+  ]},
+];
+
+function applyNavPermissions(allowedItems) {
+  const allowed = new Set(allowedItems);
+  NAV_PERM_GROUPS.forEach(({ items }) => {
+    items.forEach(({ id }) => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = allowed.has(id) ? '' : 'none';
+    });
+  });
+  // Hide group header if all its children are hidden
+  const groupMap = {
+    'ara': ['nav-search','nav-compare','nav-filter'],
+    'kutuphane': ['nav-db-upload','nav-db','nav-cat','nav-attr-defs','nav-duplicates'],
+    'digital': ['nav-contour','nav-scan'],
+    'raporlar': ['nav-reports','nav-activity','nav-analytics','nav-report'],
+    'yonetim': ['nav-admin','nav-admin-roles','nav-logs'],
+  };
+  Object.entries(groupMap).forEach(([name, ids]) => {
+    const visible = ids.some(id => allowed.has(id));
+    const btn = document.getElementById('navGroupBtn-' + name);
+    const menu = document.getElementById('navGroup-' + name);
+    const grp = btn?.closest('.tab-group');
+    if (grp) grp.style.display = visible ? '' : 'none';
+  });
+}
+
 // ── Tab yönetimi ──────────────────────────────────────────────────────────────
 function setActiveNav(el) {
   document.querySelectorAll('.tab.active, .tab-sub.active').forEach(t => t.classList.remove('active'));
