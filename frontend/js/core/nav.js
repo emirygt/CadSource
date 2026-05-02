@@ -1,23 +1,21 @@
 // ── Tab yönetimi ──────────────────────────────────────────────────────────────
 function setActiveNav(el) {
-  document.querySelectorAll('.tab.active').forEach(t => t.classList.remove('active'));
-  if (el) el.classList.add('active');
+  document.querySelectorAll('.tab.active, .tab-sub.active').forEach(t => t.classList.remove('active'));
+  if (!el) return;
+  el.classList.add('active');
+  const submenu = el.closest('.tab-submenu');
+  if (submenu) {
+    submenu.classList.add('open');
+    const btn = submenu.previousElementSibling;
+    if (btn) btn.classList.add('expanded');
+  }
 }
 
-function toggleLibraryMenu(forceOpen = null) {
-  const menu = document.getElementById('libraryMenu');
-  const parent = document.getElementById('nav-library');
+function toggleNavGroup(name) {
+  const menu = document.getElementById('navGroup-' + name);
+  const parent = document.getElementById('navGroupBtn-' + name);
   if (!menu || !parent) return;
-  const next = forceOpen === null ? !menu.classList.contains('open') : !!forceOpen;
-  menu.classList.toggle('open', next);
-  parent.classList.toggle('expanded', next);
-}
-
-function toggleDigitalMenu(forceOpen = null) {
-  const menu = document.getElementById('digitalMenu');
-  const parent = document.getElementById('nav-digital');
-  if (!menu || !parent) return;
-  const next = forceOpen === null ? !menu.classList.contains('open') : !!forceOpen;
+  const next = !menu.classList.contains('open');
   menu.classList.toggle('open', next);
   parent.classList.toggle('expanded', next);
 }
@@ -48,7 +46,6 @@ function setProductsViewMode(mode) {
 }
 
 function navGo(target, el) {
-  if (target === 'contour' || target === 'scan') toggleDigitalMenu(true);
   setActiveNav(el);
   switchTab(target);
 }

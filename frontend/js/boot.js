@@ -20,7 +20,7 @@ const _PAGE_V = '20260430';
   const startPage = _VALID_PAGES.has(rawPath) ? rawPath : 'analytics';
   if (!_VALID_PAGES.has(rawPath)) history.replaceState({ page: startPage }, '', '/' + startPage);
   switchTab(startPage, true);
-  const navMap = { analytics:'nav-dashboard', search:'nav-search', db:'nav-library-db', approved:'nav-library-approved', contour:'nav-contour', scan:'nav-scan', cat:'nav-cat', 'attr-defs':'nav-attr-defs', activity:'nav-activity', duplicates:'nav-duplicates', 'image-editor':'nav-image-editor', admin:'nav-admin' };
+  const navMap = { analytics:'nav-analytics', search:'nav-search', db:'nav-db', approved:'nav-db', contour:'nav-contour', scan:'nav-scan', cat:'nav-cat', 'attr-defs':'nav-cat', activity:'nav-activity', duplicates:'nav-duplicates', 'image-editor':'nav-scan', admin:'nav-admin' };
   setActiveNav(document.getElementById(navMap[startPage] || 'nav-dashboard'));
   loadStats();
 })();
