@@ -1,45 +1,53 @@
-<div class="dec-layout">
+<div class="page" id="page-decisions" style="padding:0;background:#f8fafc;align-items:stretch;flex-direction:column;">
 
-  <!-- Header toolbar -->
-  <div class="dec-toolbar">
-    <div class="dec-toolbar-left">
-      <h2 class="dec-title">Karar Kayıtları</h2>
+  <div class="page-header">
+    <div>
+      <h1 class="ph-title">Karar Kayıtları</h1>
+      <p class="ph-sub">Karşılaştırma sonrası verilen mühendislik kararları</p>
+    </div>
+  </div>
+
+  <div style="padding:20px;display:flex;flex-direction:column;gap:14px;flex:1;min-height:0;">
+
+    <!-- Filter tabs -->
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
       <div class="dec-filter-tabs" id="decFilterTabs">
         <button class="dec-ftab active" data-type="" onclick="decSetFilter(this,'')">Tümü</button>
         <button class="dec-ftab" data-type="usable"     onclick="decSetFilter(this,'usable')">✓ Kullanılabilir</button>
         <button class="dec-ftab" data-type="substitute" onclick="decSetFilter(this,'substitute')">ℹ Muadil</button>
         <button class="dec-ftab" data-type="reject"     onclick="decSetFilter(this,'reject')">✕ Uygun Değil</button>
       </div>
+      <div style="flex:1"></div>
+      <div class="dec-count" id="decCount">—</div>
     </div>
-    <div style="flex:1"></div>
-    <div class="dec-count" id="decCount">—</div>
-  </div>
 
-  <!-- Table -->
-  <div class="dec-table-wrap">
-    <table class="dec-table" id="decTable">
-      <thead>
-        <tr>
-          <th>Referans Dosya</th>
-          <th>Karşılaştırılan</th>
-          <th>Benzerlik</th>
-          <th>Karar</th>
-          <th>Not</th>
-          <th>Tarih</th>
-          <th>Silen</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody id="decTableBody">
-        <tr><td colspan="8" class="dec-loading">Yükleniyor…</td></tr>
-      </tbody>
-    </table>
-  </div>
+    <!-- Table -->
+    <div class="dec-table-wrap">
+      <table class="dec-table" id="decTable">
+        <thead>
+          <tr>
+            <th>Referans Dosya</th>
+            <th>Karşılaştırılan</th>
+            <th>Benzerlik</th>
+            <th>Karar</th>
+            <th>Not</th>
+            <th>Tarih</th>
+            <th>Kim</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="decTableBody">
+          <tr><td colspan="8" class="dec-loading">Yükleniyor…</td></tr>
+        </tbody>
+      </table>
+    </div>
 
-  <!-- Pagination -->
-  <div class="dec-pagination" id="decPagination" style="display:none">
-    <button class="dec-page-btn" id="decPrevBtn" onclick="decPage(-1)">← Önceki</button>
-    <span class="dec-page-info" id="decPageInfo">—</span>
-    <button class="dec-page-btn" id="decNextBtn" onclick="decPage(1)">Sonraki →</button>
+    <!-- Pagination -->
+    <div class="dec-pagination" id="decPagination" style="display:none">
+      <button class="dec-page-btn" id="decPrevBtn" onclick="decPage(-1)">← Önceki</button>
+      <span class="dec-page-info" id="decPageInfo">—</span>
+      <button class="dec-page-btn" id="decNextBtn" onclick="decPage(1)">Sonraki →</button>
+    </div>
+
   </div>
 </div>
