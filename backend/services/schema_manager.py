@@ -125,6 +125,17 @@ CREATE TABLE IF NOT EXISTS {schema}.search_feedback (
     created_at       TIMESTAMPTZ DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS {schema}.tenant_members (
+    id           SERIAL PRIMARY KEY,
+    name         VARCHAR(100) NOT NULL,
+    email        VARCHAR(255) NOT NULL,
+    role         VARCHAR(30) NOT NULL DEFAULT 'Mühendis',
+    status       VARCHAR(20) NOT NULL DEFAULT 'active',
+    search_count INTEGER DEFAULT 0,
+    last_active  TIMESTAMP,
+    created_at   TIMESTAMP DEFAULT NOW()
+);
+
 CREATE TABLE IF NOT EXISTS {schema}.attribute_definitions (
     id         SERIAL PRIMARY KEY,
     name       VARCHAR(100) NOT NULL,

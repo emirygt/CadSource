@@ -99,10 +99,11 @@ function switchTab(name, skipHistory = false) {
   if (name === 'scan')       scanInit();
   if (name === 'duplicates')    loadDuplicatePage();
   if (name === 'image-editor')  initImageEditor();
+  if (name === 'admin')         initAdminPage();
 }
 
 // ── Path routing ──────────────────────────────────────────────────────────────
-const _VALID_PAGES = new Set(['search','db','approved','contour','cat','nl-search','attr-defs','analytics','activity','duplicates','scan','image-editor']);
+const _VALID_PAGES = new Set(['search','db','approved','contour','cat','nl-search','attr-defs','analytics','activity','duplicates','scan','image-editor','admin']);
 
 function _routeFromPath() {
   const name = location.pathname.slice(1);

@@ -22,6 +22,7 @@ from routes.cad_tools import router as cad_tools_router
 from routes.nl_search import router as nl_search_router
 from routes.attributes import router as attributes_router
 from routes.attr_search import router as attr_search_router
+from routes.admin import router as admin_router
 
 app = FastAPI(
     title="CAD Arama Motoru",
@@ -65,3 +66,4 @@ app.include_router(cad_tools_router)  # /cad/tools/health, /cad/convert, ...
 app.include_router(nl_search_router)  # /nl-search
 app.include_router(attributes_router) # /attributes/definitions, /attributes/files/{id}
 app.include_router(attr_search_router) # /attr-search
+app.include_router(admin_router)       # /admin/members, /admin/stats

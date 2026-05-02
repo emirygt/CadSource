@@ -1,0 +1,191 @@
+<div class="page" id="page-admin" style="padding:0;background:#f8fafc;align-items:stretch;flex-direction:column;">
+
+  <div class="page-header">
+    <div>
+      <h1 class="ph-title">Yönetim</h1>
+      <p class="ph-sub">Kullanıcı yönetimi ve sistem ayarları</p>
+    </div>
+  </div>
+
+  <div style="flex:1;overflow-y:auto;padding:28px 32px;">
+
+    <!-- Stats -->
+    <div class="adm-stats">
+      <div class="adm-stat-card">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div class="adm-stat-icon" style="background:#dbeafe;">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+        </div>
+        <div>
+          <div class="adm-stat-num" id="admStatUsers">—</div>
+          <div class="adm-stat-label">Aktif Kullanıcı</div>
+          <div class="adm-stat-sub">Workspace üyeleri</div>
+        </div>
+      </div>
+      <div class="adm-stat-card">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div class="adm-stat-icon" style="background:#ede9fe;">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+          </div>
+        </div>
+        <div>
+          <div class="adm-stat-num" id="admStatFiles">—</div>
+          <div class="adm-stat-label">Toplam Profil</div>
+          <div class="adm-stat-sub">İndekslenmiş çizim</div>
+        </div>
+      </div>
+      <div class="adm-stat-card">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div class="adm-stat-icon" style="background:#d1fae5;">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          </div>
+        </div>
+        <div>
+          <div class="adm-stat-num" id="admStatOps">—</div>
+          <div class="adm-stat-label">Bu Ay İşlem</div>
+          <div class="adm-stat-sub">Aktivite logları</div>
+        </div>
+      </div>
+      <div class="adm-stat-card">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div class="adm-stat-icon" style="background:#dcfce7;">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+        </div>
+        <div>
+          <div class="adm-stat-num" id="admStatLicense" style="font-size:20px;">—</div>
+          <div class="adm-stat-label">Lisans Durumu</div>
+          <div class="adm-stat-sub">Enterprise plan</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab navigation -->
+    <div class="adm-tabs">
+      <button class="adm-tab-btn active" data-tab="users" onclick="admSetTab('users')">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Kullanıcı Yönetimi
+      </button>
+      <button class="adm-tab-btn" data-tab="system" onclick="admSetTab('system')">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Sistem &amp; Lisans
+      </button>
+      <button class="adm-tab-btn" data-tab="categories" onclick="admSetTab('categories')">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+        Kategori Yönetimi
+      </button>
+    </div>
+
+    <!-- Users panel -->
+    <div id="admPanelUsers" class="adm-panel">
+      <div class="adm-panel-header">
+        <span class="adm-panel-title">Kullanıcılar</span>
+        <button class="adm-add-btn" onclick="admOpenAdd()">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Kullanıcı Ekle
+        </button>
+      </div>
+      <table class="adm-table">
+        <thead>
+          <tr>
+            <th>KULLANICI</th>
+            <th>E-POSTA</th>
+            <th>ROL</th>
+            <th>DURUM</th>
+            <th>SON AKTİVİTE</th>
+            <th>ARAMALAR</th>
+            <th>İŞLEM</th>
+          </tr>
+        </thead>
+        <tbody id="admMembersTbody">
+          <tr><td colspan="7" style="text-align:center;padding:24px;color:#94a3b8">Yükleniyor...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- System panel -->
+    <div id="admPanelSystem" class="adm-panel" style="display:none">
+      <div class="adm-panel-header">
+        <span class="adm-panel-title">Sistem &amp; Lisans</span>
+      </div>
+      <div class="adm-sys-grid">
+        <div class="adm-sys-card">
+          <div class="adm-sys-card-label">Lisans Tipi</div>
+          <div class="adm-sys-card-value">Enterprise</div>
+        </div>
+        <div class="adm-sys-card">
+          <div class="adm-sys-card-label">Durum</div>
+          <div class="adm-sys-card-value" style="color:#16a34a">✓ Aktif</div>
+        </div>
+        <div class="adm-sys-card">
+          <div class="adm-sys-card-label">Maksimum Kullanıcı</div>
+          <div class="adm-sys-card-value">Sınırsız</div>
+        </div>
+        <div class="adm-sys-card">
+          <div class="adm-sys-card-label">Maksimum Profil</div>
+          <div class="adm-sys-card-value">Sınırsız</div>
+        </div>
+        <div class="adm-sys-card">
+          <div class="adm-sys-card-label">Depolama</div>
+          <div class="adm-sys-card-value">Sınırsız</div>
+        </div>
+        <div class="adm-sys-card">
+          <div class="adm-sys-card-label">API Erişimi</div>
+          <div class="adm-sys-card-value">Aktif</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Categories panel -->
+    <div id="admPanelCategories" class="adm-panel" style="display:none">
+      <div class="adm-panel-header">
+        <span class="adm-panel-title">Kategori Yönetimi</span>
+        <button class="adm-add-btn" onclick="navGo('cat', document.getElementById('nav-cat'))">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          Kategoriler Sayfasına Git
+        </button>
+      </div>
+      <p style="color:#64748b;font-size:14px;margin:0">Kategorileri yönetmek için Kategoriler sayfasını kullanabilirsiniz.</p>
+    </div>
+
+  </div>
+
+  <!-- Add / Edit Modal -->
+  <div class="adm-modal-overlay" id="admMemberModal" onclick="if(event.target===this)admCloseModal()">
+    <div class="adm-modal">
+      <div class="adm-modal-header">
+        <span class="adm-modal-title" id="admModalTitle">Kullanıcı Ekle</span>
+        <button class="adm-modal-close" onclick="admCloseModal()">×</button>
+      </div>
+      <div class="adm-form-group">
+        <label class="adm-form-label">Ad Soyad</label>
+        <input type="text" class="adm-form-input" id="admMemberName" placeholder="Örn: Ahmet Yılmaz">
+      </div>
+      <div class="adm-form-group">
+        <label class="adm-form-label">E-Posta</label>
+        <input type="email" class="adm-form-input" id="admMemberEmail" placeholder="Örn: ahmet@firma.com">
+      </div>
+      <div class="adm-form-group">
+        <label class="adm-form-label">Rol</label>
+        <select class="adm-form-select" id="admMemberRole">
+          <option value="Admin">Admin</option>
+          <option value="Mühendis" selected>Mühendis</option>
+          <option value="Görüntüleyici">Görüntüleyici</option>
+        </select>
+      </div>
+      <div class="adm-form-group" id="admStatusGroup" style="display:none">
+        <label class="adm-form-label">Durum</label>
+        <select class="adm-form-select" id="admMemberStatus">
+          <option value="active">Aktif</option>
+          <option value="passive">Pasif</option>
+        </select>
+      </div>
+      <div class="adm-modal-footer">
+        <button class="adm-btn-cancel" onclick="admCloseModal()">İptal</button>
+        <button class="adm-btn-save" onclick="admSaveMember()">Kaydet</button>
+      </div>
+    </div>
+  </div>
+
+</div>
