@@ -165,6 +165,19 @@ WHERE NOT EXISTS (
     SELECT 1 FROM {schema}.attribute_definitions WHERE name = t.name
 );
 
+CREATE TABLE IF NOT EXISTS {schema}.comparison_decisions (
+    id                  SERIAL PRIMARY KEY,
+    reference_filename  VARCHAR(512) NOT NULL,
+    compared_file_id    INTEGER REFERENCES {schema}.cad_files(id) ON DELETE SET NULL,
+    compared_filename   VARCHAR(512) NOT NULL,
+    similarity_score    REAL,
+    decision_type       VARCHAR(50) NOT NULL,
+    decision_label      VARCHAR(200) NOT NULL,
+    notes               TEXT,
+    decided_by          VARCHAR(255),
+    decided_at          TIMESTAMPTZ DEFAULT NOW()
+);
+
 CREATE TABLE IF NOT EXISTS {schema}.role_nav_permissions (
     role       VARCHAR(30) PRIMARY KEY,
     nav_items  JSONB NOT NULL DEFAULT '[]'

@@ -427,6 +427,20 @@ def init_db():
                 )
             """))
             conn.execute(text(f"""
+                CREATE TABLE IF NOT EXISTS {schema}.comparison_decisions (
+                    id                  SERIAL PRIMARY KEY,
+                    reference_filename  VARCHAR(512) NOT NULL,
+                    compared_file_id    INTEGER REFERENCES {schema}.cad_files(id) ON DELETE SET NULL,
+                    compared_filename   VARCHAR(512) NOT NULL,
+                    similarity_score    REAL,
+                    decision_type       VARCHAR(50) NOT NULL,
+                    decision_label      VARCHAR(200) NOT NULL,
+                    notes               TEXT,
+                    decided_by          VARCHAR(255),
+                    decided_at          TIMESTAMPTZ DEFAULT NOW()
+                )
+            """))
+            conn.execute(text(f"""
                 INSERT INTO {schema}.role_nav_permissions (role, nav_items) VALUES
                     ('Admin',         '["nav-search","nav-compare","nav-filter","nav-db-upload","nav-db","nav-cat","nav-attr-defs","nav-duplicates","nav-contour","nav-scan","nav-reports","nav-activity","nav-analytics","nav-report","nav-admin","nav-admin-roles","nav-logs"]'),
                     ('Mühendis',      '["nav-search","nav-compare","nav-filter","nav-db-upload","nav-db","nav-duplicates","nav-reports"]'),

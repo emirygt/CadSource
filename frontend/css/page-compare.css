@@ -296,6 +296,42 @@
 }
 .cwk-footer-pdf:hover { background: #1e40af; }
 
+/* ── Inline Feedback Panel ── */
+.cwkfp {
+  display: none; flex-direction: column; gap: 8px;
+  background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 9px; padding: 12px;
+  margin-top: 2px; animation: cwkfp-in 0.18s ease;
+}
+.cwkfp.open { display: flex; }
+@keyframes cwkfp-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.cwkfp-header { display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 600; }
+.cwkfp-icon { font-size: 15px; }
+.cwkfp-notes {
+  width: 100%; box-sizing: border-box; resize: vertical;
+  border: 1px solid #e2e8f0; border-radius: 6px; padding: 7px 9px;
+  font-size: 12px; font-family: inherit; color: #374151;
+  background: #ffffff; outline: none; line-height: 1.5;
+}
+.cwkfp-notes:focus { border-color: #6366f1; }
+.cwkfp-actions { display: flex; gap: 6px; }
+.cwkfp-save {
+  background: #1d4ed8; color: #fff; border: none; border-radius: 6px;
+  padding: 6px 16px; font-size: 12px; font-weight: 600; cursor: pointer; transition: background 0.15s;
+}
+.cwkfp-save:hover:not(:disabled) { background: #1e40af; }
+.cwkfp-save:disabled { opacity: 0.6; cursor: default; }
+.cwkfp-cancel {
+  background: #f1f5f9; color: #374151; border: 1px solid #e2e8f0; border-radius: 6px;
+  padding: 6px 12px; font-size: 12px; cursor: pointer; transition: all 0.15s;
+}
+.cwkfp-cancel:hover { border-color: #94a3b8; }
+.cwkfp-status { font-size: 11px; min-height: 16px; }
+.cwkfp-ok  { color: #16a34a; font-weight: 600; }
+.cwkfp-err { color: #dc2626; }
+
 /* ── Diff legend (shown in canvas wrap) ── */
 .cwk-diff-legend {
   position: absolute; bottom: 10px; left: 12px;
