@@ -1,63 +1,105 @@
-<div class="page" id="page-attr-defs" style="padding:0;background:#f0f4f8;align-items:stretch;flex-direction:column;">
+<div class="page" id="page-attr-defs" style="padding:0;background:#f8fafc;align-items:stretch;flex-direction:column;">
+
   <div class="page-header">
     <div>
-      <h1 class="ph-title" data-i18n="attr.title">Attribute Tanımları</h1>
-      <p class="ph-sub" data-i18n="attr.sub">Ürünlere özel alanlar tanımlayın</p>
+      <h1 class="ph-title">Attribute Tanımları</h1>
+      <p class="ph-sub">Ürünlere özel alanlar tanımlayın</p>
     </div>
-    <button class="adf-add-trigger" onclick="adfToggleForm()">
-      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    <button class="adf-add-btn" onclick="adfOpenModal()">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       Yeni Attribute
     </button>
   </div>
 
-  <div style="padding:24px 32px;max-width:880px;width:100%;display:flex;flex-direction:column;gap:16px">
+  <div style="padding:24px 28px;flex:1;overflow-y:auto">
+    <div class="adf-table-wrap">
+      <table class="adf-table">
+        <thead>
+          <tr>
+            <th>ALAN ADI</th>
+            <th>TİP</th>
+            <th>BİRİM</th>
+            <th>ZORUNLU</th>
+            <th>SEÇENEKLER</th>
+            <th style="width:48px"></th>
+          </tr>
+        </thead>
+        <tbody id="attrDefList">
+          <tr><td colspan="6" class="adf-loading">Yükleniyor…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 
-    <!-- Add form -->
-    <div class="adf-form-card" id="adfFormCard" style="display:none">
-      <div class="adf-form-title">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="4" rx="1"/><rect x="3" y="10" width="18" height="4" rx="1"/><rect x="3" y="17" width="18" height="4" rx="1"/><line x1="7" y1="5" x2="7" y2="5.01"/><line x1="7" y1="12" x2="7" y2="12.01"/><line x1="7" y1="19" x2="7" y2="19.01"/></svg>
-        Yeni Alan Tanımla
+  <!-- Modal -->
+  <div class="adf-overlay" id="adfOverlay" onclick="if(event.target===this)adfCloseModal()">
+    <div class="adf-modal">
+      <div class="adf-modal-head">
+        <span class="adf-modal-title">Yeni Attribute</span>
+        <button class="adf-modal-x" onclick="adfCloseModal()">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
       </div>
-      <div class="adf-form-grid">
-        <div class="adf-form-group adf-span2">
-          <label class="adf-label">Alan Adı <span style="color:#ef4444">*</span></label>
-          <input id="attrNameInput" type="text" maxlength="100" placeholder="Örn: Malzeme, Revizyon No..." class="adf-input">
+      <div class="adf-modal-body">
+        <div class="adf-field">
+          <label class="adf-lbl">Alan Adı <span class="adf-req">*</span></label>
+          <input id="attrNameInput" type="text" maxlength="100" placeholder="Örn: Malzeme, Revizyon No…" class="adf-inp">
         </div>
-        <div class="adf-form-group">
-          <label class="adf-label">Veri Tipi</label>
-          <select id="attrTypeSelect" class="adf-input" onchange="adfTypeChange()">
-            <option value="text">Metin</option>
-            <option value="number">Sayı</option>
-            <option value="boolean">Evet / Hayır</option>
-            <option value="select">Seçenek Listesi</option>
-          </select>
+        <div class="adf-field">
+          <label class="adf-lbl">Veri Tipi</label>
+          <div class="adf-type-grid">
+            <label class="adf-type-opt" data-val="text">
+              <input type="radio" name="attrType" value="text" checked>
+              <span class="adf-type-icon" style="background:#eff6ff">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/></svg>
+              </span>
+              <span class="adf-type-label">Metin</span>
+            </label>
+            <label class="adf-type-opt" data-val="number">
+              <input type="radio" name="attrType" value="number">
+              <span class="adf-type-icon" style="background:#f3e8ff">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg>
+              </span>
+              <span class="adf-type-label">Sayı</span>
+            </label>
+            <label class="adf-type-opt" data-val="boolean">
+              <input type="radio" name="attrType" value="boolean">
+              <span class="adf-type-icon" style="background:#f0fdf4">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="7" width="22" height="10" rx="5"/><circle cx="16" cy="12" r="3" fill="#16a34a" stroke="none"/></svg>
+              </span>
+              <span class="adf-type-label">Evet/Hayır</span>
+            </label>
+            <label class="adf-type-opt" data-val="select">
+              <input type="radio" name="attrType" value="select">
+              <span class="adf-type-icon" style="background:#fff7ed">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#ea580c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+              </span>
+              <span class="adf-type-label">Seçenek</span>
+            </label>
+          </div>
         </div>
-        <div class="adf-form-group">
-          <label class="adf-label">Birim <span class="adf-label-hint">(opsiyonel)</span></label>
-          <input id="attrUnitInput" type="text" maxlength="50" placeholder="mm, kg, °C..." class="adf-input">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div class="adf-field">
+            <label class="adf-lbl">Birim <span class="adf-hint">(opsiyonel)</span></label>
+            <input id="attrUnitInput" type="text" maxlength="50" placeholder="mm, kg, °C…" class="adf-inp">
+          </div>
+          <div class="adf-field" id="adfOptionsRow" style="display:none">
+            <label class="adf-lbl">Seçenekler <span class="adf-hint">(virgülle ayır)</span></label>
+            <input id="attrOptionsInput" type="text" placeholder="A, B, C…" class="adf-inp">
+          </div>
         </div>
-        <div class="adf-form-group adf-span2" id="adfOptionsRow" style="display:none">
-          <label class="adf-label">Seçenekler <span class="adf-label-hint">(virgülle ayırın)</span></label>
-          <input id="attrOptionsInput" type="text" placeholder="Örn: Taslak, İncelemede, Onaylı" class="adf-input">
-        </div>
-      </div>
-      <div class="adf-form-footer">
-        <label class="adf-check-label">
-          <input type="checkbox" id="attrRequiredChk" class="adf-check">
+        <label class="adf-check-row">
+          <input type="checkbox" id="attrRequiredChk" class="adf-chk">
           <span>Zorunlu alan</span>
+          <span class="adf-hint" style="margin-left:auto">Dosyalar bu alanı doldurmak zorunda olacak</span>
         </label>
-        <div style="display:flex;gap:8px;align-items:center">
-          <div id="attrAddMsg" style="font-size:12px;color:#ef4444;display:none"></div>
-          <button class="adf-btn-cancel" onclick="adfToggleForm()">İptal</button>
-          <button class="adf-btn-save" onclick="addAttrDef()">
-            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            Attribute Ekle
-          </button>
-        </div>
+        <div id="attrAddMsg" style="font-size:12px;color:#ef4444;display:none;margin-top:-4px"></div>
+      </div>
+      <div class="adf-modal-foot">
+        <button class="adf-foot-cancel" onclick="adfCloseModal()">İptal</button>
+        <button class="adf-foot-save" onclick="addAttrDef()">Attribute Ekle</button>
       </div>
     </div>
-
-    <!-- List -->
-    <div id="attrDefList"></div>
   </div>
+
 </div>
