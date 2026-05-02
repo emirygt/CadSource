@@ -485,86 +485,67 @@ const CWK_LABELS = {
   reject:     'Uygun Değil',
 };
 
-function cwkDecision(type, el) {
+async function cwkDecision(type, el) {
+  // Önceki seçimi temizle
+  document.querySelectorAll('.cwk-decision-btn').forEach(b => {
+    b.classList.remove('primary', 'cwk-dec-saving', 'cwk-dec-done', 'cwk-dec-err');
+    b.disabled = false;
+  });
+
+  if (!el) return;
   cwkState.decision = type;
-  document.querySelectorAll('.cwk-decision-btn').forEach(b => b.classList.remove('primary'));
-  if (el) el.classList.add('primary');
-
-  // Show inline feedback panel
-  let panel = document.getElementById('cwkFeedbackPanel');
-  if (!panel) return;
-
-  const label = CWK_LABELS[type] || type;
-  const icons = { usable: '✓', substitute: 'ℹ', reject: '✕' };
-  const colors = { usable: '#16a34a', substitute: '#2563eb', reject: '#dc2626' };
-
-  panel.innerHTML = `
-    <div class="cwkfp-header">
-      <span class="cwkfp-icon" style="color:${colors[type]}">${icons[type]}</span>
-      <span class="cwkfp-label" style="color:${colors[type]}">${label}</span>
-    </div>
-    <textarea class="cwkfp-notes" id="cwkFeedbackNotes" placeholder="İsteğe bağlı not ekleyin… (mühendis yorumu, revizyon numarası vb.)" rows="3"></textarea>
-    <div class="cwkfp-actions">
-      <button class="cwkfp-save" onclick="cwkSaveDecision()">Kaydet</button>
-      <button class="cwkfp-cancel" onclick="cwkCancelDecision()">İptal</button>
-    </div>
-    <div class="cwkfp-status" id="cwkFeedbackStatus"></div>`;
-  panel.classList.add('open');
-}
-
-function cwkCancelDecision() {
-  cwkState.decision = null;
-  document.querySelectorAll('.cwk-decision-btn').forEach(b => b.classList.remove('primary'));
-  const panel = document.getElementById('cwkFeedbackPanel');
-  if (panel) { panel.classList.remove('open'); panel.innerHTML = ''; }
-}
-
-async function cwkSaveDecision() {
-  const type = cwkState.decision;
-  if (!type) return;
-
-  const notes    = (document.getElementById('cwkFeedbackNotes')?.value || '').trim();
-  const statusEl = document.getElementById('cwkFeedbackStatus');
-  const saveBtn  = document.querySelector('.cwkfp-save');
-  if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'Kaydediliyor…'; }
+  el.classList.add('primary', 'cwk-dec-saving');
+  el.disabled = true;
 
   try {
-    const body = {
-      reference_filename: cwkState.refData.name,
-      compared_file_id:   cwkState.cmpItem.id || null,
-      compared_filename:  cwkState.cmpItem.filename,
-      similarity_score:   Number(cwkState.cmpItem.similarity || 0),
-      decision_type:      type,
-      decision_label:     CWK_LABELS[type] || type,
-      notes:              notes || null,
-    };
-
     const r = await fetch(`${API}/decisions`, {
       method: 'POST',
       headers: { ...authH(), 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
+      body: JSON.stringify({
+        reference_filename: cwkState.refData.name,
+        compared_file_id:   cwkState.cmpItem.id || null,
+        compared_filename:  cwkState.cmpItem.filename,
+        similarity_score:   Number(cwkState.cmpItem.similarity || 0),
+        decision_type:      type,
+        decision_label:     CWK_LABELS[type] || type,
+        notes:              null,
+      }),
     });
-
     if (!r.ok) throw new Error((await r.json().catch(() => ({}))).detail || r.status);
 
-    const data = await r.json();
-    const dateStr = data.decided_at
-      ? new Date(data.decided_at).toLocaleString('tr-TR', { dateStyle: 'short', timeStyle: 'short' })
-      : '';
-
-    if (statusEl) {
-      statusEl.innerHTML = `<span class="cwkfp-ok">✓ Kaydedildi${dateStr ? ' · ' + dateStr : ''}</span>`;
-    }
-    if (saveBtn) { saveBtn.textContent = '✓ Kaydedildi'; }
-
-    // Footer save button done state
-    const footerSave = document.querySelector('.cwk-footer-save');
-    if (footerSave) { footerSave.textContent = '✓ Kaydedildi'; footerSave.style.color = '#16a34a'; }
+    el.classList.remove('cwk-dec-saving');
+    el.classList.add('cwk-dec-done');
+    el.disabled = false;
+    cwkShowDecToast('✓ Karar kaydedildi — ' + (CWK_LABELS[type] || type));
 
   } catch (e) {
-    if (statusEl) statusEl.innerHTML = `<span class="cwkfp-err">Hata: ${e.message}</span>`;
-    if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Tekrar Dene'; }
+    el.classList.remove('primary', 'cwk-dec-saving');
+    el.classList.add('cwk-dec-err');
+    el.disabled = false;
+    cwkShowDecToast('Hata: ' + e.message, true);
   }
+}
+
+function cwkShowDecToast(msg, isErr = false) {
+  let t = document.getElementById('cwkDecToast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'cwkDecToast';
+    document.getElementById('compareModal').appendChild(t);
+  }
+  t.textContent = msg;
+  t.className = 'cwk-dec-toast' + (isErr ? ' err' : '');
+  t.style.opacity = '1';
+  clearTimeout(t._hide);
+  t._hide = setTimeout(() => { t.style.opacity = '0'; }, 2800);
+}
+
+function cwkSaveDecision() {
+  // footer "Kararı Kaydet" butonuna basıldığında seçili kararı tekrar kaydet
+  const type = cwkState.decision;
+  if (!type) { cwkShowDecToast('Önce bir karar seçin.', true); return; }
+  const btn = document.querySelector(`.cwk-decision-btn.cwk-dec-done, .cwk-decision-btn.primary`);
+  cwkDecision(type, btn);
 }
 
 function cwkDownloadPdf() {
