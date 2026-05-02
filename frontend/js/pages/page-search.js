@@ -419,11 +419,90 @@ function renderFigmaResultCard(r, index) {
         <button class="figma-btn primary" onclick="toggleCompare(${r.id})">${cmpActive ? '✓ Seçildi' : '⌘ Karşılaştır'}</button>
         <button class="figma-btn" style="color:#10b981;border-color:rgba(16,185,129,0.4)" onclick="openDiffModal(${r.id})">◐ Fark</button>
         <button class="figma-btn btn-3d" onclick="showDetailModal(${r.id},'model3d')"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg> 3D Gör</button>
-        <button class="figma-btn success" onclick="showDetailModal(${r.id})">☑ Karar Ver</button>
+        <button class="figma-btn success" id="qd-btn-${r.id}" onclick="openQuickDecision(${r.id},this)">☑ Karar Ver</button>
         ${favoriteButton(r, 'figma-btn icon-only')}
       </div>
     </div>
   </article>`;
+}
+
+// ── Hızlı Karar Dropdown ─────────────────────────────────────────────────────
+
+const _QD_OPTS = [
+  { type: 'usable',     icon: '✓', label: 'Kullanılabilir',  color: '#16a34a' },
+  { type: 'substitute', icon: 'ℹ', label: 'Muadil',          color: '#2563eb' },
+  { type: 'reject',     icon: '✕', label: 'Uygun Değil',     color: '#dc2626' },
+];
+
+function openQuickDecision(resultId, btn) {
+  // Varsa aynı dropdown'ı kapat
+  const existing = document.getElementById('qdDropdown');
+  if (existing) {
+    if (existing.dataset.rid === String(resultId)) { existing.remove(); return; }
+    existing.remove();
+  }
+
+  const data = searchState.results;
+  if (!data) return;
+  const r = (data.results || []).find(x => x.id === resultId);
+  if (!r) return;
+
+  const drop = document.createElement('div');
+  drop.id = 'qdDropdown';
+  drop.dataset.rid = resultId;
+  drop.className = 'qd-drop';
+  drop.innerHTML = _QD_OPTS.map(o => `
+    <button class="qd-opt" onclick="saveQuickDecision(${resultId},'${o.type}','${o.label}',this)"
+            style="--qd-color:${o.color}">
+      <span class="qd-opt-icon">${o.icon}</span>${o.label}
+    </button>`).join('');
+
+  // Kapat: dışarı tıklanınca
+  const onOut = e => { if (!drop.contains(e.target) && e.target !== btn) { drop.remove(); document.removeEventListener('click', onOut, true); } };
+  setTimeout(() => document.addEventListener('click', onOut, true), 0);
+
+  // Butona göre konumlandır
+  btn.insertAdjacentElement('afterend', drop);
+}
+
+async function saveQuickDecision(resultId, type, label, optBtn) {
+  const data = searchState.results;
+  if (!data) return;
+  const r = (data.results || []).find(x => x.id === resultId);
+  if (!r) return;
+
+  optBtn.disabled = true;
+  optBtn.textContent = '…';
+
+  try {
+    const res = await fetch(`${API}/decisions`, {
+      method: 'POST',
+      headers: { ...authH(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        reference_filename: data.query_file || 'Aranan Dosya',
+        compared_file_id:   r.id,
+        compared_filename:  r.filename,
+        similarity_score:   Number(r.similarity || 0),
+        decision_type:      type,
+        decision_label:     label,
+        notes:              null,
+      }),
+    });
+    if (!res.ok) throw new Error(res.status);
+
+    // Dropdown kapat, butonu güncelle
+    document.getElementById('qdDropdown')?.remove();
+    const cardBtn = document.getElementById(`qd-btn-${resultId}`);
+    if (cardBtn) {
+      cardBtn.textContent = '✓ ' + label;
+      cardBtn.style.cssText = 'color:#16a34a;border-color:rgba(34,197,94,0.5);cursor:default';
+      cardBtn.onclick = null;
+    }
+  } catch (e) {
+    optBtn.disabled = false;
+    optBtn.textContent = 'Hata!';
+    setTimeout(() => { optBtn.textContent = _QD_OPTS.find(o => o.type === type)?.label || label; optBtn.disabled = false; }, 1500);
+  }
 }
 
 function sortSearchResultsBy(value) {

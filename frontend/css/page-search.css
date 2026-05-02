@@ -873,3 +873,35 @@
     .crc-meta { font-size: 11px; color: #94a3b8; }
     .crc-fmt { display: inline-flex; padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; background: #f1f5f9; color: #475569; margin-top: 8px; }
 
+/* ── Quick-decision dropdown ── */
+.qd-drop {
+  position: absolute;
+  z-index: 300;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 9px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 160px;
+}
+.qd-opt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--qd-color, #374151);
+  transition: background 0.15s;
+  text-align: left;
+  width: 100%;
+}
+.qd-opt:hover { background: rgba(0,0,0,0.05); }
+.qd-opt-icon { font-size: 13px; }
