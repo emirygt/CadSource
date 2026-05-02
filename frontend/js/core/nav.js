@@ -108,7 +108,7 @@ function switchTab(name, skipHistory = false) {
 }
 
 // ── Path routing ──────────────────────────────────────────────────────────────
-const _VALID_PAGES = new Set(['search','db','approved','contour','cat','attr-defs','analytics','activity','duplicates','scan','image-editor','admin']);
+const _VALID_PAGES = new Set(['search','db','approved','contour','cat','attr-defs','analytics','activity','duplicates','scan','image-editor','admin','reports']);
 
 function _routeFromPath() {
   const name = location.pathname.slice(1);

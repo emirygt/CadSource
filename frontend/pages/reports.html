@@ -1,0 +1,77 @@
+<div class="page" id="page-reports">
+  <div class="page-header">
+    <div>
+      <h1 class="ph-title">Raporlar</h1>
+      <p class="ph-sub">Arşiv verilerini Excel veya CSV olarak indirin</p>
+    </div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:16px;max-width:760px;width:100%">
+
+    <!-- Dosya Arşivi -->
+    <div class="rp-card">
+      <div class="rp-icon" style="background:#eff6ff;color:#2f66eb">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+      </div>
+      <div class="rp-body">
+        <div class="rp-title">Dosya Arşivi Raporu</div>
+        <div class="rp-desc">Tüm indexlenmiş CAD dosyaları — kategori, format, entity/katman sayısı, boyut, durum, hash bilgileri</div>
+        <div class="rp-meta" id="rp-files-meta"></div>
+      </div>
+      <div class="rp-actions">
+        <select class="rp-fmt" id="rp-files-fmt">
+          <option value="xlsx">Excel (.xlsx)</option>
+          <option value="csv">CSV (.csv)</option>
+        </select>
+        <button class="rp-btn" onclick="downloadReport('files')">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4"/><path d="m7 11 5 5 5-5"/><path d="M20 16.5v2.5a2 2 0 01-2 2H6a2 2 0 01-2-2v-2.5"/></svg>
+          İndir
+        </button>
+      </div>
+    </div>
+
+    <!-- Mükerrer Kayıtlar -->
+    <div class="rp-card">
+      <div class="rp-icon" style="background:#fdf4ff;color:#9333ea">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="9" height="9" rx="1"/><rect x="13" y="2" width="9" height="9" rx="1"/><rect x="2" y="13" width="9" height="9" rx="1"/><rect x="13" y="13" width="9" height="9" rx="1"/></svg>
+      </div>
+      <div class="rp-body">
+        <div class="rp-title">Mükerrer Kayıtlar Raporu</div>
+        <div class="rp-desc">Tespit edilen tüm mükerrer gruplar — grup tipi, rol (original/duplicate), benzerlik skoru, sebep</div>
+        <div class="rp-meta" id="rp-duplicates-meta"></div>
+      </div>
+      <div class="rp-actions">
+        <select class="rp-fmt" id="rp-duplicates-fmt">
+          <option value="xlsx">Excel (.xlsx)</option>
+          <option value="csv">CSV (.csv)</option>
+        </select>
+        <button class="rp-btn" onclick="downloadReport('duplicates')">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4"/><path d="m7 11 5 5 5-5"/><path d="M20 16.5v2.5a2 2 0 01-2 2H6a2 2 0 01-2-2v-2.5"/></svg>
+          İndir
+        </button>
+      </div>
+    </div>
+
+    <!-- İş Geçmişi -->
+    <div class="rp-card">
+      <div class="rp-icon" style="background:#f0fdf4;color:#16a34a">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg>
+      </div>
+      <div class="rp-body">
+        <div class="rp-title">İş Geçmişi Raporu</div>
+        <div class="rp-desc">Tüm indexleme jobları — tip, durum, kullanıcı, başarı/hata sayıları, iş kalemleri (xlsx'te 2. sayfa)</div>
+        <div class="rp-meta" id="rp-jobs-meta"></div>
+      </div>
+      <div class="rp-actions">
+        <select class="rp-fmt" id="rp-jobs-fmt">
+          <option value="xlsx">Excel (.xlsx)</option>
+          <option value="csv">CSV (.csv)</option>
+        </select>
+        <button class="rp-btn" onclick="downloadReport('jobs')">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4"/><path d="m7 11 5 5 5-5"/><path d="M20 16.5v2.5a2 2 0 01-2 2H6a2 2 0 01-2-2v-2.5"/></svg>
+          İndir
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
