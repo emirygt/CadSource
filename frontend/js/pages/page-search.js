@@ -652,3 +652,79 @@ function drawPreview(canvas, result) {
   ctx.globalAlpha = 1;
 }
 
+function searchSetTab(tab) {
+  const isUpload = tab === 'upload';
+  const stabUpload = document.getElementById('stabUpload');
+  const stabCode = document.getElementById('stabCode');
+  if (stabUpload) stabUpload.classList.toggle('active', isUpload);
+  if (stabCode) stabCode.classList.toggle('active', !isUpload);
+
+  const uploadZone = document.getElementById('uploadZone');
+  if (uploadZone) uploadZone.style.display = isUpload ? '' : 'none';
+
+  const preview = document.getElementById('sidebarPreview');
+  if (preview && !isUpload) preview.style.display = 'none';
+
+  const settingsCard = document.querySelector('#page-search .search-settings-card');
+  if (settingsCard) settingsCard.style.display = isUpload ? '' : 'none';
+
+  const searchBtn = document.getElementById('searchBtn');
+  if (searchBtn) searchBtn.style.display = isUpload ? '' : 'none';
+
+  const searchBtnNote = document.getElementById('searchBtnNote');
+  if (searchBtnNote) searchBtnNote.style.display = isUpload ? '' : 'none';
+
+  const codePanel = document.getElementById('searchCodePanel');
+  if (codePanel) codePanel.style.display = isUpload ? 'none' : '';
+}
+
+async function doCodeSearch() {
+  const input = document.getElementById('codeSearchInput');
+  const q = input ? input.value.trim() : '';
+  if (!q) return;
+
+  const status = document.getElementById('codeSearchStatus');
+  const grid = document.getElementById('codeSearchResults');
+  if (status) status.textContent = 'Aranıyor...';
+  if (grid) grid.innerHTML = '';
+
+  try {
+    const r = await fetch(`${API}/files?search=${encodeURIComponent(q)}&per_page=30`, { headers: authH() });
+    if (r.status === 401) { logout(); return; }
+    const d = await r.json();
+    const files = Array.isArray(d) ? d : (d.files || d.items || []);
+
+    if (!files.length) {
+      if (status) status.textContent = `"${q}" için sonuç bulunamadı`;
+      return;
+    }
+    if (status) status.textContent = `${files.length} sonuç bulundu`;
+    if (grid) grid.innerHTML = files.map(f => `
+      <div class="code-result-card" onclick="openDetailModal && openDetailModal(${f.id})">
+        <div class="crc-name">${f.filename}</div>
+        <div class="crc-meta">${f.entity_count || 0} entity · ${f.layer_count || 0} katman</div>
+        <span class="crc-fmt">${(f.file_format || 'DXF').toUpperCase()}</span>
+      </div>
+    `).join('');
+  } catch {
+    if (status) status.textContent = 'Hata oluştu';
+  }
+}
+
+async function loadSearchHeroStats() {
+  try {
+    const r = await fetch(`${API}/stats`, { headers: authH() });
+    if (!r.ok) return;
+    const d = await r.json();
+    const el = document.getElementById('heroStatFiles');
+    if (el) el.textContent = Number(d.total_files || 0).toLocaleString('tr-TR');
+  } catch {}
+  try {
+    const r2 = await fetch(`${API}/admin/stats`, { headers: authH() });
+    if (!r2.ok) return;
+    const d2 = await r2.json();
+    const el2 = document.getElementById('heroStatMonth');
+    if (el2) el2.textContent = Number(d2.monthly_ops || 0).toLocaleString('tr-TR');
+  } catch {}
+}
+

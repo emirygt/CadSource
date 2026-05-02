@@ -730,5 +730,142 @@
       .figma-result-preview { width:100%; height:270px; }
       .figma-score-box { justify-self:start; }
       .search-results-top { align-items:flex-start; flex-direction:column; }
+      .s-hero { flex-direction:column; gap:16px; }
+      .s-hero-stats { width:100%; }
     }
+
+    /* ── Hero banner ── */
+    .s-hero {
+      background: linear-gradient(135deg, #0f1d3a 0%, #162840 55%, #1a3458 100%);
+      border-radius: 16px;
+      padding: 28px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 24px;
+      margin-bottom: 20px;
+    }
+    .s-ai-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255,255,255,.09);
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 10px;
+      font-weight: 700;
+      color: rgba(255,255,255,.65);
+      letter-spacing: .07em;
+      margin-bottom: 10px;
+    }
+    .s-hero-title {
+      font-size: 24px !important;
+      font-weight: 800 !important;
+      color: #fff !important;
+      margin: 0 0 8px !important;
+      letter-spacing: -.02em;
+    }
+    .s-hero-sub {
+      color: rgba(255,255,255,.55) !important;
+      font-size: 14px !important;
+      max-width: 440px;
+      margin: 0 !important;
+      line-height: 1.5;
+    }
+    .s-hero-stats { display: flex; gap: 10px; flex-shrink: 0; }
+    .s-hstat {
+      background: rgba(255,255,255,.07);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 12px;
+      padding: 14px 18px;
+      text-align: center;
+      min-width: 84px;
+    }
+    .s-hstat-icon {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      background: rgba(255,255,255,.1);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 8px;
+    }
+    .s-hstat-num { font-size: 18px; font-weight: 800; color: #fff; line-height: 1; margin-bottom: 4px; }
+    .s-hstat-label { font-size: 11px; color: rgba(255,255,255,.5); font-weight: 600; }
+
+    /* ── Search type tabs ── */
+    .s-type-tabs {
+      display: flex;
+      gap: 4px;
+      background: #f1f5f9;
+      border-radius: 10px;
+      padding: 4px;
+    }
+    .s-ttab {
+      flex: 1;
+      padding: 9px 16px;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #64748b;
+      background: transparent;
+      cursor: pointer;
+      transition: .15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+    .s-ttab.active { background: #fff; color: #0f172a; box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+    .s-ttab:hover:not(.active) { color: #334155; background: rgba(255,255,255,.5); }
+
+    /* ── Code search panel ── */
+    .code-search-input-row { display: flex; gap: 8px; }
+    .code-search-input {
+      flex: 1;
+      padding: 12px 16px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 10px;
+      font-size: 14px;
+      color: #0f172a;
+      outline: none;
+      transition: .15s;
+      background: #fff;
+    }
+    .code-search-input:focus { border-color: #2f66eb; box-shadow: 0 0 0 3px rgba(47,102,235,.1); }
+    .code-search-btn {
+      padding: 12px 20px;
+      background: #2f66eb;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+      transition: .15s;
+    }
+    .code-search-btn:hover { background: #1d4ed8; }
+    .code-results-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+      gap: 10px;
+      margin-top: 8px;
+    }
+    .code-result-card {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 14px;
+      cursor: pointer;
+      transition: .15s;
+    }
+    .code-result-card:hover { border-color: #2f66eb; box-shadow: 0 4px 12px rgba(47,102,235,.1); transform: translateY(-1px); }
+    .crc-name { font-size: 13px; font-weight: 700; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 3px; }
+    .crc-meta { font-size: 11px; color: #94a3b8; }
+    .crc-fmt { display: inline-flex; padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; background: #f1f5f9; color: #475569; margin-top: 8px; }
 

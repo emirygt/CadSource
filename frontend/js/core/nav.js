@@ -88,7 +88,7 @@ function switchTab(name, skipHistory = false) {
   document.getElementById('page-' + name).classList.add('active');
   if (!skipHistory) history.pushState({ page: name }, '', '/' + name);
   if (name === 'db')        { loadDbFiles(); loadCategoriesIntoSelect(); loadDbAttrDefs(); }
-  if (name === 'search')    { loadCategoriesIntoSelect(); loadHistory(); setTimeout(initSearchControls, 0); }
+  if (name === 'search')    { loadCategoriesIntoSelect(); loadHistory(); setTimeout(initSearchControls, 0); setTimeout(loadSearchHeroStats, 0); }
   if (name === 'approved')  { setProductsViewMode('split'); loadApprovedFiles(); }
   if (name === 'contour')   initContourTab();
   if (name === 'cat')       loadCategories();
