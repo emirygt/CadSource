@@ -348,6 +348,24 @@ function cwkSetTab(mode) {
   cwkRenderCanvas();
 }
 
+// Draws an image with object-fit:contain behavior into a region
+function cwkDrawContain(ctx, img, x, y, w, h) {
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(x, y, w, h);
+  if (!img || !img.naturalWidth) return;
+  const ir = img.naturalWidth / img.naturalHeight;
+  const cr = w / h;
+  let dw, dh, dx, dy;
+  if (ir > cr) {
+    dw = w; dh = w / ir;
+    dx = x; dy = y + (h - dh) / 2;
+  } else {
+    dh = h; dw = h * ir;
+    dx = x + (w - dw) / 2; dy = y;
+  }
+  ctx.drawImage(img, dx, dy, dw, dh);
+}
+
 function cwkRenderCanvas() {
   const canvas = document.getElementById('cwkCanvas');
   if (!canvas || canvas.style.display === 'none') return;
@@ -357,18 +375,14 @@ function cwkRenderCanvas() {
   const hasRef = imgRef && imgRef.complete && imgRef.naturalWidth > 0;
   const hasCmp = imgCmp && imgCmp.complete && imgCmp.naturalWidth > 0;
 
-  const W = 680;
-  let ratio = 1;
-  if (hasRef && hasCmp) {
-    ratio = ((imgRef.naturalHeight / imgRef.naturalWidth) + (imgCmp.naturalHeight / imgCmp.naturalWidth)) / 2;
-  } else if (hasRef) {
-    ratio = imgRef.naturalHeight / imgRef.naturalWidth;
-  } else if (hasCmp) {
-    ratio = imgCmp.naturalHeight / imgCmp.naturalWidth;
-  }
-  const H = Math.round(W * Math.max(0.3, Math.min(ratio, 2)));
+  // Fill the container — read actual dimensions
+  const wrap = document.getElementById('cwkCanvasWrap');
+  const W = Math.max(200, wrap.clientWidth  - 2);
+  const H = Math.max(150, wrap.clientHeight - 2);
   canvas.width  = W;
   canvas.height = H;
+  canvas.style.width  = W + 'px';
+  canvas.style.height = H + 'px';
 
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
   ctx.fillStyle = '#f8fafc';
@@ -377,27 +391,27 @@ function cwkRenderCanvas() {
   const mode = cwkState.mode;
 
   if (mode === 'onlyA') {
-    if (hasRef) ctx.drawImage(imgRef, 0, 0, W, H);
+    cwkDrawContain(ctx, hasRef ? imgRef : null, 0, 0, W, H);
     return;
   }
   if (mode === 'onlyB') {
-    if (hasCmp) ctx.drawImage(imgCmp, 0, 0, W, H);
+    cwkDrawContain(ctx, hasCmp ? imgCmp : null, 0, 0, W, H);
     return;
   }
   if (mode === 'side') {
-    const half = W / 2;
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, W, H);
-    if (hasRef) ctx.drawImage(imgRef, 0, 0, half, H);
-    if (hasCmp) ctx.drawImage(imgCmp, half, 0, half, H);
-    ctx.strokeStyle = '#e2e8f0';
-    ctx.lineWidth = 1;
+    const half = Math.floor(W / 2);
+    ctx.fillStyle = '#f8fafc'; ctx.fillRect(0, 0, W, H);
+    cwkDrawContain(ctx, hasRef ? imgRef : null, 0,      0, half - 1, H);
+    cwkDrawContain(ctx, hasCmp ? imgCmp : null, half + 1, 0, W - half - 1, H);
+    // divider
+    ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.moveTo(half, 0); ctx.lineTo(half, H); ctx.stroke();
-    ctx.font = '11px DM Sans,sans-serif';
-    ctx.fillStyle = '#94a3b8';
+    // labels
+    ctx.font = '600 11px DM Sans,sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('REFERANS', half / 2, 18);
-    ctx.fillText('SONUÇ', half + half / 2, 18);
+    ctx.fillStyle = 'rgba(100,116,139,0.8)';
+    ctx.fillText('REFERANS', half / 2, 20);
+    ctx.fillText('SONUÇ', half + (W - half) / 2, 20);
     return;
   }
 
