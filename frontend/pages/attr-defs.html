@@ -1,41 +1,63 @@
-<div class="page" id="page-attr-defs" style="padding:0; background:#f8fafc; align-items:stretch; flex-direction:column;">
+<div class="page" id="page-attr-defs" style="padding:0;background:#f0f4f8;align-items:stretch;flex-direction:column;">
   <div class="page-header">
     <div>
       <h1 class="ph-title" data-i18n="attr.title">Attribute Tanımları</h1>
       <p class="ph-sub" data-i18n="attr.sub">Ürünlere özel alanlar tanımlayın</p>
     </div>
+    <button class="adf-add-trigger" onclick="adfToggleForm()">
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Yeni Attribute
+    </button>
   </div>
-  <div style="padding:32px; max-width:900px; width:100%; margin:0 auto;">
 
-    <!-- Yeni tanım ekle -->
-    <div class="cat-add-card" style="margin-bottom:24px">
-      <h2 style="font-size:15px;font-weight:600;margin-bottom:14px">Yeni Attribute</h2>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start">
-        <input id="attrNameInput" type="text" maxlength="100"
-          data-i18n-placeholder="attr.new_name" placeholder="Alan adı..."
-          style="flex:1;min-width:150px;font-family:inherit;font-size:13px;padding:8px 12px;border:1px solid #e2e8f0;border-radius:8px;outline:none">
-        <select id="attrTypeSelect" style="font-family:inherit;font-size:13px;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;background:#fff;outline:none">
-          <option value="text" data-i18n="attr.type_text">Metin</option>
-          <option value="number" data-i18n="attr.type_number">Sayı</option>
-          <option value="boolean" data-i18n="attr.type_boolean">Evet/Hayır</option>
-          <option value="select" data-i18n="attr.type_select">Seçenek</option>
-        </select>
-        <input id="attrUnitInput" type="text" maxlength="50"
-          data-i18n-placeholder="attr.unit_placeholder" placeholder="Birim (mm, kg...)"
-          style="width:130px;font-family:inherit;font-size:13px;padding:8px 12px;border:1px solid #e2e8f0;border-radius:8px;outline:none">
-        <input id="attrOptionsInput" type="text"
-          data-i18n-placeholder="attr.options_placeholder" placeholder="Seçenekler (virgülle ayır)"
-          style="width:200px;font-family:inherit;font-size:13px;padding:8px 12px;border:1px solid #e2e8f0;border-radius:8px;outline:none"
-          title="Sadece 'Seçenek' tipi için">
-        <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;white-space:nowrap">
-          <input type="checkbox" id="attrRequiredChk"> <span data-i18n="attr.required">Zorunlu</span>
-        </label>
-        <button class="btn-primary" onclick="addAttrDef()" data-i18n="attr.add">Ekle</button>
+  <div style="padding:24px 32px;max-width:880px;width:100%;display:flex;flex-direction:column;gap:16px">
+
+    <!-- Add form -->
+    <div class="adf-form-card" id="adfFormCard" style="display:none">
+      <div class="adf-form-title">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="4" rx="1"/><rect x="3" y="10" width="18" height="4" rx="1"/><rect x="3" y="17" width="18" height="4" rx="1"/><line x1="7" y1="5" x2="7" y2="5.01"/><line x1="7" y1="12" x2="7" y2="12.01"/><line x1="7" y1="19" x2="7" y2="19.01"/></svg>
+        Yeni Alan Tanımla
       </div>
-      <div id="attrAddMsg" style="margin-top:8px;font-size:12px;display:none"></div>
+      <div class="adf-form-grid">
+        <div class="adf-form-group adf-span2">
+          <label class="adf-label">Alan Adı <span style="color:#ef4444">*</span></label>
+          <input id="attrNameInput" type="text" maxlength="100" placeholder="Örn: Malzeme, Revizyon No..." class="adf-input">
+        </div>
+        <div class="adf-form-group">
+          <label class="adf-label">Veri Tipi</label>
+          <select id="attrTypeSelect" class="adf-input" onchange="adfTypeChange()">
+            <option value="text">Metin</option>
+            <option value="number">Sayı</option>
+            <option value="boolean">Evet / Hayır</option>
+            <option value="select">Seçenek Listesi</option>
+          </select>
+        </div>
+        <div class="adf-form-group">
+          <label class="adf-label">Birim <span class="adf-label-hint">(opsiyonel)</span></label>
+          <input id="attrUnitInput" type="text" maxlength="50" placeholder="mm, kg, °C..." class="adf-input">
+        </div>
+        <div class="adf-form-group adf-span2" id="adfOptionsRow" style="display:none">
+          <label class="adf-label">Seçenekler <span class="adf-label-hint">(virgülle ayırın)</span></label>
+          <input id="attrOptionsInput" type="text" placeholder="Örn: Taslak, İncelemede, Onaylı" class="adf-input">
+        </div>
+      </div>
+      <div class="adf-form-footer">
+        <label class="adf-check-label">
+          <input type="checkbox" id="attrRequiredChk" class="adf-check">
+          <span>Zorunlu alan</span>
+        </label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <div id="attrAddMsg" style="font-size:12px;color:#ef4444;display:none"></div>
+          <button class="adf-btn-cancel" onclick="adfToggleForm()">İptal</button>
+          <button class="adf-btn-save" onclick="addAttrDef()">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Attribute Ekle
+          </button>
+        </div>
+      </div>
     </div>
 
-    <!-- Liste -->
+    <!-- List -->
     <div id="attrDefList"></div>
   </div>
 </div>

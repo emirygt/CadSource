@@ -8,23 +8,65 @@ async function loadAttrDefs() {
   renderAttrDefList();
 }
 
+const _ADF_TYPE = {
+  text:    { label: 'Metin',           cls: 'adf-badge-text',    accent: '#3b82f6', iconBg: '#eff6ff', icon: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/></svg>' },
+  number:  { label: 'Sayı',            cls: 'adf-badge-number',  accent: '#8b5cf6', iconBg: '#f3e8ff', icon: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg>' },
+  boolean: { label: 'Evet / Hayır',    cls: 'adf-badge-boolean', accent: '#22c55e', iconBg: '#f0fdf4', icon: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#15803d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="7" width="22" height="10" rx="5"/><circle cx="16" cy="12" r="3" fill="#15803d" stroke="none"/></svg>' },
+  select:  { label: 'Seçenek Listesi', cls: 'adf-badge-select',  accent: '#f97316', iconBg: '#fff7ed', icon: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#c2410c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>' },
+};
+
 function renderAttrDefList() {
   const el = document.getElementById('attrDefList');
   if (!el) return;
   if (!_attrDefs.length) {
-    el.innerHTML = `<p style="color:#94a3b8;font-size:13px">${t('attr.empty') || 'Henüz attribute tanımlanmadı.'}</p>`;
+    el.innerHTML = `<div class="adf-empty">
+      <div class="adf-empty-icon"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="4" rx="1"/><rect x="3" y="10" width="18" height="4" rx="1"/><rect x="3" y="17" width="18" height="4" rx="1"/></svg></div>
+      <div class="adf-empty-title">Henüz attribute tanımlanmadı</div>
+      <div class="adf-empty-sub">Ürünlerinize özel alanlar ekleyerek detaylı bilgi saklayın</div>
+    </div>`;
     return;
   }
-  const typeLabel = { text: 'Metin', number: 'Sayı', boolean: 'Evet/Hayır', select: 'Seçenek' };
-  el.innerHTML = `<div style="display:flex;flex-direction:column;gap:8px">${_attrDefs.map(d => `
-    <div style="display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:12px 16px">
-      <div style="flex:1;font-size:13px;font-weight:600;color:#0f172a">${escHtml(d.name)}</div>
-      <span style="font-size:11px;background:#f1f5f9;border-radius:5px;padding:2px 8px;color:#475569">${typeLabel[d.data_type] || d.data_type}</span>
-      ${d.unit ? `<span style="font-size:11px;color:#64748b">${escHtml(d.unit)}</span>` : ''}
-      ${d.required ? `<span style="font-size:11px;color:#dc2626">Zorunlu</span>` : ''}
-      ${d.options?.length ? `<span style="font-size:11px;color:#94a3b8">${d.options.map(o => escHtml(o)).join(', ')}</span>` : ''}
-      <button onclick="deleteAttrDef(${d.id})" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:16px;padding:0 4px;line-height:1" title="Sil">×</button>
-    </div>`).join('')}</div>`;
+  el.innerHTML = `<div style="display:flex;flex-direction:column;gap:10px">${_attrDefs.map(d => {
+    const tp = _ADF_TYPE[d.data_type] || _ADF_TYPE.text;
+    const chips = (d.options || []).map(o => `<span class="adf-option-chip">${escHtml(o)}</span>`).join('');
+    return `<div class="adf-item">
+      <div class="adf-item-accent" style="background:${tp.accent}"></div>
+      <div class="adf-drag-handle" title="Sıralama">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="18" x2="16" y2="18"/></svg>
+      </div>
+      <div class="adf-item-body">
+        <div class="adf-item-icon" style="background:${tp.iconBg}">${tp.icon}</div>
+        <div style="flex:1;min-width:0">
+          <div class="adf-item-name">${escHtml(d.name)}</div>
+          <div class="adf-item-meta">
+            <span class="adf-badge ${tp.cls}">${tp.label}</span>
+            ${d.required ? `<span class="adf-badge adf-badge-required">Zorunlu</span>` : ''}
+            ${d.unit ? `<span class="adf-badge adf-badge-unit">${escHtml(d.unit)}</span>` : ''}
+            ${chips ? `<div class="adf-options-chips">${chips}</div>` : ''}
+          </div>
+        </div>
+      </div>
+      <div class="adf-item-actions">
+        <button class="adf-del-btn" onclick="deleteAttrDef(${d.id})" title="Sil">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+        </button>
+      </div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+function adfToggleForm() {
+  const card = document.getElementById('adfFormCard');
+  if (!card) return;
+  const open = card.style.display === 'none' || card.style.display === '';
+  card.style.display = open ? '' : 'none';
+  if (open) setTimeout(() => document.getElementById('attrNameInput')?.focus(), 50);
+}
+
+function adfTypeChange() {
+  const type = document.getElementById('attrTypeSelect')?.value;
+  const row = document.getElementById('adfOptionsRow');
+  if (row) row.style.display = type === 'select' ? '' : 'none';
 }
 
 async function addAttrDef() {
@@ -45,7 +87,11 @@ async function addAttrDef() {
   document.getElementById('attrUnitInput').value = '';
   document.getElementById('attrOptionsInput').value = '';
   document.getElementById('attrRequiredChk').checked = false;
+  document.getElementById('attrTypeSelect').value = 'text';
+  adfTypeChange();
   msg.style.display = 'none';
+  const card = document.getElementById('adfFormCard');
+  if (card) card.style.display = 'none';
   await loadAttrDefs();
 }
 
