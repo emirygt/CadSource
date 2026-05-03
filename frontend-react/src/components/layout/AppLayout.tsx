@@ -3,13 +3,29 @@ import Sidebar from './Sidebar'
 import Topbar from './Topbar'
 
 const PAGE_TITLES: Record<string, string> = {
-  '/search':     'Benzerlik Arama',
-  '/products':   'Ürünler',
-  '/molds':      'Kalıplar',
-  '/requests':   'Talepler',
-  '/categories': 'Kategoriler',
-  '/decisions':  'Kararlar',
-  '/dashboard':  'Dashboard',
+  '/search':           'Arama',
+  '/compare':          'Karşılaştırma',
+  '/filter':           'Filtreleme',
+  '/upload':           'Yükleme & Arşivleme',
+  '/library':          'Profil / Kalıp Havuzu',
+  '/categories':       'Kategoriler & Etiketler',
+  '/attr-defs':        'Attribute Tanımları',
+  '/duplicates':       'Mükerrer Kayıtlar',
+  '/contour':          'Fotoğraftan Kontura',
+  '/scan':             'Numuneden Çizime Hazırlık',
+  '/cad-pro':          'CAD Pro Editörü',
+  '/image-editor':     'Görsel Editörü',
+  '/reports':          'Raporlar',
+  '/decisions':        'Karar Kayıtları',
+  '/analytics':        'Tasarruf / ROI',
+  '/executive-report': 'Yönetici Raporu',
+  '/products':         'Ürünler',
+  '/molds':            'Kalıplar',
+  '/requests':         'Talepler',
+  '/admin':            'Kullanıcılar',
+  '/admin-roles':      'Roller & İzinler',
+  '/logs':             'Loglar',
+  '/dashboard':        'Dashboard',
 }
 
 export default function AppLayout() {
