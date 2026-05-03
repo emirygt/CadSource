@@ -66,6 +66,17 @@ function setActiveNav(el) {
   }
 }
 
+function toggleSidebar() {
+  const collapsed = document.body.classList.toggle('sidebar-collapsed');
+  localStorage.setItem('sidebar-collapsed', collapsed ? '1' : '0');
+}
+
+(function() {
+  if (localStorage.getItem('sidebar-collapsed') === '1') {
+    document.body.classList.add('sidebar-collapsed');
+  }
+})();
+
 function toggleNavGroup(name) {
   const menu = document.getElementById('navGroup-' + name);
   const parent = document.getElementById('navGroupBtn-' + name);
