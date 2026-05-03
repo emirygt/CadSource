@@ -324,51 +324,47 @@ async function showDetailModal(fileId, tab) {
       <div class="detail-sections" style="padding:0">
       <!-- ÖNIZLEME TAB -->
       <div id="dtPreview" class="detail-tab-panel active">
-        <div style="display:flex;justify-content:flex-end;gap:6px;margin-bottom:8px">
-          <button onclick="zoomDetail(0.3)" style="padding:4px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;cursor:pointer;background:#fff">+</button>
-          <button onclick="zoomDetail(-0.3)" style="padding:4px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;cursor:pointer;background:#fff">−</button>
-          <button onclick="resetDetailZoom()" style="padding:4px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;cursor:pointer;background:#fff">Sıfırla</button>
-        </div>
         <div class="preview-zoom-wrap" id="previewZoomWrap">
           <div class="preview-zoom-inner" id="previewZoomInner">${previewContent}</div>
-        </div>
-        <div style="margin-top:12px">
-          <div class="detail-section-title">Genel Bilgi</div>
-          <div class="detail-grid">
-            <div class="detail-stat">
-              <div class="detail-stat-label">Format</div>
-              <div class="detail-stat-val" style="color:${fmtColor}">${fmt}</div>
-            </div>
-            <div class="detail-stat">
-              <div class="detail-stat-label">Entity Sayısı</div>
-              <div class="detail-stat-val">${(f.entity_count||0).toLocaleString('tr')}</div>
-            </div>
-            <div class="detail-stat">
-              <div class="detail-stat-label">Katman Sayısı</div>
-              <div class="detail-stat-val">${f.layer_count||0}</div>
-            </div>
-            <div class="detail-stat">
-              <div class="detail-stat-label">Boyutlar</div>
-              <div class="detail-stat-val" style="font-size:13px">${size}</div>
-            </div>
-            <div class="detail-stat">
-              <div class="detail-stat-label">Kapsayan Alan (BBox)</div>
-              <div class="detail-stat-val" style="font-size:13px">${area}</div>
-            </div>
-            <div class="detail-stat">
-              <div class="detail-stat-label">Kategori</div>
-              <div class="detail-stat-val" style="font-size:12px">${categoryName}</div>
-            </div>
-            <div class="detail-stat">
-              <div class="detail-stat-label">Dosya Boyutu</div>
-              <div class="detail-stat-val" style="font-size:12px">${fileSize}</div>
-            </div>
-            <div class="detail-stat">
-              <div class="detail-stat-label">Eklenme</div>
-              <div class="detail-stat-val" style="font-size:11px;font-weight:400;color:var(--text2)">${date}</div>
-            </div>
+          <div class="dm-zoom-bar">
+            <button class="dm-zoom-btn" onclick="zoomDetail(0.3)">+</button>
+            <button class="dm-zoom-btn" onclick="zoomDetail(-0.3)">−</button>
+            <button class="dm-zoom-btn" onclick="resetDetailZoom()">Sıfırla</button>
           </div>
         </div>
+        <div class="dm-stats-strip">
+          <div class="dm-stat-cell">
+            <div class="dm-sc-label">Format</div>
+            <div class="dm-sc-val" style="color:${fmtColor}">${fmt}</div>
+          </div>
+          <div class="dm-stat-cell">
+            <div class="dm-sc-label">Entity Sayısı</div>
+            <div class="dm-sc-val">${(f.entity_count||0).toLocaleString('tr')}</div>
+          </div>
+          <div class="dm-stat-cell">
+            <div class="dm-sc-label">Katman Sayısı</div>
+            <div class="dm-sc-val">${f.layer_count||0}</div>
+          </div>
+          <div class="dm-stat-cell">
+            <div class="dm-sc-label">Boyutlar</div>
+            <div class="dm-sc-val" style="font-size:13px">${size}</div>
+          </div>
+          <div class="dm-stat-cell">
+            <div class="dm-sc-label">BBox Alan</div>
+            <div class="dm-sc-val" style="font-size:13px">${area}</div>
+          </div>
+          <div class="dm-stat-cell">
+            <div class="dm-sc-label">Kategori</div>
+            <div class="dm-sc-val dm-sc-val-sm">${categoryName}</div>
+          </div>
+          <div class="dm-stat-cell">
+            <div class="dm-sc-label">Dosya Boyutu</div>
+            <div class="dm-sc-val dm-sc-val-sm">${fileSize}</div>
+          </div>
+          <div class="dm-stat-cell">
+            <div class="dm-sc-label">Eklenme</div>
+            <div class="dm-sc-val dm-sc-val-sm">${date}</div>
+          </div>
         </div>
       </div>
       <!-- ANALİZ TAB -->
@@ -468,9 +464,10 @@ async function showDetailModal(fileId, tab) {
           </div>`;
         })()}
         ${f.file_data !== null && f.file_data !== undefined ? `
-        <div style="margin-top:8px">
-          <button onclick="downloadFile(${f.id},'${(f.filename||'').replace(/'/g,"\\'")}','${f.file_format||'dwg'}')" style="background:rgba(59,130,246,0.12);color:var(--blue);border:1px solid rgba(59,130,246,0.3);border-radius:6px;padding:8px 20px;font-size:13px;font-weight:500;cursor:pointer;width:100%">
-            ↓ ${f.filename} İndir
+        <div style="margin-top:10px">
+          <button class="dm-download-btn" onclick="downloadFile(${f.id},'${(f.filename||'').replace(/'/g,"\\'")}','${f.file_format||'dwg'}')">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            ${escHtml(f.filename)} İndir
           </button>
         </div>` : ''}
       </div>

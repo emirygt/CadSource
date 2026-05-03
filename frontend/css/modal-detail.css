@@ -1,0 +1,417 @@
+/* ══════════════════════════════════════════════
+   Detail Modal — Precision Engineering Panel
+   ══════════════════════════════════════════════ */
+
+/* ── Overlay ── */
+#detailModal {
+  background: rgba(8, 16, 32, 0.65);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* ── Shell ── */
+#detailModal .modal.detail-modal {
+  max-width: 960px;
+  width: 96vw;
+  border-radius: 16px;
+  border: none;
+  background: #ffffff;
+  box-shadow:
+    0 0 0 1px rgba(15,23,42,0.07),
+    0 8px 24px rgba(15,23,42,0.10),
+    0 40px 96px rgba(15,23,42,0.22);
+  overflow: hidden;
+  animation: dm-pop 0.22s cubic-bezier(0.34,1.36,0.64,1) both;
+}
+@keyframes dm-pop {
+  from { opacity: 0; transform: scale(0.94) translateY(12px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* ── Header ── */
+#detailModal .modal-header {
+  background: #0f172a;
+  border-bottom: none;
+  padding: 14px 18px;
+  min-height: 52px;
+}
+#detailModal .modal-title {
+  font-family: 'DM Mono', 'Fira Mono', monospace;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: #94a3b8;
+  letter-spacing: 0.03em;
+  max-width: calc(100% - 100px);
+}
+#detailModal .modal-close {
+  color: #475569;
+  font-size: 16px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 7px;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+#detailModal .modal-close:hover {
+  color: #f1f5f9;
+  background: rgba(255,255,255,0.1);
+}
+
+/* ── Body ── */
+#detailModal .modal-body {
+  padding: 0;
+  gap: 0;
+  align-items: stretch;
+  background: #f8fafc;
+  max-height: calc(90vh - 52px);
+  overflow: hidden auto;
+}
+
+/* ── Tab Bar ── */
+#detailModal .detail-tab-bar {
+  display: flex;
+  padding: 0;
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  gap: 0;
+  flex-shrink: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+#detailModal .detail-tab-bar::-webkit-scrollbar { display: none; }
+
+#detailModal .detail-tab-btn {
+  padding: 13px 17px;
+  border: none;
+  background: transparent;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: #94a3b8;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+  flex-shrink: 0;
+}
+#detailModal .detail-tab-btn:hover { color: #334155; }
+#detailModal .detail-tab-btn.active {
+  color: #0f172a;
+  border-bottom-color: #0ea5e9;
+  font-weight: 600;
+}
+
+/* ── Tab Panels ── */
+#detailModal .detail-tab-panel { display: none; }
+#detailModal .detail-tab-panel.active { display: block; }
+
+/* Paneller için padding (Önizleme hariç) */
+#detailModal #dtAnalysis.active,
+#detailModal #dtDuplicate.active,
+#detailModal #dtAttributes.active,
+#detailModal #dtJobs.active,
+#detailModal #dtModel3d.active {
+  padding: 18px;
+}
+
+/* ── Preview Tab ── */
+#detailModal #dtPreview.active {
+  padding: 0;
+}
+
+/* Zoom alanı */
+#detailModal .preview-zoom-wrap {
+  height: 360px;
+  background: #f1f5f9;
+  background-image:
+    radial-gradient(circle, #cbd5e1 1px, transparent 1px);
+  background-size: 22px 22px;
+  border-radius: 0;
+  border: none;
+  border-bottom: 1px solid #e2e8f0;
+  cursor: grab;
+  position: relative;
+  overflow: hidden;
+}
+#detailModal .preview-zoom-wrap:active { cursor: grabbing; }
+
+#detailModal .preview-zoom-inner {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform-origin: center;
+  transition: none;
+}
+#detailModal .preview-zoom-inner img,
+#detailModal .preview-zoom-inner svg {
+  max-width: calc(100% - 32px);
+  max-height: calc(100% - 32px);
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+  background: #fff;
+  border-radius: 6px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.13);
+  padding: 10px;
+}
+
+/* Zoom butonları — preview içinde float */
+.dm-zoom-bar {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  gap: 3px;
+  z-index: 5;
+}
+.dm-zoom-btn {
+  background: rgba(255,255,255,0.90);
+  border: 1px solid #e2e8f0;
+  color: #374151;
+  cursor: pointer;
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: 'DM Sans', sans-serif;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  transition: all 0.12s;
+  line-height: 1;
+}
+.dm-zoom-btn:hover {
+  background: #ffffff;
+  border-color: #94a3b8;
+  color: #0f172a;
+}
+
+/* ── Stats Strip ── */
+.dm-stats-strip {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+}
+.dm-stat-cell {
+  padding: 11px 13px;
+  border-right: 1px solid #f1f5f9;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.dm-stat-cell:last-child { border-right: none; }
+
+.dm-sc-label {
+  font-size: 9px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dm-sc-val {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+  font-family: 'DM Mono', 'Fira Mono', monospace;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+}
+.dm-sc-val-sm {
+  font-size: 11.5px;
+  font-weight: 500;
+  font-family: 'DM Sans', sans-serif;
+  color: #374151;
+}
+
+/* ── Analysis & Other Tabs ── */
+#detailModal .detail-section-title {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  margin-bottom: 10px;
+  margin-top: 6px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #f1f5f9;
+}
+#detailModal .detail-section-title:first-child { margin-top: 0; }
+
+#detailModal .detail-grid,
+#detailModal .detail-fold-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 7px;
+}
+#detailModal .detail-stat {
+  background: #ffffff;
+  border: 1px solid #e8edf3;
+  border-radius: 8px;
+  padding: 10px 12px;
+  transition: border-color 0.12s, box-shadow 0.12s;
+}
+#detailModal .detail-stat:hover {
+  border-color: #94a3b8;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+#detailModal .detail-stat-label {
+  font-size: 9.5px;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-bottom: 5px;
+  font-weight: 700;
+}
+#detailModal .detail-stat-val {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+  font-family: 'DM Mono', monospace;
+}
+
+#detailModal .detail-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 6px;
+}
+#detailModal .detail-chip {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 5px;
+  padding: 3px 8px;
+  font-size: 11px;
+  color: #334155;
+  font-weight: 500;
+  font-family: 'DM Mono', monospace;
+}
+#detailModal .detail-chip-count {
+  margin-left: 5px;
+  color: #64748b;
+  font-size: 10px;
+  font-family: 'DM Sans', sans-serif;
+}
+
+#detailModal .detail-json-wrap {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 12px;
+}
+#detailModal .detail-note {
+  color: #94a3b8;
+  font-size: 12px;
+  padding: 8px 0;
+}
+
+#detailModal details summary {
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+  padding: 6px 0;
+  user-select: none;
+}
+#detailModal details summary:hover { color: #0f172a; }
+
+/* Entity grid */
+#detailModal .entity-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 8px;
+}
+#detailModal .entity-card {
+  background: #ffffff;
+  border: 1px solid #e8edf3;
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+#detailModal .entity-card-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #0ea5e9;
+  margin-bottom: 6px;
+  font-family: 'DM Mono', monospace;
+}
+#detailModal .entity-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 11px;
+  padding: 2px 0;
+  border-bottom: 1px solid #f8fafc;
+  color: #475569;
+}
+#detailModal .entity-row:last-child { border-bottom: none; }
+#detailModal .entity-row span:last-child {
+  font-weight: 600;
+  color: #0f172a;
+  text-align: right;
+  font-family: 'DM Mono', monospace;
+}
+
+/* Job rows */
+#detailModal .job-item-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 12px;
+}
+#detailModal .job-item-row:last-child { border-bottom: none; }
+#detailModal .job-status-badge {
+  padding: 2px 8px;
+  border-radius: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+#detailModal .job-item-name { color: #334155; font-weight: 500; flex: 1; }
+#detailModal .job-item-msg { color: #94a3b8; font-size: 11px; }
+
+/* Viewer 3D */
+#detailModal #viewer3dContainer {
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background: #f1f5f9;
+}
+
+/* Download button */
+#detailModal .dm-download-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
+  padding: 10px 18px;
+  background: rgba(14,165,233,0.08);
+  border: 1px solid rgba(14,165,233,0.3);
+  border-radius: 8px;
+  color: #0284c7;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: 'DM Sans', sans-serif;
+  margin-top: 4px;
+}
+#detailModal .dm-download-btn:hover {
+  background: rgba(14,165,233,0.14);
+  border-color: rgba(14,165,233,0.5);
+}
