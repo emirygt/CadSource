@@ -751,10 +751,20 @@ function cwkDownloadPdf() {
 </body>
 </html>`;
 
-  const win = window.open('', '_blank', 'width=900,height=700');
-  if (!win) { alert('Popup engelleyici açık olabilir. Lütfen izin verin.'); return; }
-  win.document.write(html);
-  win.document.close();
+  try {
+    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.target   = '_blank';
+    a.rel      = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  } catch (e) {
+    alert('Rapor oluşturulamadı: ' + e.message);
+  }
 }
 
 // ── Reason / Diff modals (other callers) ─────────────────────────────────────
