@@ -528,6 +528,25 @@ def init_db():
                 """))
             except Exception:
                 pass
+            try:
+                conn.execute(text(f"""
+                    CREATE TABLE IF NOT EXISTS {schema}.talepler (
+                        id           SERIAL PRIMARY KEY,
+                        baslik       VARCHAR(255) NOT NULL,
+                        aciklama     TEXT,
+                        talep_tipi   VARCHAR(100),
+                        oncelik      VARCHAR(50) DEFAULT 'Orta',
+                        durum        VARCHAR(50) DEFAULT 'Açık',
+                        talep_eden   VARCHAR(255),
+                        atanan       VARCHAR(255),
+                        son_tarih    DATE,
+                        notlar       TEXT,
+                        olusturulma  TIMESTAMPTZ DEFAULT NOW(),
+                        guncelleme   TIMESTAMPTZ DEFAULT NOW()
+                    )
+                """))
+            except Exception:
+                pass
         conn.commit()
 
     # Default schema (public) için HNSW — tenant schema'larında schema_manager kurar

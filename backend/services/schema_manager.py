@@ -243,6 +243,21 @@ CREATE TABLE IF NOT EXISTS {schema}.product_relations (
     iliski_tipi    VARCHAR(50) DEFAULT 'Esli',
     PRIMARY KEY (product_id, related_id)
 );
+
+CREATE TABLE IF NOT EXISTS {schema}.talepler (
+    id           SERIAL PRIMARY KEY,
+    baslik       VARCHAR(255) NOT NULL,
+    aciklama     TEXT,
+    talep_tipi   VARCHAR(100),
+    oncelik      VARCHAR(50) DEFAULT 'Orta',
+    durum        VARCHAR(50) DEFAULT 'Açık',
+    talep_eden   VARCHAR(255),
+    atanan       VARCHAR(255),
+    son_tarih    DATE,
+    notlar       TEXT,
+    olusturulma  TIMESTAMPTZ DEFAULT NOW(),
+    guncelleme   TIMESTAMPTZ DEFAULT NOW()
+);
 """
 
 

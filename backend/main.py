@@ -26,6 +26,7 @@ from routes.admin import router as admin_router
 from routes.decisions import router as decisions_router
 from routes.products import router as products_router
 from routes.molds import router as molds_router
+from routes.requests import router as requests_router
 
 app = FastAPI(
     title="CAD Arama Motoru",
@@ -73,3 +74,4 @@ app.include_router(admin_router)       # /admin/members, /admin/stats
 app.include_router(decisions_router)   # /decisions
 app.include_router(products_router)    # /products
 app.include_router(molds_router)       # /molds
+app.include_router(requests_router)    # /requests
