@@ -95,27 +95,38 @@ def _poly_points(entity) -> Optional[List[Tuple[float, float]]]:
 def _chain_line_arc(msp) -> List[List[Tuple[float, float]]]:
     """
     LINE/ARC entity'lerini polygonize ile kapalı halkalara çevir.
-    Shapely 2.x uyumlu: polygonize, unary_union yerine kullanılır.
+    Uç nokta boşluklarını kapatmak için koordinatlar ızgara'ya yuvarlanır.
     """
-    from shapely.geometry import LineString, MultiLineString
-    from shapely.ops import polygonize, unary_union, snap
+    from shapely.geometry import LineString, MultiLineString, MultiPoint
+    from shapely.ops import polygonize
+
+    SNAP = 0.5  # mm cinsinden ızgara toleransı — uç nokta boşluklarını kapatır
+
+    def _g(v: float) -> float:
+        return round(v / SNAP) * SNAP
 
     line_strings = []
+    all_raw_pts: List[Tuple[float, float]] = []
+
     for ent in msp:
         etype = ent.dxftype()
         try:
             if etype == "LINE":
                 s = ent.dxf.start
                 e = ent.dxf.end
-                sx, sy, ex, ey = float(s.x), float(s.y), float(e.x), float(e.y)
-                if math.hypot(sx - ex, sy - ey) > 1e-9:
+                sx, sy = _g(float(s.x)), _g(float(s.y))
+                ex, ey = _g(float(e.x)), _g(float(e.y))
+                if math.hypot(sx - ex, sy - ey) > SNAP * 0.5:
                     line_strings.append(LineString([(sx, sy), (ex, ey)]))
+                    all_raw_pts += [(sx, sy), (ex, ey)]
             elif etype == "ARC":
                 c = ent.dxf.center
                 pts = _arc_points(float(c.x), float(c.y), float(ent.dxf.radius),
                                   float(ent.dxf.start_angle), float(ent.dxf.end_angle))
                 if len(pts) >= 2:
-                    line_strings.append(LineString(pts))
+                    snapped = [(_g(x), _g(y)) for x, y in pts]
+                    line_strings.append(LineString(snapped))
+                    all_raw_pts.extend(snapped)
         except Exception:
             pass
 
@@ -123,33 +134,40 @@ def _chain_line_arc(msp) -> List[List[Tuple[float, float]]]:
     if not line_strings:
         return []
 
-    # polygonize: LINE/ARC segmentlerinden kapalı poligon bölgeler oluştur
+    # 1) polygonize ile kapalı poligonları bul
+    polys = []
     try:
         merged = MultiLineString(line_strings)
         polys = list(polygonize(merged))
         _log.info("[3D] polygonize: %d polygon", len(polys))
     except Exception as e:
         _log.warning("[3D] polygonize hatası: %s", e)
-        polys = []
 
-    # polygonize 0 döndürdüyse buffer+manuel birleştirme dene
+    # 2) polygonize boş dönerse daha büyük ızgara toleransıyla tekrar dene
     if not polys:
         try:
-            buf = 0.5  # tolerans: uç nokta boşluklarını kapat
-            buffered_list = []
+            BIG = 2.0
+            def _gb(v: float) -> float:
+                return round(v / BIG) * BIG
+            coarse = []
             for ls in line_strings:
-                coords = [(float(x), float(y)) for x, y in ls.coords]
-                buffered_list.append(LineString(coords).buffer(buf))
-            # Shapely 2.x: tek tek union et (ufunc sorununu aşmak için)
-            result = buffered_list[0]
-            for g in buffered_list[1:]:
-                result = result.union(g)
-            geoms = list(result.geoms) if result.geom_type in ('MultiPolygon', 'GeometryCollection') else [result]
-            polys = [g for g in geoms if g.geom_type == 'Polygon']
-            _log.info("[3D] buffer fallback: %d polygon", len(polys))
+                coords = [(_gb(x), _gb(y)) for x, y in ls.coords]
+                if len(coords) >= 2 and coords[0] != coords[-1] or len(coords) >= 2:
+                    coarse.append(LineString(coords))
+            polys = list(polygonize(MultiLineString(coarse)))
+            _log.info("[3D] coarse polygonize: %d polygon", len(polys))
         except Exception as e:
-            _log.warning("[3D] buffer fallback hatası: %s", e)
-            return []
+            _log.warning("[3D] coarse polygonize hatası: %s", e)
+
+    # 3) Son çare: tüm noktaların convex hull'u (dış profil, deliksiz)
+    if not polys and len(all_raw_pts) >= 3:
+        try:
+            hull = MultiPoint(all_raw_pts).convex_hull
+            if hull.geom_type == 'Polygon' and not hull.is_empty:
+                polys = [hull]
+                _log.info("[3D] convex hull fallback kullanıldı")
+        except Exception as e:
+            _log.warning("[3D] convex hull hatası: %s", e)
 
     rings = []
     for poly in polys:

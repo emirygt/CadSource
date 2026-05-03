@@ -549,7 +549,212 @@ function cwkSaveDecision() {
 }
 
 function cwkDownloadPdf() {
-  alert('PDF rapor oluşturma özelliği yakında aktif olacak.');
+  const ref = cwkState.refData;
+  const cmp = cwkState.cmpItem;
+  if (!ref || !cmp) return;
+
+  const sim  = Number(cmp.similarity || 0);
+  const date = new Date().toLocaleDateString('tr-TR', { day: '2-digit', month: 'long', year: 'numeric' });
+
+  // Canvas görüntüsünü yakala
+  const cvs = document.getElementById('cwkCanvas');
+  const canvasImg = (cvs && cvs.style.display !== 'none') ? cvs.toDataURL('image/png') : null;
+
+  // Ref önizleme
+  const refImg = document.getElementById('cwkImgRef');
+  const refPreviewSrc = (refImg && refImg.complete && refImg.naturalWidth > 0) ? refImg.src : null;
+  const cmpImg = document.getElementById('cwkImgCmp');
+  const cmpPreviewSrc = (cmpImg && cmpImg.complete && cmpImg.naturalWidth > 0) ? cmpImg.src : null;
+
+  const qs = ref.stats || {};
+  const qW = Number(qs.bbox_width || 0), qH = Number(qs.bbox_height || 0);
+  const cW = Number(cmp.bbox_width || 0), cH = Number(cmp.bbox_height || 0);
+  const qE = Number(qs.entity_count || 0), cE = Number(cmp.entity_count || 0);
+  const qL = Number(qs.layer_count || 0), cL = Number(cmp.layer_count || 0);
+
+  const simColor = sim >= 90 ? '#16a34a' : sim >= 70 ? '#ea580c' : '#dc2626';
+  const simLabel = sim >= 90 ? 'Tam Eşleşme' : sim >= 70 ? 'Yüksek Benzerlik' : sim >= 50 ? 'Orta Benzerlik' : 'Düşük Benzerlik';
+
+  const metrics = cwkBuildMetrics(qs, cmp);
+  const metricsHtml = metrics.map(m => `
+    <div style="margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px">
+        <span style="color:#374151">${m.label}</span>
+        <strong style="color:${simColor}">%${m.pct}</strong>
+      </div>
+      <div style="height:6px;background:#e5e7eb;border-radius:4px">
+        <div style="height:100%;width:${m.pct}%;background:${simColor};border-radius:4px"></div>
+      </div>
+    </div>`).join('');
+
+  const decisionEl = document.querySelector('.cwk-decision-btn.cwk-dec-done, .cwk-decision-btn.primary.cwk-dec-done');
+  const decisionText = decisionEl ? decisionEl.textContent.trim() : null;
+
+  const html = `<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>Karşılaştırma Raporu</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; color: #111827; background: #fff; font-size: 13px; }
+  @media print {
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .no-print { display: none; }
+  }
+  .page { max-width: 800px; margin: 0 auto; padding: 32px 36px; }
+  .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #e5e7eb; padding-bottom: 16px; margin-bottom: 24px; }
+  .brand { font-size: 18px; font-weight: 800; color: #1e293b; letter-spacing: -0.5px; }
+  .brand span { color: #2f66eb; }
+  .meta { text-align: right; font-size: 11px; color: #6b7280; }
+  .section { margin-bottom: 20px; }
+  .section-title { font-size: 10px; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; border-bottom: 1px solid #f3f4f6; padding-bottom: 5px; }
+  .files-row { display: flex; gap: 14px; }
+  .file-card { flex: 1; border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px 14px; }
+  .file-card.ref { background: rgba(59,130,246,0.04); border-color: rgba(59,130,246,0.25); }
+  .file-card.cmp { background: rgba(34,197,94,0.04); border-color: rgba(34,197,94,0.25); }
+  .file-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 5px; }
+  .file-card.ref .file-label { color: #1d4ed8; }
+  .file-card.cmp .file-label { color: #16a34a; }
+  .file-name { font-size: 14px; font-weight: 700; color: #0f172a; margin-bottom: 3px; }
+  .file-meta { font-size: 11px; color: #6b7280; }
+  .sim-block { text-align: center; background: linear-gradient(135deg,rgba(${sim>=90?'22,163,74':sim>=70?'234,88,12':'220,38,38'},0.06) 0%,rgba(${sim>=90?'22,163,74':sim>=70?'234,88,12':'220,38,38'},0.12) 100%); border: 1.5px solid rgba(${sim>=90?'22,163,74':sim>=70?'234,88,12':'220,38,38'},0.3); border-radius: 12px; padding: 18px; }
+  .sim-pct { font-size: 52px; font-weight: 900; color: ${simColor}; line-height: 1; }
+  .sim-label { font-size: 13px; font-weight: 600; color: ${simColor}; margin-top: 4px; }
+  .preview-row { display: flex; gap: 12px; }
+  .preview-box { flex: 1; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; }
+  .preview-box img { width: 100%; height: 180px; object-fit: contain; background: #f8fafc; display: block; padding: 8px; }
+  .preview-label { font-size: 10px; font-weight: 600; text-align: center; color: #6b7280; padding: 5px; background: #f9fafb; border-top: 1px solid #e5e7eb; }
+  .canvas-box { border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; text-align: center; }
+  .canvas-box img { max-width: 100%; height: auto; display: block; }
+  .canvas-label { font-size: 10px; color: #9ca3af; padding: 5px; text-align: center; }
+  .metrics-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .diff-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .diff-table td { padding: 6px 10px; border-bottom: 1px solid #f3f4f6; }
+  .diff-table td:first-child { color: #374151; font-weight: 500; }
+  .diff-table td:last-child { text-align: right; font-weight: 700; }
+  .td-match { color: #16a34a; }
+  .td-diff { color: #ea580c; }
+  .decision-box { background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 8px; padding: 10px 14px; display: flex; align-items: center; gap: 10px; }
+  .decision-icon { font-size: 20px; }
+  .decision-text { font-size: 13px; font-weight: 700; color: #15803d; }
+  .footer { margin-top: 28px; padding-top: 12px; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-between; font-size: 10px; color: #9ca3af; }
+  .print-btn { position: fixed; top: 20px; right: 20px; background: #2f66eb; color: #fff; border: none; border-radius: 8px; padding: 10px 20px; font-size: 13px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(47,102,235,0.35); }
+</style>
+</head>
+<body>
+<button class="print-btn no-print" onclick="window.print()">⬇ PDF Olarak İndir</button>
+<div class="page">
+
+  <div class="header">
+    <div>
+      <div class="brand">Profile <span>Axis</span></div>
+      <div style="font-size:12px;color:#6b7280;margin-top:3px">Karşılaştırma Raporu</div>
+    </div>
+    <div class="meta">
+      <div>${date}</div>
+      <div style="margin-top:2px">Profile Axis Enterprise</div>
+    </div>
+  </div>
+
+  <!-- Dosya bilgileri -->
+  <div class="section">
+    <div class="section-title">Karşılaştırılan Dosyalar</div>
+    <div class="files-row">
+      <div class="file-card ref">
+        <div class="file-label">Referans (Aranan)</div>
+        <div class="file-name">${ref.name || 'Aranan Dosya'}</div>
+        <div class="file-meta">
+          ${qW > 0 && qH > 0 ? Math.round(qW) + '×' + Math.round(qH) + ' mm · ' : ''}
+          ${qE > 0 ? qE.toLocaleString('tr') + ' entity · ' : ''}
+          ${qL > 0 ? qL + ' katman' : ''}
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;font-size:22px;color:#9ca3af;font-weight:300">↔</div>
+      <div class="file-card cmp">
+        <div class="file-label">Sonuç (Eşleşen)</div>
+        <div class="file-name">${cmp.filename || '—'}</div>
+        <div class="file-meta">
+          ${cW > 0 && cH > 0 ? Math.round(cW) + '×' + Math.round(cH) + ' mm · ' : ''}
+          ${cE > 0 ? cE.toLocaleString('tr') + ' entity · ' : ''}
+          ${cL > 0 ? cL + ' katman' : ''}
+          ${cmp.category_name ? ' · ' + cmp.category_name : ''}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Benzerlik skoru -->
+  <div class="section">
+    <div class="section-title">Benzerlik Skoru</div>
+    <div class="sim-block">
+      <div class="sim-pct">%${Math.round(sim)}</div>
+      <div class="sim-label">${simLabel}</div>
+    </div>
+  </div>
+
+  ${(refPreviewSrc || cmpPreviewSrc || canvasImg) ? `
+  <!-- Görseller -->
+  <div class="section">
+    <div class="section-title">Görsel Karşılaştırma</div>
+    ${(refPreviewSrc || cmpPreviewSrc) ? `
+    <div class="preview-row" style="margin-bottom:10px">
+      ${refPreviewSrc ? `<div class="preview-box"><img src="${refPreviewSrc}"><div class="preview-label">REFERANS</div></div>` : ''}
+      ${cmpPreviewSrc ? `<div class="preview-box"><img src="${cmpPreviewSrc}"><div class="preview-label">SONUÇ</div></div>` : ''}
+    </div>` : ''}
+    ${canvasImg ? `
+    <div class="canvas-box">
+      <img src="${canvasImg}">
+      <div class="canvas-label">Bindirme Analizi — Mavi: yalnızca referans · Yeşil: yalnızca sonuç · Turkuaz: örtüşen</div>
+    </div>` : ''}
+  </div>` : ''}
+
+  <!-- Metrikler -->
+  <div class="section">
+    <div class="metrics-row">
+      <div>
+        <div class="section-title">Neden Benzer?</div>
+        ${metricsHtml}
+      </div>
+      <div>
+        <div class="section-title">Fark Özeti</div>
+        <table class="diff-table">
+          <tr><td>Entity farkı</td><td class="${Math.abs(qE-cE)===0?'td-match':'td-diff'}">${qE===cE?'Yok':(qE>cE?'+':'')+(qE-cE).toLocaleString('tr')}</td></tr>
+          <tr><td>Boyut farkı</td><td class="${(Math.abs(qW-cW)<1&&Math.abs(qH-cH)<1)?'td-match':'td-diff'}">${(Math.abs(qW-cW)<1&&Math.abs(qH-cH)<1)?'Yok':Math.round(Math.abs(qW-cW))+'×'+Math.round(Math.abs(qH-cH))+' mm'}</td></tr>
+          <tr><td>Katman farkı</td><td class="${qL===cL?'td-match':'td-diff'}">${qL===cL?'Yok':(qL>cL?'+':'')+(qL-cL)}</td></tr>
+          <tr><td>Alan farkı</td><td class="${Math.abs((qs.bbox_area||0)-(cmp.bbox_area||0))<1?'td-match':'td-diff'}">${Math.abs((qs.bbox_area||0)-(cmp.bbox_area||0))<1?'Yok':Math.round(Math.abs((qs.bbox_area||0)-(cmp.bbox_area||0))).toLocaleString('tr')+' mm²'}</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  ${decisionText ? `
+  <!-- Karar -->
+  <div class="section">
+    <div class="section-title">Mühendis Kararı</div>
+    <div class="decision-box">
+      <div class="decision-icon">✓</div>
+      <div class="decision-text">${decisionText}</div>
+    </div>
+  </div>` : ''}
+
+  <div class="footer">
+    <span>Profile Axis — CAD Benzerlik Arama Motoru</span>
+    <span>Bu rapor otomatik oluşturulmuştur.</span>
+  </div>
+
+</div>
+<script>
+  // Yazıcı diyalogu otomatik aç
+  window.addEventListener('load', () => setTimeout(() => window.print(), 400));
+</script>
+</body>
+</html>`;
+
+  const win = window.open('', '_blank', 'width=900,height=700');
+  if (!win) { alert('Popup engelleyici açık olabilir. Lütfen izin verin.'); return; }
+  win.document.write(html);
+  win.document.close();
 }
 
 // ── Reason / Diff modals (other callers) ─────────────────────────────────────
