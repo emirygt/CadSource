@@ -40,6 +40,7 @@ from services.duplicate_service import (
     compute_geometry_hash,
     update_duplicate_relationships,
 )
+from services.geom_normalize import normalize_data, compute_fine_geom_hash
 from services.job_service import enqueue_clip_backfill
 
 router = APIRouter(tags=["index"])
@@ -118,6 +119,8 @@ def _upsert_file(db, stored_path, filename, ext, data, category_id, skip_clip: b
     stats = extract_stats(data)
     content_hash = compute_content_hash(raw_bytes)
     geometry_hash = compute_geometry_hash(stats)
+    fine_geom_hash = compute_fine_geom_hash(data)
+    normalized_geom = normalize_data(data)
     svg = generate_svg_preview(data)
 
     # JPEG preview — önce gerçek DWG/DXF render dene, olmazsa data fallback.
@@ -149,6 +152,8 @@ def _upsert_file(db, stored_path, filename, ext, data, category_id, skip_clip: b
         "file_data": raw_bytes,
         "content_hash": content_hash,
         "geometry_hash": geometry_hash,
+        "fine_geom_hash": fine_geom_hash,
+        "normalized_geom": json.dumps(normalized_geom) if normalized_geom else None,
         "cat": category_id,
         "layers": json.dumps(stats["layers"]),
         "entity_types": json.dumps(stats["entity_types"]),
@@ -175,6 +180,8 @@ def _upsert_file(db, stored_path, filename, ext, data, category_id, skip_clip: b
                 file_data      = CASE WHEN :file_data IS NOT NULL THEN :file_data ELSE file_data END,
                 content_hash   = COALESCE(:content_hash, content_hash),
                 geometry_hash  = :geometry_hash,
+                fine_geom_hash = COALESCE(:fine_geom_hash, fine_geom_hash),
+                normalized_geom = COALESCE(CAST(:normalized_geom AS jsonb), normalized_geom),
                 category_id    = :cat,
                 indexed_at     = NOW()
             WHERE filepath = :fp
@@ -187,13 +194,14 @@ def _upsert_file(db, stored_path, filename, ext, data, category_id, skip_clip: b
                 (filename, filepath, file_format, feature_vector, clip_vector,
                  entity_count, layer_count, layers, entity_types,
                  bbox_width, bbox_height, bbox_area, svg_preview, jpg_preview, file_data,
-                 content_hash, geometry_hash, category_id)
+                 content_hash, geometry_hash, fine_geom_hash, normalized_geom, category_id)
             VALUES
                 (:filename, :fp, :fmt, CAST(:vec AS vector),
                  CASE WHEN :clip_vec IS NOT NULL THEN CAST(:clip_vec AS vector) ELSE NULL END,
                  :entity_count, :layer_count, CAST(:layers AS jsonb), CAST(:entity_types AS jsonb),
                  :bbox_width, :bbox_height, :bbox_area, :svg, :jpg, :file_data,
-                 :content_hash, :geometry_hash, :cat)
+                 :content_hash, :geometry_hash,
+                 :fine_geom_hash, CAST(:normalized_geom AS jsonb), :cat)
             RETURNING id
         """), {**params, "filename": filename, "fmt": ext})
         file_id = int(inserted.fetchone().id)

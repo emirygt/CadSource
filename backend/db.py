@@ -449,6 +449,32 @@ def init_db():
             """))
         conn.commit()
 
+    # Geometrik doğrulama kolonları
+    with engine.connect() as conn:
+        conn.execute(text("""
+            ALTER TABLE cad_files
+                ADD COLUMN IF NOT EXISTS fine_geom_hash  VARCHAR(64),
+                ADD COLUMN IF NOT EXISTS normalized_geom JSONB
+        """))
+        conn.commit()
+
+    with engine.connect() as conn:
+        tenant_schemas = conn.execute(text("""
+            SELECT schema_name FROM information_schema.schemata
+            WHERE schema_name NOT IN ('public','pg_catalog','information_schema','pg_toast')
+              AND schema_name NOT LIKE 'pg_%'
+        """)).fetchall()
+        for (schema,) in tenant_schemas:
+            try:
+                conn.execute(text(f"""
+                    ALTER TABLE {schema}.cad_files
+                        ADD COLUMN IF NOT EXISTS fine_geom_hash  VARCHAR(64),
+                        ADD COLUMN IF NOT EXISTS normalized_geom JSONB
+                """))
+            except Exception:
+                pass
+        conn.commit()
+
     # Default schema (public) için HNSW — tenant schema'larında schema_manager kurar
     with engine.connect() as conn:
         conn.execute(text("""

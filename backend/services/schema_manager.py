@@ -49,6 +49,8 @@ CREATE TABLE IF NOT EXISTS {schema}.cad_files (
     file_data       BYTEA,
     content_hash    VARCHAR(64),
     geometry_hash   VARCHAR(64),
+    fine_geom_hash  VARCHAR(64),
+    normalized_geom JSONB,
     duplicate_status VARCHAR(32) DEFAULT 'unique',
     duplicate_group_id INTEGER,
     is_favorite     BOOLEAN DEFAULT FALSE,

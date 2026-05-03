@@ -16,6 +16,8 @@ from collections import Counter, defaultdict
 import numpy as np
 
 from db import get_db
+from services.geom_normalize import normalize_data, compute_fine_geom_hash
+from services.geom_verify import verify_pair
 from features import (
     parse_dxf_bytes,
     extract_features,
@@ -709,6 +711,51 @@ async def search_similar(
     stats = extract_stats(data)
     vec_list = query_vec.tolist()
 
+    # ── Katman 0: identical hash kontrolü ──────────────────────────────────
+    query_fine_hash = compute_fine_geom_hash(data)
+    query_norm = normalize_data(data)
+    if query_fine_hash:
+        exact = db.execute(
+            text("SELECT id, filename, filepath, file_format, entity_count, layer_count, "
+                 "layers, entity_types, bbox_width, bbox_height, bbox_area, "
+                 "jpg_preview, is_favorite, category_id "
+                 "FROM cad_files WHERE fine_geom_hash = :h LIMIT 1"),
+            {"h": query_fine_hash},
+        ).fetchone()
+        if exact:
+            return {
+                "query_file": filename,
+                "query_preview": None,
+                "query_stats": stats,
+                "total_matches": 1,
+                "matches": [{
+                    "id": exact.id,
+                    "filename": exact.filename,
+                    "filepath": exact.filepath,
+                    "file_format": exact.file_format,
+                    "similarity": 100.0,
+                    "geom_score": 100.0,
+                    "geom_breakdown": {"iou": 1.0, "hausdorff": 1.0, "density": 1.0, "point_ratio": 1.0},
+                    "match_type": "identical",
+                    "entity_count": exact.entity_count,
+                    "layer_count": exact.layer_count,
+                    "layers": exact.layers,
+                    "entity_types": exact.entity_types,
+                    "bbox_width": exact.bbox_width,
+                    "bbox_height": exact.bbox_height,
+                    "bbox_area": exact.bbox_area,
+                    "jpg_preview": exact.jpg_preview,
+                    "is_favorite": bool(exact.is_favorite),
+                    "category_id": exact.category_id,
+                    "category_name": None,
+                    "category_color": None,
+                    "clip_similarity": None,
+                    "visual_similarity": None,
+                    "geometry_guard": 100.0,
+                }],
+            }
+    # ───────────────────────────────────────────────────────────────────────
+
     # CLIP vektörü — yoksa sadece geometric kullan
     clip_vec = extract_clip_vector_from_bytes(content, filename, data)
     clip_vec_str = str(clip_vec.tolist()) if clip_vec is not None else None
@@ -799,14 +846,47 @@ async def search_similar(
     reranked.sort(key=lambda x: x[1], reverse=True)
     reranked = reranked[:top_k]
 
+    # ── Katman 2: geometrik doğrulama ──────────────────────────────────────
+    # top_k adayın normalized_geom'unu DB'den çek, verify_pair ile sırala.
+    geom_scores: dict = {}
+    geom_breakdowns: dict = {}
+    if query_norm is not None and reranked:
+        cand_ids = [row.id for row, *_ in reranked]
+        id_placeholders = ", ".join(f":id{i}" for i in range(len(cand_ids)))
+        id_params = {f"id{i}": cid for i, cid in enumerate(cand_ids)}
+        cand_norms = db.execute(
+            text(f"SELECT id, normalized_geom FROM cad_files WHERE id IN ({id_placeholders})"),
+            id_params,
+        ).fetchall()
+        norm_map = {
+            row.id: (json.loads(row.normalized_geom) if isinstance(row.normalized_geom, str) else row.normalized_geom)
+            for row in cand_norms if row.normalized_geom
+        }
+        for cand_id, cand_norm in norm_map.items():
+            v = verify_pair(query_norm, cand_norm)
+            geom_scores[cand_id] = v["geom_score"]
+            geom_breakdowns[cand_id] = v
+
+        if geom_scores:
+            reranked.sort(
+                key=lambda x: geom_scores.get(x[0].id, x[1]),
+                reverse=True,
+            )
+    # ───────────────────────────────────────────────────────────────────────
+
     matches = []
     for row, final_score, visual_similarity, guard in reranked:
+        gs = geom_scores.get(row.id)
+        gb = geom_breakdowns.get(row.id)
         matches.append({
             "id": row.id,
             "filename": row.filename,
             "filepath": row.filepath,
             "file_format": row.file_format,
-            "similarity": round(float(final_score) * 100, 1),
+            "similarity": round(float(gs * 100) if gs is not None else float(final_score) * 100, 1),
+            "geom_score": round(float(gs) * 100, 1) if gs is not None else None,
+            "geom_breakdown": {k: round(v * 100, 1) for k, v in gb.items() if k != "geom_score"} if gb else None,
+            "match_type": "verified" if gs is not None else "vector",
             "entity_count": row.entity_count,
             "layer_count": row.layer_count,
             "layers": row.layers,
