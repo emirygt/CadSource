@@ -1,5 +1,18 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { useEffect } from 'react'
+import { useAuthStore } from '@/store/auth'
+
+function AuthLogoutListener() {
+  const logout = useAuthStore((s) => s.logout)
+  const navigate = useNavigate()
+  useEffect(() => {
+    const handler = () => { logout(); navigate('/login', { replace: true }) }
+    window.addEventListener('auth:logout', handler)
+    return () => window.removeEventListener('auth:logout', handler)
+  }, [logout, navigate])
+  return null
+}
 
 import ProtectedRoute    from '@/components/layout/ProtectedRoute'
 import AppLayout         from '@/components/layout/AppLayout'
@@ -36,6 +49,7 @@ export default function App() {
   return (
     <QueryClientProvider client={qc}>
       <BrowserRouter basename="/app">
+        <AuthLogoutListener />
         <Routes>
           <Route path="/login" element={<LoginPage />} />
 

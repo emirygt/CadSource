@@ -17,7 +17,9 @@ client.interceptors.response.use(
     const isLoginCall = err.config?.url?.includes('/auth/login')
     if (err.response?.status === 401 && !isLoginCall) {
       localStorage.removeItem('token')
-      window.location.href = '/app/login'
+      // Zustand store'u import etmek circular dependency yaratır,
+      // window event ile logout tetikliyoruz
+      window.dispatchEvent(new Event('auth:logout'))
     }
     return Promise.reject(err)
   }
