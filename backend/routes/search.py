@@ -728,7 +728,7 @@ async def search_similar(
                 "query_preview": None,
                 "query_stats": stats,
                 "total_matches": 1,
-                "matches": [{
+                "results": [{
                     "id": exact.id,
                     "filename": exact.filename,
                     "filepath": exact.filepath,
