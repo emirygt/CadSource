@@ -711,6 +711,13 @@ async def search_similar(
     stats = extract_stats(data)
     vec_list = query_vec.tolist()
 
+    # Preview early (used in Layer 0 early-return AND normal flow)
+    query_jpg = generate_jpg_preview_from_bytes(content, filename, size=700)
+    query_preview = (
+        "data:image/jpeg;base64," + base64.b64encode(query_jpg).decode("ascii")
+        if query_jpg else None
+    )
+
     # ── Katman 0: identical hash kontrolü ──────────────────────────────────
     query_fine_hash = compute_fine_geom_hash(data)
     query_norm = normalize_data(data)
@@ -725,7 +732,7 @@ async def search_similar(
         if exact:
             return {
                 "query_file": filename,
-                "query_preview": None,
+                "query_preview": query_preview,
                 "query_stats": stats,
                 "total_matches": 1,
                 "results": [{
@@ -818,11 +825,6 @@ async def search_similar(
         params,
     ).fetchall()
 
-    query_jpg = generate_jpg_preview_from_bytes(content, filename, size=700)
-    query_preview = (
-        "data:image/jpeg;base64," + base64.b64encode(query_jpg).decode("ascii")
-        if query_jpg else None
-    )
     query_mask = _to_silhouette_mask(query_jpg) if query_jpg else None
 
     reranked = []
