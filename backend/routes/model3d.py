@@ -152,7 +152,7 @@ def _chain_line_arc(msp) -> List[List[Tuple[float, float]]]:
             coarse = []
             for ls in line_strings:
                 coords = [(_gb(x), _gb(y)) for x, y in ls.coords]
-                if len(coords) >= 2 and coords[0] != coords[-1] or len(coords) >= 2:
+                if len(coords) >= 2:
                     coarse.append(LineString(coords))
             polys = list(polygonize(MultiLineString(coarse)))
             _log.info("[3D] coarse polygonize: %d polygon", len(polys))
