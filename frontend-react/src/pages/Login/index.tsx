@@ -16,8 +16,8 @@ export default function LoginPage() {
     setError('')
     setLoading(true)
     try {
-      const { access_token } = await login(email, password)
-      setToken(access_token)
+      const { token } = await login(email, password)
+      setToken(token)
       navigate('/search', { replace: true })
     } catch {
       setError('E-posta veya şifre hatalı.')
