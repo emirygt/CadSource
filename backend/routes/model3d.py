@@ -94,11 +94,11 @@ def _poly_points(entity) -> Optional[List[Tuple[float, float]]]:
 
 def _chain_line_arc(msp) -> List[List[Tuple[float, float]]]:
     """
-    LINE ve ARC entity'lerini buffer+union ile kapalı halkalara çevir.
-    Küçük buffer (0.02 birim) uç nokta uyumsuzluklarını kapatır.
+    LINE/ARC entity'lerini polygonize ile kapalı halkalara çevir.
+    Shapely 2.x uyumlu: polygonize, unary_union yerine kullanılır.
     """
-    from shapely.geometry import LineString
-    from shapely.ops import unary_union
+    from shapely.geometry import LineString, MultiLineString
+    from shapely.ops import polygonize, unary_union, snap
 
     line_strings = []
     for ent in msp:
@@ -123,27 +123,45 @@ def _chain_line_arc(msp) -> List[List[Tuple[float, float]]]:
     if not line_strings:
         return []
 
+    # polygonize: LINE/ARC segmentlerinden kapalı poligon bölgeler oluştur
     try:
-        buf = 0.02
-        polys = [ls.buffer(buf, cap_style="square", join_style="mitre") for ls in line_strings]
-        buffered = unary_union(polys)
-        _log.info("[3D] buffer union tipi: %s", buffered.geom_type)
+        merged = MultiLineString(line_strings)
+        polys = list(polygonize(merged))
+        _log.info("[3D] polygonize: %d polygon", len(polys))
     except Exception as e:
-        _log.warning("[3D] buffer hatası: %s", e)
-        return []
+        _log.warning("[3D] polygonize hatası: %s", e)
+        polys = []
+
+    # polygonize 0 döndürdüyse buffer+manuel birleştirme dene
+    if not polys:
+        try:
+            buf = 0.5  # tolerans: uç nokta boşluklarını kapat
+            buffered_list = []
+            for ls in line_strings:
+                coords = [(float(x), float(y)) for x, y in ls.coords]
+                buffered_list.append(LineString(coords).buffer(buf))
+            # Shapely 2.x: tek tek union et (ufunc sorununu aşmak için)
+            result = buffered_list[0]
+            for g in buffered_list[1:]:
+                result = result.union(g)
+            geoms = list(result.geoms) if result.geom_type in ('MultiPolygon', 'GeometryCollection') else [result]
+            polys = [g for g in geoms if g.geom_type == 'Polygon']
+            _log.info("[3D] buffer fallback: %d polygon", len(polys))
+        except Exception as e:
+            _log.warning("[3D] buffer fallback hatası: %s", e)
+            return []
 
     rings = []
-    geoms = list(buffered.geoms) if buffered.geom_type == 'MultiPolygon' else [buffered]
-    for geom in geoms:
-        if geom.geom_type != 'Polygon':
+    for poly in polys:
+        if poly.geom_type != 'Polygon':
             continue
-        ext = list(geom.exterior.coords)
+        ext = [(float(x), float(y)) for x, y in poly.exterior.coords]
         if len(ext) >= 3:
-            rings.append([(x, y) for x, y in ext])
-        for interior in geom.interiors:
-            coords = list(interior.coords)
+            rings.append(ext)
+        for interior in poly.interiors:
+            coords = [(float(x), float(y)) for x, y in interior.coords]
             if len(coords) >= 3:
-                rings.append([(x, y) for x, y in coords])
+                rings.append(coords)
     return rings
 
 
