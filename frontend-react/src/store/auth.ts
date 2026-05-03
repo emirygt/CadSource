@@ -1,0 +1,27 @@
+import { create } from 'zustand'
+import type { User } from '@/types'
+
+interface AuthStore {
+  token: string | null
+  user: User | null
+  setToken: (token: string) => void
+  setUser: (user: User) => void
+  logout: () => void
+}
+
+export const useAuthStore = create<AuthStore>((set) => ({
+  token: localStorage.getItem('token'),
+  user: null,
+
+  setToken: (token) => {
+    localStorage.setItem('token', token)
+    set({ token })
+  },
+
+  setUser: (user) => set({ user }),
+
+  logout: () => {
+    localStorage.removeItem('token')
+    set({ token: null, user: null })
+  },
+}))

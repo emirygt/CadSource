@@ -190,6 +190,59 @@ INSERT INTO {schema}.role_nav_permissions (role, nav_items) VALUES
     ('Mühendis',      '["nav-search","nav-compare","nav-filter","nav-db-upload","nav-db","nav-duplicates","nav-reports"]'),
     ('Görüntüleyici', '["nav-search","nav-db"]')
 ON CONFLICT DO NOTHING;
+
+CREATE TABLE IF NOT EXISTS {schema}.products (
+    id               SERIAL PRIMARY KEY,
+    kod              VARCHAR(100) UNIQUE NOT NULL,
+    ad               VARCHAR(255) NOT NULL,
+    kategori_id      INTEGER REFERENCES {schema}.categories(id) ON DELETE SET NULL,
+    seri             VARCHAR(100),
+    sistem_ailesi    VARCHAR(100),
+    alt_fonksiyon    VARCHAR(100),
+    en               NUMERIC(10,3),
+    yukseklik        NUMERIC(10,3),
+    et_kalinligi     NUMERIC(10,3),
+    agirlik_m        NUMERIC(8,4),
+    malzeme          VARCHAR(100),
+    durum            VARCHAR(50) DEFAULT 'Aktif',
+    etiketler        JSONB DEFAULT '[]',
+    aciklama         TEXT,
+    olusturan        VARCHAR(255),
+    olusturulma      TIMESTAMPTZ DEFAULT NOW(),
+    guncelleme       TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS {schema}.molds (
+    id               SERIAL PRIMARY KEY,
+    numara           VARCHAR(100) UNIQUE NOT NULL,
+    tip              VARCHAR(100),
+    lokasyon         VARCHAR(200),
+    durum            VARCHAR(50) DEFAULT 'Aktif',
+    revizyon_no      VARCHAR(20) DEFAULT 'R0',
+    acilis_tarihi    DATE,
+    son_kullanim     DATE,
+    acilis_maliyeti  NUMERIC(12,2),
+    tedarikci        VARCHAR(255),
+    notlar           TEXT,
+    olusturulma      TIMESTAMPTZ DEFAULT NOW(),
+    guncelleme       TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS {schema}.product_mold_rel (
+    product_id   INTEGER REFERENCES {schema}.products(id) ON DELETE CASCADE,
+    mold_id      INTEGER REFERENCES {schema}.molds(id) ON DELETE CASCADE,
+    iliski_tipi  VARCHAR(50) DEFAULT 'Birincil',
+    tarih        TIMESTAMPTZ DEFAULT NOW(),
+    not_         TEXT,
+    PRIMARY KEY (product_id, mold_id)
+);
+
+CREATE TABLE IF NOT EXISTS {schema}.product_relations (
+    product_id     INTEGER REFERENCES {schema}.products(id) ON DELETE CASCADE,
+    related_id     INTEGER REFERENCES {schema}.products(id) ON DELETE CASCADE,
+    iliski_tipi    VARCHAR(50) DEFAULT 'Esli',
+    PRIMARY KEY (product_id, related_id)
+);
 """
 
 

@@ -247,6 +247,67 @@
 
 ---
 
+## FAZA 3.7 — Kusursuz DWG Benzerlik Doğrulaması ⬜ BAŞLANMADI
+
+> Amaç: Vektör araması "yaklaşık" benzerlik döner. Bunu "kanıtlanabilir geometrik eşleşme" haline getirmek için iki katmanlı mimari: vektör ön-eleme + geometrik doğrulama. Sonuç: kullanıcıya "%97.6 geometrik eşleşme" gibi şeffaf, doğrulanabilir skor.
+
+### Mimari Hedef
+
+```
+Query DWG
+   ↓
+[Katman 0] Identical hash check          → %100 eşleşme varsa anında dön
+   ↓ (yoksa)
+[Katman 1] Vektör arama (mevcut)         → top 50 aday (< 100ms)
+   ↓
+[Katman 2] Geometrik doğrulama (yeni)    → top 10 + breakdown skor
+   ↓
+Sonuç: { score, iou, hausdorff, edge_match, diff_overlay_url }
+```
+
+### Görevler
+
+| # | Görev | Tahmini Süre | Açıklama |
+|---|-------|--------------|----------|
+| 3.7.1 | DWG normalize edilmiş hash (identical detection) | ~30 dk | Entity stream'i sıralı serialize → SHA256. Bulk upload sırasında `cad_files.geom_hash` kolonu doldur. Aynı hash = anında %100 duplicate, vektör araması atlanır. |
+| 3.7.2 | Önişleme pipeline (shared) | ~2 saat | `backend/services/geom_normalize.py` — INSERT patlatma, gürültü katman/entity filtresi (DIMENSION/TEXT/HATCH hariç), birim normalizasyonu (`$INSUNITS` → mm), bbox merkez + unit scale. **Hem indexleme hem doğrulama bu pipeline'dan geçer (tutarlılık şart).** |
+| 3.7.3 | PCA poz normalizasyonu | ~1 saat | numpy ile entity nokta bulutundan PCA → ana eksenleri x'e hizala. Rotasyon/ayna farkını sıfırlar. |
+| 3.7.4 | IoU hesabı (Shapely) | ~1 saat | Kapalı konturları Shapely Polygon'a çevir → `intersection.area / union.area`. `requirements.txt`'e `shapely` ekle. |
+| 3.7.5 | Hausdorff mesafesi | ~45 dk | scipy `directed_hausdorff` ile simetrik Hausdorff. Bbox diagonali ile normalleştir (0-1 arası). |
+| 3.7.6 | Edge eşleşme oranı | ~1 saat | Kenar listesini (uzunluk + açı) eşle, tolerans dahilinde eşleşen oranı dön. |
+| 3.7.7 | Birleşik skor + endpoint | ~45 dk | `/search` sonuna geometric verification katmanı. Her aday için `{geom_score, iou, hausdorff_norm, edge_match, vector_score}` üretip `geom_score`'a göre yeniden sırala. Yeni kolon: `verified: true`. |
+| 3.7.8 | Diff overlay görselleştirme | ~2 saat | Backend: hizalanmış iki kontur'u tek SVG'ye bas (yeşil = eşleşen, kırmızı = sadece referans, mavi = sadece sonuç). Frontend: sonuç kartında "🔍 Karşılaştır" → modal'da SVG. |
+| 3.7.9 | Skor breakdown UI | ~45 dk | Sonuç kartında: tek "%97.6" yerine açılır liste → "Dış kontur %99 / Delik %100 / Boyut %94". Kullanıcı güveni artar. |
+| 3.7.10 | Altın küme (eval set) + ölçüm scripti | ~1.5 saat | `scripts/eval_search.py` — 20-30 elle etiketlenmiş DWG çifti (aynı/benzer/farklı). Her değişiklikten sonra recall@5 ve recall@10 ölç. CI/manuel run. |
+
+**Toplam: ~10 saat (1 günlük yoğun çalışma).**
+
+### Yapılış Sırası
+
+1. **3.7.1 (hash)** önce — anında değer üretir, riski yok
+2. **3.7.10 (eval set)** ikinci — sonraki adımları ölçmek için referans noktası gerekli
+3. **3.7.2 (normalize pipeline)** — diğer her şeyin temeli
+4. **3.7.3 → 3.7.6** sırayla, her biri sonrası eval scriptini çalıştır
+5. **3.7.7 (endpoint)** — backend katmanı tamamlanır
+6. **3.7.8 + 3.7.9** UI tarafı, en son
+
+### Kabul Kriterleri
+
+- [ ] Aynı DWG farklı dosya adıyla yüklenince Katman 0'da yakalanır, %100 skor döner
+- [ ] Aynı parça farklı birimde (mm vs inch) çizilmiş olsa bile %95+ skor döner
+- [ ] Aynı parça döndürülmüş halde yüklenince PCA sonrası %95+ skor döner
+- [ ] Eval set üzerinde recall@5 mevcut sisteme göre **en az %20 iyileşir**
+- [ ] Diff overlay SVG'si referans + sonuç kontrollerini gösterir, eşleşen/farklı bölgeler ayrı renkte
+
+### Risk / Notlar
+
+- `features.py` "DOKUNMA" — bu faza onu değiştirmiyor, ÜZERİNE katman ekliyor. Vektör araması aynen kalır.
+- INSERT patlatma derin nested bloklarda yavaş olabilir → recursion limit + timeout koy.
+- Shapely kapalı olmayan poliçizgilerde patlar → try/except + fallback (sadece Hausdorff)
+- Geometric verification O(K) ek iş demektir (K=50 aday). Tek istek için 200-500ms ek latency normal. Daha fazla yavaşsa K düşür.
+
+---
+
 ## FAZA 4 — Güvenlik ⬜ BAŞLANMADI
 
 | # | Görev | Durum |
