@@ -107,14 +107,13 @@ def _chain_line_arc(msp) -> List[List[Tuple[float, float]]]:
             if etype == "LINE":
                 s = ent.dxf.start
                 e = ent.dxf.end
-                if math.hypot(s.x - e.x, s.y - e.y) > 1e-9:
-                    line_strings.append(LineString([(s.x, s.y), (e.x, e.y)]))
+                sx, sy, ex, ey = float(s.x), float(s.y), float(e.x), float(e.y)
+                if math.hypot(sx - ex, sy - ey) > 1e-9:
+                    line_strings.append(LineString([(sx, sy), (ex, ey)]))
             elif etype == "ARC":
                 c = ent.dxf.center
-                r = ent.dxf.radius
-                sa = ent.dxf.start_angle
-                ea = ent.dxf.end_angle
-                pts = _arc_points(c.x, c.y, r, sa, ea)
+                pts = _arc_points(float(c.x), float(c.y), float(ent.dxf.radius),
+                                  float(ent.dxf.start_angle), float(ent.dxf.end_angle))
                 if len(pts) >= 2:
                     line_strings.append(LineString(pts))
         except Exception:
@@ -126,8 +125,8 @@ def _chain_line_arc(msp) -> List[List[Tuple[float, float]]]:
 
     try:
         buf = 0.02
-        buffered = unary_union([ls.buffer(buf, cap_style=2, join_style=2)
-                                for ls in line_strings])
+        polys = [ls.buffer(buf, cap_style="square", join_style="mitre") for ls in line_strings]
+        buffered = unary_union(polys)
         _log.info("[3D] buffer union tipi: %s", buffered.geom_type)
     except Exception as e:
         _log.warning("[3D] buffer hatası: %s", e)
@@ -209,8 +208,7 @@ def _extract_rings(dxf_bytes: bytes) -> Tuple[Optional[List], List[List]]:
         elif etype == "CIRCLE":
             try:
                 c = ent.dxf.center
-                r = ent.dxf.radius
-                pts = _circle_points(c.x, c.y, r)
+                pts = _circle_points(float(c.x), float(c.y), float(ent.dxf.radius))
             except Exception:
                 pass
 
