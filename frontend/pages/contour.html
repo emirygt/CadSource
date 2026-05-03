@@ -28,7 +28,10 @@
           <div class="contour-fields">
             <div class="contour-field-row">
               <div class="contour-field">
-                <label for="contourCalibrationMode" data-i18n="contour.calib_mode">Kalibrasyon Modu <i class="info-icon" data-tip="Piksellerin gercek olcuye nasil cevrileceği. Otomatik: sayfa DPI tahmini yapar. Manuel: 1px = kac birim oldugunu sen belirlersin. 2 Nokta: goruntude iki noktaya tikla, aralarindaki gercek mesafeyi gir. Olculu DXF istiyorsan 2 Nokta en dogrusu.">i</i></label>
+                <div class="field-label-row">
+                  <label for="contourCalibrationMode" data-i18n="contour.calib_mode">Kalibrasyon Modu</label>
+                  <i class="info-icon" data-tip="Piksellerin gercek olcuye nasil cevrileceği. Otomatik: sayfa DPI tahmini yapar. Manuel: 1px = kac birim oldugunu sen belirlersin. 2 Nokta: goruntude iki noktaya tikla, aralarindaki gercek mesafeyi gir. Olculu DXF istiyorsan 2 Nokta en dogrusu.">i</i>
+                </div>
                 <select id="contourCalibrationMode" onchange="onContourCalibrationModeChange()">
                   <option value="auto_scan" data-i18n="contour.calib_auto">Otomatik Tarama Kalibrasyonu (Önerilen)</option>
                   <option value="factor" data-i18n="contour.calib_factor">Manual Ölçek</option>
@@ -36,14 +39,20 @@
                 </select>
               </div>
               <div class="contour-field">
-                <label for="contourScaleInput" data-i18n="contour.scale_factor">Manual Ölçek Çarpanı <i class="info-icon tip-left" data-tip="Sadece Manuel Olcek modunda aktif. 1 piksel kac birime karsılik geldigini belirtir. Ornek: gorsel 100dpi taranmis ve birim mm ise yaklasik 0.254 gir (1 inch = 25.4mm).">i</i></label>
+                <div class="field-label-row">
+                  <label for="contourScaleInput" data-i18n="contour.scale_factor">Manual Ölçek Çarpanı</label>
+                  <i class="info-icon tip-left" data-tip="Sadece Manuel Olcek modunda aktif. 1 piksel kac birime karsılik geldigini belirtir. Ornek: gorsel 100dpi taranmis ve birim mm ise yaklasik 0.254 gir (1 inch = 25.4mm).">i</i>
+                </div>
                 <input id="contourScaleInput" type="number" min="0.000001" step="0.1" value="1" />
               </div>
             </div>
 
             <div class="contour-field-row">
               <div class="contour-field">
-                <label for="contourForegroundMode" data-i18n="contour.foreground_mode">Çizim Algılama <i class="info-icon" data-tip="Goruntude hangi piksellerin parca sayilacagini belirler. Parca konturu: koyu/acik fark ile kenar bulur, fotograf icin idealdir. Tum cizgiler: her kenar dahil edilir. Otomatik: goruntunun icerigine gore sistem karar verir.">i</i></label>
+                <div class="field-label-row">
+                  <label for="contourForegroundMode" data-i18n="contour.foreground_mode">Çizim Algılama</label>
+                  <i class="info-icon" data-tip="Goruntude hangi piksellerin parca sayilacagini belirler. Parca konturu: koyu/acik fark ile kenar bulur, fotograf icin idealdir. Tum cizgiler: her kenar dahil edilir. Otomatik: goruntunun icerigine gore sistem karar verir.">i</i>
+                </div>
                 <select id="contourForegroundMode">
                   <option value="part" selected data-i18n="contour.foreground_part">Parça konturu (ölçüsüz)</option>
                   <option value="all" data-i18n="contour.foreground_all">Tüm çizgiler</option>
@@ -56,7 +65,10 @@
             <div id="contourCalibFields" style="display:none">
               <div class="contour-field-row">
                 <div class="contour-field">
-                  <label for="contourCalibDistance" data-i18n="contour.real_distance">Gerçek Referans Mesafe <i class="info-icon" data-tip="P1 ve P2 noktalari arasindaki gercek fiziksel mesafe. Seçtiğin DXF biriminde gir. Ornek: iki nokta arasinda 50mm varsa 50 yaz, birim MM ise. Bu deger ile piksel/birim oranı hesaplanır.">i</i></label>
+                  <div class="field-label-row">
+                    <label for="contourCalibDistance" data-i18n="contour.real_distance">Gerçek Referans Mesafe</label>
+                    <i class="info-icon" data-tip="P1 ve P2 noktalari arasindaki gercek fiziksel mesafe. Sectiğin DXF biriminde gir. Ornek: iki nokta arasinda 50mm varsa 50 yaz ve birim MM sec. Bu deger ile piksel/birim oranı hesaplanir.">i</i>
+                  </div>
                   <input id="contourCalibDistance" type="number" min="0.000001" step="0.1" value="100" oninput="updateContourCalibInfo()" />
                 </div>
                 <div class="contour-field">
@@ -74,7 +86,10 @@
 
             <div class="contour-field-row">
               <div class="contour-field">
-                <label for="contourUnitSelect" data-i18n="contour.dxf_unit">DXF Birimi <i class="info-icon" data-tip="Cikti DXF dosyasinin koordinat birimi. Kalibrasyon dogru yapilmissa koordinatlar otomatik bu birime cevrilir. Ornek: MM secersen tum noktalar milimetre cinsinden yazilir. CAD programi bu birimi okuyarak gercek boyutu gosterir.">i</i></label>
+                <div class="field-label-row">
+                  <label for="contourUnitSelect" data-i18n="contour.dxf_unit">DXF Birimi</label>
+                  <i class="info-icon" data-tip="Cikti DXF dosyasinin koordinat birimi. Kalibrasyon dogru yapilmissa koordinatlar otomatik bu birime cevrilir. Ornek: MM secersen tum noktalar milimetre cinsinden yazilir. CAD programi bu birimi okuyarak gercek boyutu gosterir.">i</i>
+                </div>
                 <select id="contourUnitSelect">
                   <option value="mm">Millimeter (mm)</option>
                   <option value="unitless">Unitless</option>
@@ -85,7 +100,10 @@
                 </select>
               </div>
               <div class="contour-field">
-                <label for="contourOriginMode" data-i18n="contour.origin_mode">Koordinat Orijini <i class="info-icon tip-left" data-tip="DXF dosyasinda (0,0) noktasinin konumu. Bottom-Left: sol alt kose, CAD standardidir. Top-Left: sol ust kose. Center: parcanin geometrik merkezi. Yanlis secilirse CAD programinda parca ters gorunebilir.">i</i></label>
+                <div class="field-label-row">
+                  <label for="contourOriginMode" data-i18n="contour.origin_mode">Koordinat Orijini</label>
+                  <i class="info-icon tip-left" data-tip="DXF dosyasinda (0,0) noktasinin konumu. Bottom-Left: sol alt kose, CAD standardidir. Top-Left: sol ust kose. Center: parcanin geometrik merkezi. Yanlis secilirse CAD programinda parca ters gorunebilir.">i</i>
+                </div>
                 <select id="contourOriginMode">
                   <option value="bottom_left">Bottom-Left</option>
                   <option value="top_left">Top-Left</option>
@@ -96,33 +114,51 @@
 
             <div class="contour-field-row">
               <div class="contour-field">
-                <label for="contourMinAreaInput" data-i18n="contour.min_area">Min Kontur Alanı (px²) <i class="info-icon" data-tip="Bu piksel karesi alaninin altindaki konturlar tamamen silinir. Arka plan gurultusu, toz lekeleri ve kucuk yabancilar elenir. Fotograf icin 500-2000, taranmis teknik cizim icin 50-200 onerilen aralik.">i</i></label>
+                <div class="field-label-row">
+                  <label for="contourMinAreaInput" data-i18n="contour.min_area">Min Kontur Alanı (px²)</label>
+                  <i class="info-icon" data-tip="Bu piksel karesi alaninin altindaki konturlar tamamen silinir. Arka plan gurultusu, toz lekeleri ve kucuk yabancilar elenir. Fotograf icin 500-2000, taranmis teknik cizim icin 50-200 onerilen aralik.">i</i>
+                </div>
                 <input id="contourMinAreaInput" type="number" min="0" step="1" value="16" />
               </div>
               <div class="contour-field">
-                <label for="contourMinAreaPctInput" data-i18n="contour.min_area_pct">Min Alan Yüzdesi (%) <i class="info-icon tip-left" data-tip="Gorsel toplam alaninin yuzdesi olarak minimum kontur boyutu. Min Alan PX ile birlikte calisir, hangisi buyukse o uygulanir. Ornek: 0.5 yapilirsa gorsel alaninin yuzde 0.5inden kucuk konturlar silinir. 0 = kapali.">i</i></label>
-                <input id="contourMinAreaPctInput" type="number" min="0" max="50" step="0.01" value="0" title="Görsel alanının yüzdesi olarak minimum kontur alanı. 0 = devre dışı." />
+                <div class="field-label-row">
+                  <label for="contourMinAreaPctInput" data-i18n="contour.min_area_pct">Min Alan Yüzdesi (%)</label>
+                  <i class="info-icon tip-left" data-tip="Gorsel toplam alaninin yuzdesi olarak minimum kontur boyutu. Min Alan PX ile birlikte calisir, hangisi buyukse o uygulanir. Ornek: 0.5 yapilirsa gorsel alaninin yuzde 0.5inden kucuk konturlar silinir. 0 = kapali.">i</i>
+                </div>
+                <input id="contourMinAreaPctInput" type="number" min="0" max="50" step="0.01" value="0" />
               </div>
             </div>
 
             <div class="contour-field-row">
               <div class="contour-field">
-                <label for="contourSimplifyInput" data-i18n="contour.simplify">Polyline Sadeleştirme (px) <i class="info-icon" data-tip="RDP algoritmasi ile kontur noktalarini azaltir. Yuksek deger: az nokta, kaba hat, kucuk dosya. Dusuk deger: cok nokta, hassas hat, buyuk dosya. Fotograf icin 3-6 px, taranmis teknik cizim icin 0.5-2 px onerilir. 0 = kapali.">i</i></label>
+                <div class="field-label-row">
+                  <label for="contourSimplifyInput" data-i18n="contour.simplify">Polyline Sadeleştirme (px)</label>
+                  <i class="info-icon" data-tip="RDP algoritmasi ile kontur noktalarini azaltir. Yuksek deger: az nokta, kaba hat, kucuk dosya. Dusuk deger: cok nokta, hassas hat, buyuk dosya. Fotograf icin 3-6 px, taranmis teknik cizim icin 0.5-2 px onerilir. 0 = kapali.">i</i>
+                </div>
                 <input id="contourSimplifyInput" type="number" min="0" max="50" step="0.1" value="0.8" />
               </div>
               <div class="contour-field">
-                <label for="contourBlurSigmaInput" data-i18n="contour.blur">Gürültü Azaltma (blur σ) <i class="info-icon tip-left" data-tip="Goruntüye Gaussian bulaniklik uygular. Ahsap zemin, golge ve arka plan doku gurultusunu siler. 0 = kapali. 1.0-2.5 fotograf icin onerilir. 3.0 ve uzeri cok bulaniklastirir, ince detaylar kaybolur.">i</i></label>
-                <input id="contourBlurSigmaInput" type="number" min="0" max="10" step="0.1" value="0" title="Taranmış görsellerde gürültüyü azaltır. 0 = kapalı, 0.8-1.5 taranmış için önerilir." />
+                <div class="field-label-row">
+                  <label for="contourBlurSigmaInput" data-i18n="contour.blur">Gürültü Azaltma (blur σ)</label>
+                  <i class="info-icon tip-left" data-tip="Goruntüye Gaussian bulaniklik uygular. Ahsap zemin, golge ve arka plan doku gurultusunu siler. 0 = kapali. 1.0-2.5 fotograf icin onerilir. 3.0 ve uzeri cok bulaniklastirir, ince detaylar kaybolur.">i</i>
+                </div>
+                <input id="contourBlurSigmaInput" type="number" min="0" max="10" step="0.1" value="0" />
               </div>
             </div>
 
             <div class="contour-field-row">
               <div class="contour-field">
-                <label for="contourCircleTolerance" data-i18n="contour.circle_tol">Circle Fitting Toleransı <i class="info-icon" data-tip="Bir konturun daire sayilmasi icin esik. Dusuk (0.02): sadece mukemmel daireler. Orta (0.08): normal delikler ve yuvarlak koseler. Yuksek (0.3): oval sekiller de daire olur. Delik tanima bozuksa dusur, cok sekil daire sayiliyorsa yukselt.">i</i></label>
+                <div class="field-label-row">
+                  <label for="contourCircleTolerance" data-i18n="contour.circle_tol">Circle Fitting Toleransı</label>
+                  <i class="info-icon" data-tip="Bir konturun daire sayilmasi icin esik. Dusuk (0.02): sadece mukemmel daireler. Orta (0.08): normal delikler ve yuvarlak koseler. Yuksek (0.3): oval sekiller de daire olur. Delik tanima bozuksa dusur, cok sekil daire sayiliyorsa yukselt.">i</i>
+                </div>
                 <input id="contourCircleTolerance" type="number" min="0" max="0.5" step="0.01" value="0.08" />
               </div>
               <div class="contour-field">
-                <label for="contourMinSegInput" data-i18n="contour.min_seg">Min Segment Uzunluğu (çıktı birim) <i class="info-icon tip-left" data-tip="Bu uzunluktan kisa cizgi parcalari DXF ciktisından cikarilir. Birim seçilen DXF birimiyle aynıdir (mm, in vb.). Cok kisa titresimli segmentleri temizler. 0 = kapali, tum segmentler dahil edilir.">i</i></label>
+                <div class="field-label-row">
+                  <label for="contourMinSegInput" data-i18n="contour.min_seg">Min Segment Uzunluğu (çıktı birim)</label>
+                  <i class="info-icon tip-left" data-tip="Bu uzunluktan kisa cizgi parcalari DXF ciktisından cikarilir. Birim secilen DXF birimiyle aynıdir (mm, in vb.). Cok kisa titresimli segmentleri temizler. 0 = kapali, tum segmentler dahil edilir.">i</i>
+                </div>
                 <input id="contourMinSegInput" type="number" min="0" step="0.1" value="0" />
               </div>
             </div>
@@ -133,7 +169,10 @@
             </div>
             <div class="contour-field-row" id="contourArcToleranceRow" style="display:none">
               <div class="contour-field">
-                <label for="contourArcTolerance" data-i18n="contour.arc_tol">Arc Fitting Toleransı</label>
+                <div class="field-label-row">
+                  <label for="contourArcTolerance" data-i18n="contour.arc_tol">Arc Fitting Toleransı</label>
+                  <i class="info-icon" data-tip="Kısmi daire (arc) tespiti icin esik. Dusuk: sadece cok iyi eslesen aylar. Yuksek: daha fazla segment arc sayilir. Circle toleransindan biraz dusuk tutmak genellikle iyi sonuc verir.">i</i>
+                </div>
                 <input id="contourArcTolerance" type="number" min="0" max="0.5" step="0.01" value="0.06" />
               </div>
               <div class="contour-field"></div>

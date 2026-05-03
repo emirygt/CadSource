@@ -15,7 +15,9 @@
     .contour-fname { font-size: 11px; color: var(--green); margin-top: 8px; word-break: break-all; }
     .contour-fields { display: flex; flex-direction: column; gap: 10px; }
     .contour-field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .contour-field label { display: block; font-size: 11px; color: var(--text3); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .contour-field label { display: block; font-size: 11px; color: var(--text3); margin-bottom: 0; text-transform: uppercase; letter-spacing: 0.05em; }
+    .field-label-row { display: flex; align-items: center; gap: 3px; margin-bottom: 4px; }
+    .field-label-row label { flex: 1; margin-bottom: 0; }
     .contour-field input, .contour-field select {
       width: 100%; background: var(--bg3); border: 1px solid var(--border); color: var(--text);
       border-radius: 6px; padding: 7px 9px; font-size: 12px; outline: none;
