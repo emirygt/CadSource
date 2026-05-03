@@ -86,6 +86,7 @@ def list_categories(
 ):
     apply_tenant_schema(tenant, db)
     _ensure_categories_table(db)
+    apply_tenant_schema(tenant, db)  # commit sonrası connection değişebilir, search_path yenile
     rows = db.execute(text(
         "SELECT id, name, parent_id, color, created_at FROM categories ORDER BY id"
     )).fetchall()
