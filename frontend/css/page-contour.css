@@ -37,8 +37,11 @@
     .contour-preview-wrap img { max-width: 100%; height: auto; display: block; }
     .contour-preview-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
     .contour-preview-col { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-    .contour-source-wrap { border: 1px solid var(--border); border-radius: var(--radius); background: #f1f5f9; min-height: 240px; display: flex; align-items: center; justify-content: center; overflow: auto; }
-    .contour-source-canvas { display: block; max-width: 100%; height: auto; cursor: crosshair; }
+    .contour-source-wrap { border: 1px solid var(--border); border-radius: var(--radius); background: #1e293b; min-height: 320px; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; user-select: none; }
+    .contour-source-canvas { display: block; width: 100%; height: 320px; cursor: crosshair; }
+    .contour-zoom-badge { position: absolute; bottom: 6px; right: 8px; background: rgba(0,0,0,0.55); color: #fff; font-size: 11px; padding: 2px 7px; border-radius: 4px; pointer-events: none; }
+    .contour-source-header { display: flex; align-items: center; justify-content: space-between; }
+    .contour-source-hint { font-size: 10px; color: var(--text3); }
     .contour-mini-note { font-size: 11px; color: var(--text3); }
     .contour-calib-info { font-size: 11px; color: var(--text2); background: var(--bg3); border: 1px solid var(--border); border-radius: 6px; padding: 8px 9px; }
     .contour-quality { background: var(--bg3); border: 1px solid var(--border); border-radius: 7px; padding: 9px; display: flex; flex-direction: column; gap: 6px; }

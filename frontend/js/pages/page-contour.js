@@ -6,11 +6,81 @@ const contourState = {
   initialized: false,
   sourceImage: null,
   calibPoints: [],
+  zoom: 1,
+  panX: 0,
+  panY: 0,
+  _drag: null,
 };
+
+function _contourCanvasSize() {
+  const canvas = document.getElementById('contourSourceCanvas');
+  const wrap = document.getElementById('contourSourceWrap');
+  canvas.width = wrap.offsetWidth || 700;
+  canvas.height = 320;
+}
+
+function _contourFit() {
+  const canvas = document.getElementById('contourSourceCanvas');
+  const img = contourState.sourceImage;
+  if (!img || !canvas) return;
+  _contourCanvasSize();
+  const z = Math.min(canvas.width / img.naturalWidth, canvas.height / img.naturalHeight) * 0.96;
+  contourState.zoom = z;
+  contourState.panX = (canvas.width - img.naturalWidth * z) / 2;
+  contourState.panY = (canvas.height - img.naturalHeight * z) / 2;
+}
+
+function contourFitView() {
+  _contourFit();
+  drawContourSourceCanvas();
+}
 
 function initContourTab() {
   if (contourState.initialized) return;
   contourState.initialized = true;
+
+  const canvas = document.getElementById('contourSourceCanvas');
+  _contourCanvasSize();
+
+  canvas.addEventListener('wheel', e => {
+    e.preventDefault();
+    if (!contourState.sourceImage) return;
+    const rect = canvas.getBoundingClientRect();
+    const mx = (e.clientX - rect.left) * (canvas.width / rect.width);
+    const my = (e.clientY - rect.top) * (canvas.height / rect.height);
+    const factor = e.deltaY < 0 ? 1.15 : 1 / 1.15;
+    const newZoom = Math.max(0.05, Math.min(40, contourState.zoom * factor));
+    contourState.panX = mx - (mx - contourState.panX) * (newZoom / contourState.zoom);
+    contourState.panY = my - (my - contourState.panY) * (newZoom / contourState.zoom);
+    contourState.zoom = newZoom;
+    drawContourSourceCanvas();
+  }, { passive: false });
+
+  canvas.addEventListener('mousedown', e => {
+    if (e.button !== 0) return;
+    contourState._drag = { startX: e.clientX, startY: e.clientY, startPanX: contourState.panX, startPanY: contourState.panY, moved: false };
+    canvas.style.cursor = 'grabbing';
+  });
+
+  window.addEventListener('mousemove', e => {
+    if (!contourState._drag) return;
+    const dx = e.clientX - contourState._drag.startX;
+    const dy = e.clientY - contourState._drag.startY;
+    if (Math.abs(dx) + Math.abs(dy) > 4) contourState._drag.moved = true;
+    if (!contourState._drag.moved) return;
+    contourState.panX = contourState._drag.startPanX + dx;
+    contourState.panY = contourState._drag.startPanY + dy;
+    drawContourSourceCanvas();
+  });
+
+  window.addEventListener('mouseup', e => {
+    if (!contourState._drag) return;
+    const wasMoved = contourState._drag.moved;
+    contourState._drag = null;
+    canvas.style.cursor = 'crosshair';
+    if (!wasMoved) onContourSourceCanvasClick(e);
+  });
+
   onContourCalibrationModeChange();
   document.getElementById('contourDetectArcs').addEventListener('change', function() {
     document.getElementById('contourArcToleranceRow').style.display = this.checked ? '' : 'none';
@@ -97,48 +167,61 @@ function updateContourCalibInfo() {
 function drawContourSourceCanvas() {
   const canvas = document.getElementById('contourSourceCanvas');
   const empty = document.getElementById('contourSourceEmpty');
+  const badge = document.getElementById('contourZoomBadge');
   const img = contourState.sourceImage;
 
   if (!img) {
     canvas.style.display = 'none';
     empty.style.display = '';
+    if (badge) badge.style.display = 'none';
     return;
   }
 
-  canvas.width = img.naturalWidth;
-  canvas.height = img.naturalHeight;
   canvas.style.display = 'block';
   empty.style.display = 'none';
 
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-  const pts = contourState.calibPoints;
-  if (!pts.length) return;
 
   ctx.save();
-  ctx.lineWidth = Math.max(2, Math.round(Math.max(canvas.width, canvas.height) / 550));
-  ctx.strokeStyle = '#facc15';
-  ctx.fillStyle = '#facc15';
+  ctx.translate(contourState.panX, contourState.panY);
+  ctx.scale(contourState.zoom, contourState.zoom);
+  ctx.drawImage(img, 0, 0, img.naturalWidth, img.naturalHeight);
+  ctx.restore();
 
-  if (pts.length >= 2) {
-    ctx.beginPath();
-    ctx.moveTo(pts[0].x, pts[0].y);
-    ctx.lineTo(pts[1].x, pts[1].y);
-    ctx.stroke();
+  const pts = contourState.calibPoints;
+  if (pts.length) {
+    const toC = p => ({ cx: p.x * contourState.zoom + contourState.panX, cy: p.y * contourState.zoom + contourState.panY });
+    ctx.save();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#facc15';
+    ctx.fillStyle = '#facc15';
+
+    if (pts.length >= 2) {
+      const a = toC(pts[0]), b = toC(pts[1]);
+      ctx.beginPath();
+      ctx.moveTo(a.cx, a.cy);
+      ctx.lineTo(b.cx, b.cy);
+      ctx.stroke();
+    }
+
+    pts.forEach((p, idx) => {
+      const { cx, cy } = toC(p);
+      ctx.beginPath();
+      ctx.arc(cx, cy, 6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#f1f5f9';
+      ctx.font = 'bold 13px sans-serif';
+      ctx.fillText(idx === 0 ? 'P1' : 'P2', cx + 9, cy - 9);
+      ctx.fillStyle = '#facc15';
+    });
+    ctx.restore();
   }
 
-  pts.forEach((p, idx) => {
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, 6, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#f1f5f9';
-    ctx.font = 'bold 12px sans-serif';
-    ctx.fillText(idx === 0 ? 'P1' : 'P2', p.x + 8, p.y - 8);
-    ctx.fillStyle = '#facc15';
-  });
-  ctx.restore();
+  if (badge) {
+    badge.style.display = '';
+    badge.textContent = `${(contourState.zoom * 100).toFixed(0)}%`;
+  }
 }
 
 function onContourSourceCanvasClick(e) {
@@ -149,8 +232,12 @@ function onContourSourceCanvasClick(e) {
   const rect = canvas.getBoundingClientRect();
   if (rect.width <= 0 || rect.height <= 0) return;
 
-  const x = (e.clientX - rect.left) * (canvas.width / rect.width);
-  const y = (e.clientY - rect.top) * (canvas.height / rect.height);
+  const cx = (e.clientX - rect.left) * (canvas.width / rect.width);
+  const cy = (e.clientY - rect.top) * (canvas.height / rect.height);
+  const x = (cx - contourState.panX) / contourState.zoom;
+  const y = (cy - contourState.panY) / contourState.zoom;
+
+  if (x < 0 || y < 0 || x > contourState.sourceImage.naturalWidth || y > contourState.sourceImage.naturalHeight) return;
 
   if (contourState.calibPoints.length >= 2) contourState.calibPoints = [];
   contourState.calibPoints.push({ x, y });
@@ -198,6 +285,7 @@ function setContourFile(file) {
     const img = new Image();
     img.onload = () => {
       contourState.sourceImage = img;
+      _contourFit();
       drawContourSourceCanvas();
       updateContourCalibInfo();
     };
@@ -211,6 +299,10 @@ function clearContourState() {
   contourState.result = null;
   contourState.sourceImage = null;
   contourState.calibPoints = [];
+  contourState.zoom = 1;
+  contourState.panX = 0;
+  contourState.panY = 0;
+  contourState._drag = null;
   document.getElementById('contourFileInput').value = '';
   document.getElementById('contourFname').textContent = '';
   document.getElementById('contourDrop').classList.remove('loaded');

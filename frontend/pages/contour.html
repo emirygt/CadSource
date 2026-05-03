@@ -171,10 +171,17 @@
         </div>
 
         <div class="contour-panel">
-          <div class="section-label" data-i18n="contour.calib_source">Kalibrasyon Kaynağı (P1/P2 seçim)</div>
-          <div class="contour-source-wrap">
-            <canvas id="contourSourceCanvas" class="contour-source-canvas" onclick="onContourSourceCanvasClick(event)"></canvas>
+          <div class="contour-source-header">
+            <div class="section-label" data-i18n="contour.calib_source">Kalibrasyon Kaynağı (P1/P2 seçim)</div>
+            <div style="display:flex;gap:6px;align-items:center">
+              <span class="contour-source-hint">Scroll: zoom · Drag: pan</span>
+              <button class="contour-btn" style="padding:3px 8px;font-size:11px" onclick="contourFitView()" title="Görüntüyü sığdır">Fit</button>
+            </div>
+          </div>
+          <div class="contour-source-wrap" id="contourSourceWrap">
+            <canvas id="contourSourceCanvas" class="contour-source-canvas"></canvas>
             <div class="contour-empty" id="contourSourceEmpty" data-i18n="contour.no_image">Henüz görsel yüklenmedi</div>
+            <div class="contour-zoom-badge" id="contourZoomBadge" style="display:none">100%</div>
           </div>
           <div class="section-label" data-i18n="contour.output_preview">Çıktı Önizleme</div>
           <div class="contour-preview-grid">
