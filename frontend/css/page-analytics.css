@@ -1,6 +1,7 @@
     /* ══════════════════════════════════════════
        ANALİTİK SAYFASI
     ══════════════════════════════════════════ */
+    #page-analytics.active { background: #A1A1A1; }
     .analytics-layout { padding: 0; display: flex; flex-direction: column; gap: 14px; max-width: 1280px; }
     .dashboard-total-card {
       background: linear-gradient(145deg, #ffffff 0%, #f8fbff 100%);
