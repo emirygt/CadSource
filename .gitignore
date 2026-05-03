@@ -37,6 +37,7 @@ id_ed25519
 .mypy_cache/
 dist/
 build/
+!frontend-react/dist/
 
 # Node
 node_modules/
