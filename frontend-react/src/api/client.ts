@@ -14,7 +14,8 @@ client.interceptors.request.use((config) => {
 client.interceptors.response.use(
   (res) => res,
   (err) => {
-    if (err.response?.status === 401) {
+    const isLoginCall = err.config?.url?.includes('/auth/login')
+    if (err.response?.status === 401 && !isLoginCall) {
       localStorage.removeItem('token')
       window.location.href = '/app/login'
     }
