@@ -28,7 +28,7 @@
           <div class="contour-fields">
             <div class="contour-field-row">
               <div class="contour-field">
-                <label for="contourCalibrationMode" data-i18n="contour.calib_mode">Kalibrasyon Modu</label>
+                <label for="contourCalibrationMode" data-i18n="contour.calib_mode">Kalibrasyon Modu <i class="info-icon" data-tip="Piksellerin gercek olcuye nasil cevrileceği. Otomatik: sayfa DPI tahmini yapar. Manuel: 1px = kac birim oldugunu sen belirlersin. 2 Nokta: goruntude iki noktaya tikla, aralarindaki gercek mesafeyi gir. Olculu DXF istiyorsan 2 Nokta en dogrusu.">i</i></label>
                 <select id="contourCalibrationMode" onchange="onContourCalibrationModeChange()">
                   <option value="auto_scan" data-i18n="contour.calib_auto">Otomatik Tarama Kalibrasyonu (Önerilen)</option>
                   <option value="factor" data-i18n="contour.calib_factor">Manual Ölçek</option>
@@ -36,14 +36,14 @@
                 </select>
               </div>
               <div class="contour-field">
-                <label for="contourScaleInput" data-i18n="contour.scale_factor">Manual Ölçek Çarpanı</label>
+                <label for="contourScaleInput" data-i18n="contour.scale_factor">Manual Ölçek Çarpanı <i class="info-icon tip-left" data-tip="Sadece Manuel Olcek modunda aktif. 1 piksel kac birime karsılik geldigini belirtir. Ornek: gorsel 100dpi taranmis ve birim mm ise yaklasik 0.254 gir (1 inch = 25.4mm).">i</i></label>
                 <input id="contourScaleInput" type="number" min="0.000001" step="0.1" value="1" />
               </div>
             </div>
 
             <div class="contour-field-row">
               <div class="contour-field">
-                <label for="contourForegroundMode" data-i18n="contour.foreground_mode">Çizim Algılama</label>
+                <label for="contourForegroundMode" data-i18n="contour.foreground_mode">Çizim Algılama <i class="info-icon" data-tip="Goruntude hangi piksellerin parca sayilacagini belirler. Parca konturu: koyu/acik fark ile kenar bulur, fotograf icin idealdir. Tum cizgiler: her kenar dahil edilir. Otomatik: goruntunun icerigine gore sistem karar verir.">i</i></label>
                 <select id="contourForegroundMode">
                   <option value="part" selected data-i18n="contour.foreground_part">Parça konturu (ölçüsüz)</option>
                   <option value="all" data-i18n="contour.foreground_all">Tüm çizgiler</option>
@@ -56,7 +56,7 @@
             <div id="contourCalibFields" style="display:none">
               <div class="contour-field-row">
                 <div class="contour-field">
-                  <label for="contourCalibDistance" data-i18n="contour.real_distance">Gerçek Referans Mesafe</label>
+                  <label for="contourCalibDistance" data-i18n="contour.real_distance">Gerçek Referans Mesafe <i class="info-icon" data-tip="P1 ve P2 noktalari arasindaki gercek fiziksel mesafe. Seçtiğin DXF biriminde gir. Ornek: iki nokta arasinda 50mm varsa 50 yaz, birim MM ise. Bu deger ile piksel/birim oranı hesaplanır.">i</i></label>
                   <input id="contourCalibDistance" type="number" min="0.000001" step="0.1" value="100" oninput="updateContourCalibInfo()" />
                 </div>
                 <div class="contour-field">
@@ -74,7 +74,7 @@
 
             <div class="contour-field-row">
               <div class="contour-field">
-                <label for="contourUnitSelect" data-i18n="contour.dxf_unit">DXF Birimi</label>
+                <label for="contourUnitSelect" data-i18n="contour.dxf_unit">DXF Birimi <i class="info-icon" data-tip="Cikti DXF dosyasinin koordinat birimi. Kalibrasyon dogru yapilmissa koordinatlar otomatik bu birime cevrilir. Ornek: MM secersen tum noktalar milimetre cinsinden yazilir. CAD programi bu birimi okuyarak gercek boyutu gosterir.">i</i></label>
                 <select id="contourUnitSelect">
                   <option value="mm">Millimeter (mm)</option>
                   <option value="unitless">Unitless</option>
@@ -85,7 +85,7 @@
                 </select>
               </div>
               <div class="contour-field">
-                <label for="contourOriginMode" data-i18n="contour.origin_mode">Koordinat Orijini</label>
+                <label for="contourOriginMode" data-i18n="contour.origin_mode">Koordinat Orijini <i class="info-icon tip-left" data-tip="DXF dosyasinda (0,0) noktasinin konumu. Bottom-Left: sol alt kose, CAD standardidir. Top-Left: sol ust kose. Center: parcanin geometrik merkezi. Yanlis secilirse CAD programinda parca ters gorunebilir.">i</i></label>
                 <select id="contourOriginMode">
                   <option value="bottom_left">Bottom-Left</option>
                   <option value="top_left">Top-Left</option>
@@ -96,40 +96,40 @@
 
             <div class="contour-field-row">
               <div class="contour-field">
-                <label for="contourMinAreaInput" data-i18n="contour.min_area">Min Kontur Alanı (px²)</label>
+                <label for="contourMinAreaInput" data-i18n="contour.min_area">Min Kontur Alanı (px²) <i class="info-icon" data-tip="Bu piksel karesi alaninin altindaki konturlar tamamen silinir. Arka plan gurultusu, toz lekeleri ve kucuk yabancilar elenir. Fotograf icin 500-2000, taranmis teknik cizim icin 50-200 onerilen aralik.">i</i></label>
                 <input id="contourMinAreaInput" type="number" min="0" step="1" value="16" />
               </div>
               <div class="contour-field">
-                <label for="contourMinAreaPctInput" data-i18n="contour.min_area_pct">Min Alan Yüzdesi (%)</label>
+                <label for="contourMinAreaPctInput" data-i18n="contour.min_area_pct">Min Alan Yüzdesi (%) <i class="info-icon tip-left" data-tip="Gorsel toplam alaninin yuzdesi olarak minimum kontur boyutu. Min Alan PX ile birlikte calisir, hangisi buyukse o uygulanir. Ornek: 0.5 yapilirsa gorsel alaninin yuzde 0.5inden kucuk konturlar silinir. 0 = kapali.">i</i></label>
                 <input id="contourMinAreaPctInput" type="number" min="0" max="50" step="0.01" value="0" title="Görsel alanının yüzdesi olarak minimum kontur alanı. 0 = devre dışı." />
               </div>
             </div>
 
             <div class="contour-field-row">
               <div class="contour-field">
-                <label for="contourSimplifyInput" data-i18n="contour.simplify">Polyline Sadeleştirme (px)</label>
+                <label for="contourSimplifyInput" data-i18n="contour.simplify">Polyline Sadeleştirme (px) <i class="info-icon" data-tip="RDP algoritmasi ile kontur noktalarini azaltir. Yuksek deger: az nokta, kaba hat, kucuk dosya. Dusuk deger: cok nokta, hassas hat, buyuk dosya. Fotograf icin 3-6 px, taranmis teknik cizim icin 0.5-2 px onerilir. 0 = kapali.">i</i></label>
                 <input id="contourSimplifyInput" type="number" min="0" max="50" step="0.1" value="0.8" />
               </div>
               <div class="contour-field">
-                <label for="contourBlurSigmaInput" data-i18n="contour.blur">Gürültü Azaltma (blur σ)</label>
+                <label for="contourBlurSigmaInput" data-i18n="contour.blur">Gürültü Azaltma (blur σ) <i class="info-icon tip-left" data-tip="Goruntüye Gaussian bulaniklik uygular. Ahsap zemin, golge ve arka plan doku gurultusunu siler. 0 = kapali. 1.0-2.5 fotograf icin onerilir. 3.0 ve uzeri cok bulaniklastirir, ince detaylar kaybolur.">i</i></label>
                 <input id="contourBlurSigmaInput" type="number" min="0" max="10" step="0.1" value="0" title="Taranmış görsellerde gürültüyü azaltır. 0 = kapalı, 0.8-1.5 taranmış için önerilir." />
               </div>
             </div>
 
             <div class="contour-field-row">
               <div class="contour-field">
-                <label for="contourCircleTolerance" data-i18n="contour.circle_tol">Circle Fitting Toleransı</label>
+                <label for="contourCircleTolerance" data-i18n="contour.circle_tol">Circle Fitting Toleransı <i class="info-icon" data-tip="Bir konturun daire sayilmasi icin esik. Dusuk (0.02): sadece mukemmel daireler. Orta (0.08): normal delikler ve yuvarlak koseler. Yuksek (0.3): oval sekiller de daire olur. Delik tanima bozuksa dusur, cok sekil daire sayiliyorsa yukselt.">i</i></label>
                 <input id="contourCircleTolerance" type="number" min="0" max="0.5" step="0.01" value="0.08" />
               </div>
               <div class="contour-field">
-                <label for="contourMinSegInput" data-i18n="contour.min_seg">Min Segment Uzunluğu (çıktı birim)</label>
+                <label for="contourMinSegInput" data-i18n="contour.min_seg">Min Segment Uzunluğu (çıktı birim) <i class="info-icon tip-left" data-tip="Bu uzunluktan kisa cizgi parcalari DXF ciktisından cikarilir. Birim seçilen DXF birimiyle aynıdir (mm, in vb.). Cok kisa titresimli segmentleri temizler. 0 = kapali, tum segmentler dahil edilir.">i</i></label>
                 <input id="contourMinSegInput" type="number" min="0" step="0.1" value="0" />
               </div>
             </div>
 
             <div class="contour-field-row">
-              <label class="contour-check"><input type="checkbox" id="contourDetectCircles" checked> <span data-i18n="contour.detect_circles">Daireleri CIRCLE/ELLIPSE olarak yaz</span></label>
-              <label class="contour-check"><input type="checkbox" id="contourDetectArcs"> <span data-i18n="contour.detect_arcs">Yayları ARC olarak yaz</span></label>
+              <label class="contour-check"><input type="checkbox" id="contourDetectCircles" checked> <span data-i18n="contour.detect_circles">Daireleri CIRCLE/ELLIPSE olarak yaz</span> <i class="info-icon" data-tip="Dairesel konturlari polyline yerine CAD CIRCLE veya ELLIPSE entity olarak yazar. Daha temiz DXF, kucuk dosya boyutu ve CAD programinda olcum kolayligi saglar. Delik caplari otomatik dogru cikar.">i</i></label>
+              <label class="contour-check"><input type="checkbox" id="contourDetectArcs"> <span data-i18n="contour.detect_arcs">Yayları ARC olarak yaz</span> <i class="info-icon tip-left" data-tip="Kismen dairesel segmentleri ARC entity olarak yazar. Hassas ancak islem suresi artar. Net kenarlı ve simetrik parcalarda ise yarar. Karisik veya organik sekillerde onerilmez.">i</i></label>
             </div>
             <div class="contour-field-row" id="contourArcToleranceRow" style="display:none">
               <div class="contour-field">
@@ -139,11 +139,11 @@
               <div class="contour-field"></div>
             </div>
             <div class="contour-field-row">
-              <label class="contour-check"><input type="checkbox" id="contourFlipX"> <span data-i18n="contour.flip_x">X eksenini çevir (flip)</span></label>
-              <label class="contour-check"><input type="checkbox" id="contourFlipY"> <span data-i18n="contour.flip_y">Y eksenini çevir (flip)</span></label>
+              <label class="contour-check"><input type="checkbox" id="contourFlipX"> <span data-i18n="contour.flip_x">X eksenini çevir (flip)</span> <i class="info-icon" data-tip="DXF koordinatlarini X ekseninde aynalar. Goruntu sag-sol yanlis cevrilmisse veya CAD programinda aynali goruntuse bu secenegi kullan.">i</i></label>
+              <label class="contour-check"><input type="checkbox" id="contourFlipY"> <span data-i18n="contour.flip_y">Y eksenini çevir (flip)</span> <i class="info-icon tip-left" data-tip="DXF koordinatlarini Y ekseninde aynalar. Goruntu alt-ust yanlis cevrilmisse veya CAD programinda ters duruyorsa bu secenegi kullan.">i</i></label>
             </div>
             <div class="contour-field-row">
-              <label class="contour-check"><input type="checkbox" id="contourExportSvg"> <span data-i18n="contour.export_svg">SVG de üret</span></label>
+              <label class="contour-check"><input type="checkbox" id="contourExportSvg"> <span data-i18n="contour.export_svg">SVG de üret</span> <i class="info-icon" data-tip="DXF ye ek olarak SVG formatinda da cikti uretir. SVG tarayicida dogrudan acilabilir ve vektörel onizleme icin kullanislidir. Islem suresi biraz artar, buyuk gorsellerde belirgin olabilir.">i</i></label>
               <span class="contour-mini-note" data-i18n="contour.layers_note">Katmanlar: DIŞ / İÇ / DELİKLER / REF</span>
             </div>
           </div>

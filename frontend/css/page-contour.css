@@ -50,3 +50,34 @@
     .contour-empty { text-align: center; color: var(--text3); font-size: 12px; padding: 20px; }
     .contour-msg { font-size: 12px; color: var(--text3); min-height: 18px; }
 
+    .info-icon {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 14px; height: 14px; border-radius: 50%;
+      background: rgba(99,102,241,0.15); color: #6366f1;
+      font-size: 9px; font-weight: 700; font-style: normal;
+      cursor: help; position: relative; vertical-align: middle;
+      margin-left: 4px; flex-shrink: 0; line-height: 1;
+      text-transform: none; letter-spacing: normal;
+    }
+    .info-icon::before {
+      content: attr(data-tip);
+      position: absolute; bottom: calc(100% + 8px); left: 50%;
+      transform: translateX(-50%);
+      background: #0f172a; color: #cbd5e1;
+      font-size: 11px; font-weight: 400; line-height: 1.55;
+      padding: 9px 12px; border-radius: 8px;
+      white-space: normal; width: 230px;
+      pointer-events: none; opacity: 0; transition: opacity 0.15s;
+      z-index: 9999; box-shadow: 0 6px 20px rgba(0,0,0,0.45);
+      text-transform: none; letter-spacing: normal;
+    }
+    .info-icon::after {
+      content: ''; position: absolute; bottom: calc(100% + 3px);
+      left: 50%; transform: translateX(-50%);
+      border: 5px solid transparent; border-top-color: #0f172a;
+      pointer-events: none; opacity: 0; transition: opacity 0.15s; z-index: 9999;
+    }
+    .info-icon:hover::before, .info-icon:hover::after { opacity: 1; }
+    .info-icon.tip-left::before { left: auto; right: -4px; transform: none; }
+    .info-icon.tip-left::after { left: auto; right: 4px; transform: none; }
+
